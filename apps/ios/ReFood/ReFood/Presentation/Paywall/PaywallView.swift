@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct PaywallView: View {
-    let onClose: () -> Void
-
     enum Plan { case weekly, yearly }
     @State private var selectedPlan: Plan = .weekly
 
@@ -76,7 +74,7 @@ struct PaywallView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 12)
 
-            CloseCircleButton {onClose()}
+            CloseCircleButton {}
             .padding(.trailing, 5)
         }
     }

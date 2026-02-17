@@ -1,21 +1,42 @@
-//
-//  ReFoodApp.swift
-//  ReFood
-//
-//  Created by Kateryna Shashkina on 27.01.2026.
-//
-
 import SwiftUI
 
 struct RootView: View {
+
+    private enum Step {
+        case splash
+        case onboarding
+        case paywall
+    }
+
+    @State private var step: Step = .splash
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            if step == .onboarding {
+                OnboardingFlowView {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        step = .paywall
+                    }
+                }
+                .transition(.opacity)
+            }
+
+            if step == .paywall {
+                PaywallView()
+                    .transition(.opacity)
+            }
+
+            if step == .splash {
+                SplashView {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        step = .onboarding
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
-        .padding()
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
