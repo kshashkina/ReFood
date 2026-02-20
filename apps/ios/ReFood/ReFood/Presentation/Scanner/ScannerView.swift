@@ -1,7 +1,9 @@
 import SwiftUI
+import AVFoundation
 
 struct ScannerView: View {
 
+    let session: AVCaptureSession
     let onClose: () -> Void
     let onTapTorch: (_ isOn: Bool) -> Void
     let onTapManualInput: () -> Void
@@ -11,10 +13,14 @@ struct ScannerView: View {
 
     var body: some View {
         ZStack {
+
+            CameraPreviewView(session: session)
+                .ignoresSafeArea()
+
             LinearGradient(
                 colors: [
-                    Color(red: 26/255, green: 26/255, blue: 26/255),
-                    Color(red: 10/255, green: 10/255, blue: 10/255)
+                    Color(red: 26/255, green: 26/255, blue: 26/255).opacity(0.4),
+                    Color(red: 10/255, green: 10/255, blue: 10/255).opacity(0.8)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -54,6 +60,7 @@ struct ScannerView: View {
 
 #Preview {
     ScannerView(
+        session: AVCaptureSession(),
         onClose: {},
         onTapTorch: { _ in },
         onTapManualInput: {},
