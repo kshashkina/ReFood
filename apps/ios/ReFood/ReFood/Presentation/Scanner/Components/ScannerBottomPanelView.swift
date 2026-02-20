@@ -8,7 +8,7 @@ struct ScannerBottomPanelView: View {
     let onTapScan: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             LinearGradient(
                 colors: [
                     Color.black.opacity(0.0),
@@ -18,10 +18,11 @@ struct ScannerBottomPanelView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 332)
-            .overlay(contentOverlay, alignment: .top)
+            .ignoresSafeArea(edges: .bottom)
+            contentOverlay
         }
         .frame(maxWidth: .infinity)
+        .frame(height: 332)
     }
     
     private var contentOverlay: some View {

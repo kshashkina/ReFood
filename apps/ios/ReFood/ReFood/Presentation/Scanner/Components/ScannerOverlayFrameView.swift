@@ -16,11 +16,11 @@ struct ScannerOverlayFrameView: View {
 
             corner(top: false, left: true)
                 .frame(width: 48, height: 48)
-                .position(x: 24, y: 400 - 24)
+                .position(x: 24, y: 390 - 24)
 
             corner(top: false, left: false)
                 .frame(width: 48, height: 48)
-                .position(x: 288 - 24, y: 400 - 24)
+                .position(x: 288 - 24, y: 390 - 24)
         }
     }
 
