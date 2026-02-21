@@ -11,6 +11,7 @@ struct ScannerScreen: View {
     var body: some View {
         ScannerView(
             session: vm.session,
+            isLoading: vm.isLoadingProduct,
             onClose: {
                 vm.onDisappear()
                 onClose()
