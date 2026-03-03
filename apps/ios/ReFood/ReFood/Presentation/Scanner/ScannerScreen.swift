@@ -8,7 +8,8 @@ struct ScannerScreen: View {
 
     @StateObject private var vm = ScannerViewModel()
     @State private var previewProduct: Product? = nil
-    @State private var detailsProduct: Product? = nil  
+    @State private var detailsProduct: Product? = nil
+    @State private var showNotFoundModal = false
 
     var body: some View {
         ScannerView(
@@ -29,6 +30,18 @@ struct ScannerScreen: View {
                 previewProduct = product
             }
         }
+
+        .onChange(of: vm.productErrorMessage) { _, msg in
+            let isNotFound = (msg == "Product not found")
+            if isNotFound {
+                previewProduct = nil
+                detailsProduct = nil
+                showNotFoundModal = true
+            } else {
+                showNotFoundModal = false
+            }
+        }
+
         .fullScreenCover(item: $previewProduct) { product in
             ProductPreviewScreen(
                 product: product,
@@ -51,6 +64,22 @@ struct ScannerScreen: View {
                 product: product,
                 onBack: {
                     detailsProduct = nil
+                    vm.scanAgain()
+                }
+            )
+        }
+        .fullScreenCover(isPresented: $showNotFoundModal) {
+            ProductNotFoundModalView(
+                isPresented: $showNotFoundModal,
+                barcode: vm.scannedCode ?? "",
+                onTryAgain: {
+                    showNotFoundModal = false
+                    vm.scanAgain()
+                },
+                onAddProduct: {
+                },
+                onClose: {
+                    showNotFoundModal = false
                     vm.scanAgain()
                 }
             )

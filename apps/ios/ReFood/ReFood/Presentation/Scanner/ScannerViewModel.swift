@@ -79,12 +79,16 @@ final class ScannerViewModel: ObservableObject {
             switch error {
             case .notFound:
                 productErrorMessage = "Product not found"
+                isScanning = false
             case .invalidData:
                 productErrorMessage = "Invalid product data"
+                isScanning = false
             case .network:
                 productErrorMessage = "Network error"
+                isScanning = false
             case .unknown:
                 productErrorMessage = "Unknown error"
+                isScanning = false
             }
 
         } catch {
