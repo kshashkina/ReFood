@@ -42,12 +42,14 @@ final class ScannerViewModel: ObservableObject {
         isScanning = false
     }
 
-    // func scanAgain() {
-       // scannedCode = nil
-       // scanner.reset()
-        // startScanning()
-    // } - по ідеї не потрібне буде, але в дебазі допомогло, то потім приберу якщо не будемо юзати
-
+    func scanAgain() {
+        product = nil
+        productErrorMessage = nil
+        scannedCode = nil
+        scanner.reset()
+        startScanning()
+    }
+    
     func toggleTorch() {
         isTorchEnabled.toggle()
         scanner.setTorch(enabled: isTorchEnabled)
