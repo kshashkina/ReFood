@@ -8,6 +8,7 @@ struct ScannerScreen: View {
 
     @StateObject private var vm = ScannerViewModel()
     @State private var previewProduct: Product? = nil
+    @State private var detailsProduct: Product? = nil  
 
     var body: some View {
         ScannerView(
@@ -37,9 +38,19 @@ struct ScannerScreen: View {
                 },
                 onContinue: {
                     previewProduct = nil
+                    detailsProduct = product
                 },
                 onScanAgain: {
                     previewProduct = nil
+                    vm.scanAgain()
+                }
+            )
+        }
+        .fullScreenCover(item: $detailsProduct) { product in
+            ProductDetailsScreen(
+                product: product,
+                onBack: {
+                    detailsProduct = nil
                     vm.scanAgain()
                 }
             )

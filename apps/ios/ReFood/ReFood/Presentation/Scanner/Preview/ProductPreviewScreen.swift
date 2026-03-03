@@ -26,19 +26,12 @@ struct ProductPreviewScreen: View {
         GeometryReader { geo in
             let side = geo.size.width - 32
             ZStack {
-                AsyncImage(url: imageURL) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholder
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .failure:
-                        placeholder
-                    @unknown default:
-                        placeholder
-                    }
+                CachedAsyncImage(
+                    url: URL(string: product.imageUrl ?? ""),
+                    contentMode: .fill
+                ) {
+                    placeholder
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .frame(width: side, height: side)
                 .clipped()
