@@ -1,41 +1,42 @@
 import Foundation
 
 public struct Product: Decodable, Equatable {
-    public let ingredientsTextEn: String?
-    public let productNameEn: String?
-    public let novaGroup: Int?
-    public let ecoscoreGrade: String?
-    public let packaging: [PackagingItem]?
-    public let servingSize: String?
-    public let brands: String?
-    public let imageUrl: String?
-    public let nutriscoreGrade: String?
     public let barcode: String
-    public let quantity: String?
-    public let ingredientsText: String?
-    public let categoriesTags: [String]?
     public let productName: String?
-    public let allergensTags: [String]?
-    public let nutriments: Nutriments?
-    public let ingredientsAnalysisTags: [String]?
+    public let brands: String?
+    public let quantity: String?
+    public let imageUrl: String?
+    public let analysisEn: String?
+    public let analysisUa: String?
+    public let categoriesTagsEn: [String]?
+    public let categoriesTagsUa: [String]?
+    public let ingredientsEn: [String]?
+    public let ingredientsUa: [String]?
+    public let allergensEn: [String]?
+    public let allergensUa: [String]?
+    public let packagingEn: [PackagingItem]?
+    public let packagingUa: [PackagingItem]?
+    public let nutriscoreGrade: String?
+    public let ecoscoreGrade: String?
+    public let novaGroup: Int?
+        public let nutriments: Nutriments?
 
     enum CodingKeys: String, CodingKey {
-        case ingredientsTextEn = "ingredients_text_en"
-        case productNameEn = "product_name_en"
-        case novaGroup = "nova_group"
-        case ecoscoreGrade = "ecoscore_grade"
-        case packaging
-        case servingSize = "serving_size"
-        case brands
-        case imageUrl = "image_url"
-        case nutriscoreGrade = "nutriscore_grade"
-        case barcode
-        case quantity
-        case ingredientsText = "ingredients_text"
-        case categoriesTags = "categories_tags"
+        case barcode, brands, quantity, nutriments
         case productName = "product_name"
-        case allergensTags = "allergens_tags"
-        case nutriments
-        case ingredientsAnalysisTags = "ingredients_analysis_tags"
+        case imageUrl = "image_url"
+        case analysisEn = "analysis_en"
+        case analysisUa = "analysis_ua"
+        case categoriesTagsEn = "categories_tags_en"
+        case categoriesTagsUa = "categories_tags_ua"
+        case ingredientsEn = "ingredients_en"
+        case ingredientsUa = "ingredients_ua"
+        case allergensEn = "allergens_en"
+        case allergensUa = "allergens_ua"
+        case packagingEn = "packaging_en"
+        case packagingUa = "packaging_ua"
+        case nutriscoreGrade = "nutriscore_grade"
+        case ecoscoreGrade = "ecoscore_grade"
+        case novaGroup = "nova_group"
     }
 }

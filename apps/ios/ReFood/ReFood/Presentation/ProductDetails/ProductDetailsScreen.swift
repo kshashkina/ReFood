@@ -26,6 +26,11 @@ struct ProductDetailsScreen: View {
 
                     infoCard
                         .padding(.horizontal, 24)
+                    
+                    if let insight = aiAnalysis {
+                        AIInsightCard(text: insight)
+                            .padding(.horizontal, 24)
+                    }
 
                     scoreRow
                         .padding(.horizontal, 24)
@@ -287,15 +292,20 @@ struct ProductDetailsScreen: View {
                     .buttonStyle(.plain)
                 }
 
-                let materials = packagingMaterials
-                if materials.isEmpty {
+                let items = packagingItems
+                if items.isEmpty {
                     Text("No packaging data")
                         .foregroundStyle(Color.white.opacity(0.55))
                         .font(.system(size: 14))
                 } else {
                     VStack(spacing: 12) {
-                        ForEach(Array(materials.enumerated()), id: \.offset) { _, m in
-                            PackagingRow(title: m, subtitle: "", accent: accent)
+                        ForEach(0..<items.count, id: \.self) { index in
+                            let item = items[index]
+                            PackagingRow(
+                                title: item.title,
+                                subtitle: item.subtitle,
+                                accent: accent
+                            )
                         }
                     }
                 }
@@ -331,8 +341,6 @@ struct ProductDetailsScreen: View {
     private var categoriesLine: String? { ProductDetailsMapper.categoriesLine(for: product) }
     private var ingredientsList: [String] { ProductDetailsMapper.ingredientsList(for: product) }
     private var allergensList: [String] { ProductDetailsMapper.allergensList(for: product) }
-    private var packagingMaterials: [String] { ProductDetailsMapper.packagingMaterials(for: product) }
-    private var imageURL: URL? {
-        URL(string: product.imageUrl ?? "")
-    }
+    private var packagingItems: [(title: String, subtitle: String)] { ProductDetailsMapper.packagingItems(for: product) }
+    private var aiAnalysis: String? { ProductDetailsMapper.aiAnalysis(for: product) }
 }
