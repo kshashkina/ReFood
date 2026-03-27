@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@a
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const PRODUCTS_TABLE = "Products_V2";
+const PRODUCTS_TABLE = process.env.PRODUCTS_TABLE || "Products_V2";
 
 export async function getLatestProductFromDB(barcode) {
     const params = {
