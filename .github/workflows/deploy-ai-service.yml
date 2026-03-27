@@ -1,0 +1,44 @@
+name: Deploy AI Service Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - feature/github-actions
+    paths:
+      - 'apps/backend/lambda/ai-service/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        working-directory: apps/backend/lambda/ai-service
+        run: npm install --omit=dev
+
+      - name: Create Zip archive
+        working-directory: apps/backend/lambda/ai-service
+        run: zip -r deploy.zip . -x "*.git*"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: Deploy to AWS Lambda
+        working-directory: apps/backend/lambda/ai-service
+        run: |
+          aws lambda update-function-code \
+            --function-name AIService \
+            --zip-file fileb://deploy.zip
