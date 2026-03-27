@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Product: Decodable, Equatable {
-    public let barcode: String
+    public var barcode: String = ""
     public let productName: String?
     public let brands: String?
     public let quantity: String?
@@ -22,7 +22,7 @@ public struct Product: Decodable, Equatable {
         public let nutriments: Nutriments?
 
     enum CodingKeys: String, CodingKey {
-        case barcode, brands, quantity, nutriments
+        case brands, quantity, nutriments
         case productName = "product_name"
         case imageUrl = "image_url"
         case analysisEn = "analysis_en"

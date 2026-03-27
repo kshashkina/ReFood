@@ -7,7 +7,9 @@ final class ProductRepositoryImpl: ProductRepository {
             let data = try await ProductAPI.fetchProductData(barcode: barcode)
             let decoder = JSONDecoder()
             let response = try decoder.decode(ProductResponse.self, from: data)
-            return response.product
+            var finalProduct = response.product
+            finalProduct.barcode = barcode
+            return finalProduct
 
         } catch let error as NetworkError {
             if case let .httpStatus(code, _) = error, code == 404 {
