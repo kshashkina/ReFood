@@ -12,6 +12,7 @@ final class ScannerViewModel: ObservableObject {
     @Published var isLoadingProduct: Bool = false
     @Published var isProductLoadingFailed: Bool = false
     @Published var productErrorMessage: String? = nil
+    @Published var firstProductForComparison: Product? = nil
     
     @Published var loadingProgress: Double = 0.0
     @Published var currentLoadingStep: ProductLoadingSheet.LoadingStep = .searching
@@ -28,6 +29,11 @@ final class ScannerViewModel: ObservableObject {
         self.productRepository = productRepository
         bindScanner()
         scanner.configure()
+    }
+
+    func setupComparison(with firstProduct: Product) {
+        self.firstProductForComparison = firstProduct
+        scanAgain()
     }
 
     func onAppear() { startScanning() }
@@ -113,6 +119,11 @@ final class ScannerViewModel: ObservableObject {
 
         do {
             let fetchedProduct = try await productRepository.getProduct(byBarcode: barcode)
+            if let urlString = fetchedProduct.imageUrl, let url = URL(string: urlString) {
+                Task {
+                    try? await ImageLoader.shared.load(url: url)
+                }
+            }
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             self.product = fetchedProduct
             finishLoadingSuccess()

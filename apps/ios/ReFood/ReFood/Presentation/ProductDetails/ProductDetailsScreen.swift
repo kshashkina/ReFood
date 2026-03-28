@@ -4,6 +4,7 @@ struct ProductDetailsScreen: View {
 
     let product: Product
     let onBack: () -> Void
+    var onCompare: (Product) -> Void = { _ in }
 
     let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
@@ -314,7 +315,7 @@ struct ProductDetailsScreen: View {
     }
 
     private var compareButton: some View {
-        Button { } label: {
+        Button {onCompare(product)} label: {
             HStack(spacing: 12) {
                 Image(systemName: "square.split.2x1")
                     .font(.system(size: 18, weight: .semibold))

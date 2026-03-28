@@ -7,6 +7,7 @@ struct ScannerScreen: View {
     @StateObject private var vm = ScannerViewModel()
     @State private var previewProduct: Product? = nil
     @State private var detailsProduct: Product? = nil
+    @State private var comparisonProduct: Product? = nil
 
     var body: some View {
         ZStack {
@@ -30,39 +31,66 @@ struct ScannerScreen: View {
                 onFinish: {
                     vm.isLoadingProduct = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        if let product = vm.product { previewProduct = product }
+                        if let fetched = vm.product { previewProduct = fetched }
                     }
                 },
                 onTryAgain: {
                     vm.isLoadingProduct = false
                     vm.scanAgain()
                 },
-                onAddProduct: {
-                    // тут потім додати на ед продакт екран
-                }
+                onAddProduct: { }
             )
             .presentationDetents([.height(560)])
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled(vm.loadingProgress < 1.0 && !vm.isProductLoadingFailed)
             .onDisappear {
-                if previewProduct == nil && detailsProduct == nil {
+                if previewProduct == nil && detailsProduct == nil && comparisonProduct == nil {
                     vm.scanAgain()
                 }
             }
         }
-        .fullScreenCover(item: $previewProduct) { product in
+        .fullScreenCover(item: $previewProduct) { productB in
             ProductPreviewScreen(
-                product: product,
+                product: productB,
+                firstProductForComparison: vm.firstProductForComparison,
                 onBack: { previewProduct = nil; vm.scanAgain() },
-                onContinue: { previewProduct = nil; detailsProduct = product },
+                onContinue: {
+                    previewProduct = nil
+                    if vm.firstProductForComparison != nil {
+                        comparisonProduct = productB
+                    } else {
+                        detailsProduct = productB
+                    }
+                },
                 onScanAgain: { previewProduct = nil; vm.scanAgain() }
             )
         }
         .fullScreenCover(item: $detailsProduct) { product in
             ProductDetailsScreen(
                 product: product,
-                onBack: { detailsProduct = nil; vm.scanAgain() }
+                onBack: {
+                    detailsProduct = nil
+                    vm.scanAgain()
+                },
+                onCompare: { productA in
+                    detailsProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        vm.setupComparison(with: productA)
+                    }
+                }
             )
+        }
+        .fullScreenCover(item: $comparisonProduct) { productB in
+            if let productA = vm.firstProductForComparison {
+                ProductComparisonScreen(
+                    productA: productA,
+                    productB: productB,
+                    onBack: {
+                        comparisonProduct = nil
+                        vm.scanAgain()
+                    }
+                )
+            }
         }
     }
 }

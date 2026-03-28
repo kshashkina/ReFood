@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ProductPreviewScreen: View {
-
     let product: Product
+    var firstProductForComparison: Product? = nil
     let onBack: () -> Void
     let onContinue: () -> Void
     let onScanAgain: () -> Void
@@ -51,7 +51,6 @@ struct ProductPreviewScreen: View {
     private var placeholder: some View {
         ZStack {
             Color.white.opacity(0.05)
-
             Image(systemName: "photo")
                 .font(.system(size: 32, weight: .semibold))
                 .foregroundStyle(Color.white.opacity(0.3))
@@ -78,13 +77,11 @@ struct ProductPreviewScreen: View {
                             )
                     }
                     .buttonStyle(.plain)
-
                     Spacer()
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 60)
             )
-
             Spacer()
         }
         .ignoresSafeArea()
@@ -92,7 +89,6 @@ struct ProductPreviewScreen: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
-
             VStack(alignment: .leading, spacing: 6) {
                 Text(product.productName ?? "Unknown product")
                     .font(.system(size: 26, weight: .semibold))
@@ -117,7 +113,6 @@ struct ProductPreviewScreen: View {
 
     private var confirmCard: some View {
         HStack(spacing: 12) {
-
             Circle()
                 .fill(accent.opacity(0.2))
                 .frame(width: 32, height: 32)
@@ -135,7 +130,6 @@ struct ProductPreviewScreen: View {
                     .foregroundStyle(Color.white.opacity(0.6))
                     .font(.system(size: 14))
             }
-
             Spacer()
         }
         .padding(16)
@@ -145,10 +139,9 @@ struct ProductPreviewScreen: View {
 
     private var buttons: some View {
         VStack(spacing: 12) {
-
             Button(action: onContinue) {
                 HStack {
-                    Text("Yes, continue")
+                    Text(continueButtonTitle)
                         .foregroundStyle(.black)
                         .font(.system(size: 16, weight: .semibold))
                     Image(systemName: "chevron.right")
@@ -176,9 +169,11 @@ struct ProductPreviewScreen: View {
         }
     }
 
-
-    private var imageURL: URL? {
-        guard let urlString = product.imageUrl else { return nil }
-        return URL(string: urlString)
+    private var continueButtonTitle: String {
+        if let first = firstProductForComparison {
+            let brand = first.brands?.components(separatedBy: ",").first ?? "previous"
+            return "Compare with \(brand)"
+        }
+        return "Yes, continue"
     }
 }

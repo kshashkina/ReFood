@@ -7,18 +7,6 @@ struct CachedAsyncImage<Placeholder: View>: View {
     @ViewBuilder let placeholder: Placeholder
 
     @State private var uiImage: UIImage?
-    @State private var isLoading = false
-
-    init(
-        url: URL?,
-        contentMode: ContentMode = .fill,
-        @ViewBuilder placeholder: () -> Placeholder
-    ) {
-        self.url = url
-        self.contentMode = contentMode
-        self.placeholder = placeholder()
-    }
-
     var body: some View {
         ZStack {
             if let uiImage {
@@ -30,26 +18,15 @@ struct CachedAsyncImage<Placeholder: View>: View {
             }
         }
         .task(id: url) {
-            await load()
+            uiImage = nil
+            guard let url = url else { return }
+            
+            do {
+                let img = try await ImageLoader.shared.load(url: url)
+                self.uiImage = img
+            } catch {
+                print("❌ Image load error: \(error.localizedDescription) for URL: \(url)")
+            }
         }
-    }
-
-    @MainActor
-    private func load() async {
-        guard let url else { return }
-
-        if let cached = ImageCache.shared.image(for: url) {
-            self.uiImage = cached
-            return
-        }
-
-        guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
-
-        do {
-            let img = try await ImageLoader.shared.load(url: url)
-            self.uiImage = img
-        } catch {}
     }
 }
