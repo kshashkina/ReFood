@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/github-actions
     paths:
       - 'apps/backend/lambda/product-handler/**'
   workflow_dispatch:
