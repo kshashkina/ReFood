@@ -6,9 +6,41 @@ final class ProductComparisonViewModel: ObservableObject {
     @Published var productA: Product
     @Published var productB: Product
     
-    init(productA: Product, productB: Product) {
+    @Published var aiResult: AIComparisonAnalysis? = nil
+    @Published var isAnalyzing: Bool = false
+    
+    private let aiRepository: AIComparisonRepository
+    
+    init(
+        productA: Product,
+        productB: Product,
+        aiRepository: AIComparisonRepository = AIComparisonRepositoryImpl()
+    ) {
         self.productA = productA
         self.productB = productB
+        self.aiRepository = aiRepository
+    }
+    
+    func fetchAIAnalysis() async {
+        guard !isAnalyzing else { return }
+        isAnalyzing = true
+        
+        do {
+            let analysis = try await aiRepository.getComparison(
+                barcodeA: productA.barcode,
+                barcodeB: productB.barcode
+            )
+            
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                self.aiResult = analysis
+                self.isAnalyzing = false
+            }
+        } catch {
+            print("AI Loading Error: \(error)")
+            withAnimation {
+                self.isAnalyzing = false
+            }
+        }
     }
     
     enum ComparisonResult {
@@ -32,22 +64,5 @@ final class ProductComparisonViewModel: ObservableObject {
         } else {
             return aIsLower ? (.worse, .better) : (.better, .worse)
         }
-    }
-    
-    func compareGrades(path: KeyPath<Product, String?>) -> (ComparisonResult, ComparisonResult) {
-        let grades = ["a": 5, "b": 4, "c": 3, "d": 2, "e": 1]
-        
-        guard let gradeA = productA[keyPath: path]?.lowercased(),
-              let gradeB = productB[keyPath: path]?.lowercased(),
-              let scoreA = grades[gradeA],
-              let scoreB = grades[gradeB] else {
-            return (.unknown, .unknown)
-        }
-        
-        if scoreA == scoreB {
-            return (.equal, .equal)
-        }
-        
-        return scoreA > scoreB ? (.better, .worse) : (.worse, .better)
     }
 }

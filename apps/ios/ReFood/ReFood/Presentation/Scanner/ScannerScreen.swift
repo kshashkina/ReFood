@@ -87,6 +87,7 @@ struct ScannerScreen: View {
                     productB: productB,
                     onBack: {
                         comparisonProduct = nil
+                        vm.firstProductForComparison = nil
                         vm.scanAgain()
                     }
                 )

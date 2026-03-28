@@ -75,20 +75,32 @@ struct ProductComparisonScreen: View {
     }
     
     private func productCard(product: Product, letter: String) -> some View {
-        VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(accent.opacity(0.2))
-                    .frame(width: 64, height: 64)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(accent, lineWidth: 2)
-                    )
-                    .shadow(color: accent.opacity(0.2), radius: 15)
+        let isWinner = vm.aiResult?.winnerBarcode == product.barcode
+        
+        return VStack(spacing: 12) {
+            ZStack(alignment: .topTrailing) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(accent.opacity(0.2))
+                        .frame(width: 64, height: 64)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(accent, lineWidth: 2)
+                        )
+                        .shadow(color: accent.opacity(0.2), radius: 15)
+                    
+                    Text(letter)
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(accent)
+                }
                 
-                Text(letter)
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(accent)
+                if isWinner {
+                    Text("👑")
+                        .font(.system(size: 24))
+                        .offset(x: 12, y: -12)
+                        .shadow(color: .yellow.opacity(0.5), radius: 10)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
             .padding(.top, 16)
             
@@ -108,10 +120,13 @@ struct ProductComparisonScreen: View {
             .padding(.horizontal, 8)
         }
         .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.05))
+        .background(
+            isWinner ? LinearGradient(colors: [accent.opacity(0.1), Color.white.opacity(0.05)], startPoint: .top, endPoint: .bottom) : LinearGradient(colors: [Color.white.opacity(0.05)], startPoint: .top, endPoint: .bottom)
+        )
         .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.10), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.10), radius: 10, y: 8)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(isWinner ? accent.opacity(0.5) : Color.white.opacity(0.10), lineWidth: 1))
+        .shadow(color: isWinner ? accent.opacity(0.15) : Color.black.opacity(0.10), radius: 10, y: 8)
+        .animation(.spring(), value: isWinner)
     }
     
     private var gradesSection: some View {
@@ -130,7 +145,6 @@ struct ProductComparisonScreen: View {
     }
     
     private func gradeRow(title: String, path: KeyPath<Product, String?>) -> some View {
-        let (resA, resB) = vm.compareGrades(path: path)
         let gradeA = vm.productA[keyPath: path]?.uppercased() ?? "-"
         let gradeB = vm.productB[keyPath: path]?.uppercased() ?? "-"
         
@@ -140,26 +154,35 @@ struct ProductComparisonScreen: View {
                 .foregroundColor(Color(red: 123/255, green: 123/255, blue: 123/255))
             
             HStack(spacing: 12) {
-                gradeBox(grade: gradeA, result: resA)
-                gradeBox(grade: gradeB, result: resB)
+                gradeBox(grade: gradeA)
+                gradeBox(grade: gradeB)
             }
         }
     }
     
-    private func gradeBox(grade: String, result: ProductComparisonViewModel.ComparisonResult) -> some View {
-        let isBetter = result == .better
-        let bgColor = isBetter ? accent.opacity(0.2) : (grade != "-" ? Color(red: 245/255, green: 158/255, blue: 11/255).opacity(0.13) : Color.white.opacity(0.05))
-        let textColor = isBetter ? accent : (grade != "-" ? Color(red: 245/255, green: 158/255, blue: 11/255) : .gray)
-        let strokeColor = isBetter ? accent.opacity(0.3) : (grade != "-" ? Color(red: 245/255, green: 158/255, blue: 11/255).opacity(0.19) : Color.white.opacity(0.1))
+    private func gradeBox(grade: String) -> some View {
+        let color = gradeColor(grade)
         
         return Text(grade)
             .font(.system(size: 24, weight: .bold))
-            .foregroundColor(textColor)
+            .foregroundColor(color)
             .frame(maxWidth: .infinity)
             .frame(height: 58)
-            .background(bgColor)
+            .background(color.opacity(0.15))
             .cornerRadius(14)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(strokeColor, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(color.opacity(0.3), lineWidth: 1))
+    }
+    
+    private func gradeColor(_ grade: String?) -> Color {
+        switch (grade ?? "").lowercased() {
+        case "a": return Color(red: 144/255, green: 240/255, blue: 71/255)
+        case "b": return Color(red: 179/255, green: 243/255, blue: 87/255)
+        case "c": return Color(red: 245/255, green: 221/255, blue: 77/255)
+        case "d": return Color(red: 255/255, green: 163/255, blue: 62/255)
+        case "e": return Color(red: 255/255, green: 84/255,  blue: 84/255)
+        case "f": return Color(red: 255/255, green: 50/255,  blue: 50/255)
+        default:  return Color.white.opacity(0.45)
+        }
     }
     
     private var nutritionSection: some View {
@@ -241,22 +264,65 @@ struct ProductComparisonScreen: View {
                     .foregroundColor(.white)
             }
             
-            Text("Get detailed AI comparison analysis and personalized recommendations")
-                .font(.system(size: 14))
-                .foregroundColor(Color.white.opacity(0.8))
-                .lineSpacing(4)
-            
-            Button(action: {}) {
-                Text("Generate analysis")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(accent)
-                    .cornerRadius(14)
-                    .shadow(color: accent.opacity(0.3), radius: 20)
+            if vm.isAnalyzing {
+                HStack {
+                    Spacer()
+                    AILoadingIndicator()
+                        .padding(.vertical, 32)
+                    Spacer()
+                }
+            } else if let result = vm.aiResult {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(result.comparisonEn ?? "")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.white.opacity(0.9))
+                        .lineSpacing(4)
+                    
+                    if let differences = result.keyDifferencesEn, !differences.isEmpty {
+                        Divider().background(Color.white.opacity(0.1))
+                        
+                        Text("Key Differences")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(accent)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(differences, id: \.self) { diff in
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text("•")
+                                        .foregroundColor(accent)
+                                        .font(.system(size: 14, weight: .bold))
+                                    Text(diff)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(Color.white.opacity(0.7))
+                                        .lineSpacing(2)
+                                }
+                            }
+                        }
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            } else {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Get detailed AI comparison analysis and personalized recommendations")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.white.opacity(0.8))
+                        .lineSpacing(4)
+                    
+                    Button(action: {
+                        Task { await vm.fetchAIAnalysis() }
+                    }) {
+                        Text("Generate analysis")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(accent)
+                            .cornerRadius(14)
+                            .shadow(color: accent.opacity(0.3), radius: 20)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .buttonStyle(.plain)
         }
         .padding(21)
         .background(
@@ -269,5 +335,45 @@ struct ProductComparisonScreen: View {
         .cornerRadius(16)
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(accent.opacity(0.3), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.25), radius: 50, y: 25)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: vm.isAnalyzing)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: vm.aiResult)
+    }
+}
+
+struct AILoadingIndicator: View {
+    @State private var isAnimating = false
+    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                ForEach(0..<3) { index in
+                    Circle()
+                        .fill(accent)
+                        .frame(width: 12, height: 12)
+                        .scaleEffect(isAnimating ? 1.2 : 0.5)
+                        .opacity(isAnimating ? 1.0 : 0.3)
+                        .shadow(color: accent, radius: isAnimating ? 10 : 0)
+                        .animation(
+                            .easeInOut(duration: 0.6)
+                            .repeatForever()
+                            .delay(0.2 * Double(index)),
+                            value: isAnimating
+                        )
+                }
+            }
+            
+            Text("AI is analyzing data...")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(accent)
+                .opacity(isAnimating ? 1.0 : 0.4)
+                .animation(
+                    .easeInOut(duration: 1.0).repeatForever(),
+                    value: isAnimating
+                )
+        }
+        .onAppear {
+            isAnimating = true
+        }
     }
 }
