@@ -1,6 +1,7 @@
 import { saveProductToDB } from '../services/database.mjs';
 import { normalizeBarcode } from '../helpers/barcode.mjs';
-import { validateProductInput, cleanProductData} from '../helpers/validator.mjs';
+import { validateProductInput } from '../helpers/validator.mjs';
+import { cleanProductData } from '../helpers/cleanProductData.mjs';
 import { response } from '../helpers/response.mjs';
 import { translateProduct, checkProduct } from '../services/aiService.mjs';
 
