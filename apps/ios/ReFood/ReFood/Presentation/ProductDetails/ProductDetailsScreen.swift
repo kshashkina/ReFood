@@ -5,8 +5,8 @@ struct ProductDetailsScreen: View {
     let product: Product
     let onBack: () -> Void
     var onCompare: (Product) -> Void = { _ in }
-    var onRecycling: (Product) -> Void = { _ in }
-
+    
+    @State private var showRecycling = false
     let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     enum NutritionTab: String, CaseIterable {
@@ -52,6 +52,12 @@ struct ProductDetailsScreen: View {
                 }
             }
             topBar
+        }
+        .fullScreenCover(isPresented: $showRecycling) {
+            RecyclingScreen(
+                product: product,
+                onBack: { showRecycling = false }
+            )
         }
     }
 
@@ -280,8 +286,9 @@ struct ProductDetailsScreen: View {
                         .font(.system(size: 18, weight: .semibold))
 
                     Spacer()
-
-                    Button {onRecycling(product)} label: {
+                    Button {
+                        showRecycling = true
+                    } label: {
                         Text("How to sort")
                             .foregroundStyle(.black)
                             .font(.system(size: 12, weight: .semibold))
