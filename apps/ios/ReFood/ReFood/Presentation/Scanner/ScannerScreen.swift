@@ -8,6 +8,7 @@ struct ScannerScreen: View {
     @State private var previewProduct: Product? = nil
     @State private var detailsProduct: Product? = nil
     @State private var comparisonProduct: Product? = nil
+    @State private var recyclingProduct: Product? = nil
 
     var body: some View {
         ZStack {
@@ -68,14 +69,17 @@ struct ScannerScreen: View {
         .fullScreenCover(item: $detailsProduct) { product in
             ProductDetailsScreen(
                 product: product,
-                onBack: {
-                    detailsProduct = nil
-                    vm.scanAgain()
-                },
+                onBack: { detailsProduct = nil; vm.scanAgain() },
                 onCompare: { productA in
                     detailsProduct = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         vm.setupComparison(with: productA)
+                    }
+                },
+                onRecycling: { product in
+                    detailsProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    recyclingProduct = product
                     }
                 }
             )
@@ -92,6 +96,14 @@ struct ScannerScreen: View {
                     }
                 )
             }
+        }
+        .fullScreenCover(item: $recyclingProduct) { product in
+                    RecyclingScreen(
+                        product: product,
+                        onBack: {
+                            recyclingProduct = nil
+                        }
+                    )
         }
     }
 }

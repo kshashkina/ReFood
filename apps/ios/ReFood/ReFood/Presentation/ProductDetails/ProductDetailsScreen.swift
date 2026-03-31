@@ -5,6 +5,7 @@ struct ProductDetailsScreen: View {
     let product: Product
     let onBack: () -> Void
     var onCompare: (Product) -> Void = { _ in }
+    var onRecycling: (Product) -> Void = { _ in }
 
     let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
@@ -280,7 +281,7 @@ struct ProductDetailsScreen: View {
 
                     Spacer()
 
-                    Button { } label: {
+                    Button {onRecycling(product)} label: {
                         Text("How to sort")
                             .foregroundStyle(.black)
                             .font(.system(size: 12, weight: .semibold))
