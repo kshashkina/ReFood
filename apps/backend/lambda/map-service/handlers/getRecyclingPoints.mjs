@@ -1,5 +1,5 @@
-import { buildOverpassQuery } from "../helpers/overpassQueryBuilder.mjs";
-import { fetchFromOverpass } from "../services/overpassService.mjs";
+import { fetchFromGeoapify } from "../services/geoapifyService.mjs";
+import { pointMapper } from "../mappers/pointMapper.mjs";
 import { response } from "../helpers/response.mjs";
 
 const RADIUS_DEFAULT = 2000;
@@ -19,20 +19,19 @@ export async function getRecyclingPoints(event) {
         }
 
         const materialsArray = materials.split(',').map(m => m.trim());
-        const query = buildOverpassQuery({ 
-            materials: materialsArray, 
+        const features = await fetchFromGeoapify({ 
             lat, 
             lon, 
             radius 
         });
 
-        const points = await fetchFromOverpass(query);
-
-        if (!points) {
+        if (!features) {
             return response(502, { 
-                message: "Error fetching data from Overpass API" 
+                message: "Error fetching data from Geoapify API" 
             });
         }
+
+        const points = pointMapper(features, materialsArray);
 
         return response(200, { 
             count: points.length,

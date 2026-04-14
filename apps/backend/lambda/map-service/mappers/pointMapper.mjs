@@ -1,42 +1,39 @@
-export function pointMapper(elements) {
-    if (!Array.isArray(elements)) return [];
+export function pointMapper(features, requestedMaterials) {
+    if (!Array.isArray(features)) return [];
 
-    const points = elements.map(el => {
-        const tags = el.tags || {};
+    const isAll = requestedMaterials.includes('all');
 
-        const recyclingTypes = Object.keys(tags)
-            .filter(key => key.startsWith('recycling:') && tags[key] === 'yes')
+    return features.map(el => {
+        const props = el.properties || {};
+        const rawTags = props.datasource?.raw || {};
+
+        const acceptedMaterials = Object.keys(rawTags)
+            .filter(key => key.startsWith('recycling:') && rawTags[key] === 'yes')
             .map(key => key.replace('recycling:', ''));
 
-        const combinedDescription = [tags.note, tags.description]
-            .filter(Boolean)
-            .join('. ');
+        const matchesMaterial = isAll || requestedMaterials.some(m => acceptedMaterials.includes(m));
 
-        const mappedPoint = {
-            id: el.id,
-            type: el.type,
-            lat: el.lat || el.center?.lat,
-            lon: el.lon || el.center?.lon,
-            name: tags.name || "No name",
+        if (!matchesMaterial) return null;
+
+        return {
+            id: props.place_id || props.osm_id,
+            lat: props.lat,
+            lon: props.lon,
+            name: props.name || rawTags.operator || "No name",
             
             info: {
-                operator: tags.operator || null,
-                website: tags["operator:website"] || tags.website || null,
-                recycling_type: tags.recycling_type || null,
-                location: tags.location || null,
-                opening_hours: tags.opening_hours || null,
-                wheelchair: tags.wheelchair || null,
-                level: tags.level || null,
+                address: props.address_line2 || "No address",
+                operator: rawTags.operator || props.operator || null,
+                website: props.website || rawTags.website || null,
+                opening_hours: rawTags.opening_hours || null,
+                wheelchair: rawTags.wheelchair || null,
+                postcode: props.postcode || null
             },
 
             details: {
-                accepted_materials: recyclingTypes,
-                description: combinedDescription || "No additional description"
+                accepted_materials: acceptedMaterials,
+                description: rawTags.note || rawTags.description || "No description"
             }
         };
-
-        return mappedPoint;
-    });
-
-    return points;
+    }).filter(Boolean);
 }
