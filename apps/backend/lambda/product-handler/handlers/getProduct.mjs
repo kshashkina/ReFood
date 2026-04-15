@@ -1,8 +1,8 @@
 import { getLatestProductFromDB, saveProductToDB } from '../services/database.mjs';
-import { fetchFromOpenFoodFacts } from '../services/fetch_off_api.mjs';
+import { fetchFromOpenFoodFacts } from '../services/fetchOffApi.mjs';
 import { translateProduct } from '../services/aiService.mjs';
 import { toProductResponse } from '../mappers/productMapper.mjs';
-import { normalizeBarcode } from '../helpers/barcode.mjs';
+import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
 
 export async function getProduct(event) {
@@ -14,12 +14,12 @@ export async function getProduct(event) {
     }
 
     const dbProduct = await getLatestProductFromDB(barcode);
-    
+
     if (dbProduct) {
         console.log(`Found product in DB for barcode: ${barcode}`);
-        return response(200, { 
-            source: "local", 
-            product: dbProduct 
+        return response(200, {
+            source: "local",
+            product: dbProduct
         });
     }
 
@@ -27,8 +27,8 @@ export async function getProduct(event) {
     const offProduct = await fetchFromOpenFoodFacts(barcode);
 
     if (!offProduct) {
-        return response(404, { 
-            error: "Product not found" 
+        return response(404, {
+            error: "Product not found"
         });
     }
 

@@ -1,25 +1,25 @@
 import { cleanValue } from './cleanValue.mjs';
-import { extractNutriments } from './nutriments.mjs';
+import { extractNutriments } from '../nutriments/extractNutriments.mjs';
+import { parseToGrams } from '../nutriments/parseToGrams.mjs';
 
 export function cleanProductData(data) {
+    const quantityInGrams = parseToGrams(data.product_quantity || data.quantity);
+    const servingInGrams = parseToGrams(data.serving_size || data.serving_quantity);
+
     return {
         product_name: cleanValue(data.product_name),
         brands: cleanValue(data.brands),
-        categories_tags_en: Array.isArray(data.categories_tags) ? data.categories_tags : [],
-        categories_tags_ua: Array.isArray(data.categories_tags) ? data.categories_tags : [],
-        ingredients_text_ua: cleanValue(data.ingredients_text_ua),
-        ingredients_text_en: cleanValue(data.ingredients_text_en),
-        allergens_en: Array.isArray(data.allergens_tags) ? data.allergens_tags : [],
-        allergens_ua: Array.isArray(data.allergens_tags) ? data.allergens_tags : [],
+        ingredients_text: cleanValue(data.ingredients_text).toLowerCase() || null,
+        ingredients_analysis_tags: cleanValue(data.ingredients_analysis_tags)?.toLowerCase() || null,
+        categories_tags: cleanValue(data.categories_tags)?.toLowerCase() || null,
+        allergens_tags: cleanValue(data.allergens_tags)?.toLowerCase() || null,
         nutriscore_grade: cleanValue(data.nutriscore_grade)?.toLowerCase() || null,
-        nutriscore_score: typeof data.nutriscore_score === 'number' ? data.nutriscore_score : null,
         ecoscore_grade: cleanValue(data.ecoscore_grade)?.toLowerCase() || null,
-        ecoscore_score: typeof data.ecoscore_score === 'number' ? data.ecoscore_score : null,
         nova_group: typeof data.nova_group === 'number' ? data.nova_group : null,
-        nutriments: data.nutriments ? extractNutriments(data.nutriments) : extractNutriments({}),
+        nutriments: extractNutriments(data.nutriments || {}, servingInGrams, quantityInGrams),
         quantity: cleanValue(data.quantity),
         serving_size: cleanValue(data.serving_size),
-        serving_quantity: typeof data.serving_quantity === 'number' ? data.serving_quantity : null,
+        serving_quantity: cleanValue(data.serving_quantity),
         packaging: cleanPackaging(data.packaging),
         image_url: cleanValue(data.image_url),
     };

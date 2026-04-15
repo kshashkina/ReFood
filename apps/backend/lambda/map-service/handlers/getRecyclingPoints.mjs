@@ -14,7 +14,7 @@ export async function getRecyclingPoints(event) {
 
         if (!lat || !lon || !materials) {
             return response(400, {
-                message: "Missing required parameters: lat, lon and materials are required."
+                error: "Missing required parameters: lat, lon and materials are required."
             });
         }
 
@@ -29,7 +29,7 @@ export async function getRecyclingPoints(event) {
 
         if (!points) {
             return response(404, {
-                message: 'Points not found'
+                error: 'Points not found'
             });
         }
 
@@ -39,6 +39,6 @@ export async function getRecyclingPoints(event) {
         });
     } catch (error) {
         console.error("Error occurred", error);
-        return response(500, { message: "Internal Server Error" });
+        return response(500, { error: "Internal Server Error" });
     }
 }

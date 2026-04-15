@@ -25,7 +25,7 @@ const extractTextValues = (value, results = []) => {
     return results;
 };
 
-export const checkUserProduct = async (data = {}, imageBuffer = null, mimeType = 'image/jpeg') => {
+export const checkUserProduct = async (data = {}) => {
     const textValues = extractTextValues(data);
     const hasPromptInjection = textValues.some((text) => isPromptInjection(text));
 
@@ -41,15 +41,6 @@ export const checkUserProduct = async (data = {}, imageBuffer = null, mimeType =
     const fullPrompt = `${CHECK_PRODUCT_PROMPT}\n\nInput JSON:\n${JSON.stringify(data)}`;
 
     const promptParts = [{ text: fullPrompt }];
-
-    if (imageBuffer) {
-        promptParts.push({
-            inlineData: {
-                data: imageBuffer.toString('base64'),
-                mimeType: mimeType
-            }
-        });
-    }
 
     const result = await model.generateContent({
         contents: [{ role: 'user', parts: promptParts }]

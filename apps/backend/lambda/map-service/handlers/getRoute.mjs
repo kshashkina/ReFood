@@ -3,15 +3,20 @@ import { routeMapper } from "../mappers/routeMapper.mjs";
 import { response } from "../helpers/response.mjs";
 
 export async function getRoute(event) {
-    const { fromLat, fromLon, toLat, toLon, mode } = event.queryStringParameters || {};
-
-    if (!fromLat || !fromLon || !toLat || !toLon) {
-        return response(400, {
-            message: 'Missing required query params: fromLat, fromLon, toLat, toLon'
-        });
-    }
-
     try {
+        const params = event.queryStringParameters || {};
+        const fromLat = params.fromLat;
+        const fromLon = params.fromLon;
+        const toLat = params.toLat;
+        const toLon = params.toLon;
+        const mode = params.mode;
+
+        if (!fromLat || !fromLon || !toLat || !toLon) {
+            return response(400, {
+                message: 'Missing required parameters: fromLat, fromLon, toLat, toLon'
+            });
+        }
+
         const rawData = await fetchRoute({
             fromLat,
             fromLon,
