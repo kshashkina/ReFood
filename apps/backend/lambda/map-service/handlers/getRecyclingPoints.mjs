@@ -1,4 +1,4 @@
-import { fetchFromGeoapify } from "../services/geoapifyService.mjs";
+import { fetchRecyclingPlaces } from "../services/geoapifyService.mjs";
 import { pointMapper } from "../mappers/pointMapper.mjs";
 import { response } from "../helpers/response.mjs";
 
@@ -13,34 +13,32 @@ export async function getRecyclingPoints(event) {
         const radius = params.radius || RADIUS_DEFAULT;
 
         if (!lat || !lon || !materials) {
-            return response(400, { 
-                message: "Missing required parameters: lat, lon and materials are required." 
+            return response(400, {
+                message: "Missing required parameters: lat, lon and materials are required."
             });
         }
 
         const materialsArray = materials.split(',').map(m => m.trim());
-        const features = await fetchFromGeoapify({ 
-            lat, 
-            lon, 
-            radius 
+        const rawData = await fetchRecyclingPlaces({
+            lat,
+            lon,
+            radius
         });
 
-        if (!features) {
-            return response(502, { 
-                message: "Error fetching data from Geoapify API" 
+        const points = pointMapper(rawData, materialsArray);
+
+        if (!points) {
+            return response(404, {
+                message: 'Points not found'
             });
         }
 
-        const points = pointMapper(features, materialsArray);
-
-        return response(200, { 
+        return response(200, {
             count: points.length,
             points: points
         });
     } catch (error) {
         console.error("Error occurred", error);
-        return response(500, { 
-            message: "Internal Server Error" 
-        });
+        return response(500, { message: "Internal Server Error" });
     }
 }
