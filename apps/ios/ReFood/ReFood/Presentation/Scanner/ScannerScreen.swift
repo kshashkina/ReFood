@@ -8,6 +8,7 @@ struct ScannerScreen: View {
     @State private var previewProduct: Product? = nil
     @State private var detailsProduct: Product? = nil
     @State private var comparisonProduct: Product? = nil
+    @State private var showAddProduct: Bool = false
 
     var body: some View {
         ZStack {
@@ -38,13 +39,18 @@ struct ScannerScreen: View {
                     vm.isLoadingProduct = false
                     vm.scanAgain()
                 },
-                onAddProduct: { }
+                onAddProduct: {
+                    vm.isLoadingProduct = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        showAddProduct = true
+                    }
+                }
             )
             .presentationDetents([.height(560)])
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled(vm.loadingProgress < 1.0 && !vm.isProductLoadingFailed)
             .onDisappear {
-                if previewProduct == nil && detailsProduct == nil && comparisonProduct == nil {
+                if previewProduct == nil && detailsProduct == nil && comparisonProduct == nil && !showAddProduct {
                     vm.scanAgain()
                 }
             }
@@ -92,6 +98,9 @@ struct ScannerScreen: View {
                     }
                 )
             }
+        }
+        .fullScreenCover(isPresented: $showAddProduct, onDismiss: {vm.scanAgain()}) {
+            AddProductScreen(barcode: vm.lastScannedBarcode)
         }
     }
 }
