@@ -24,4 +24,14 @@ final class ProductRepositoryImpl: ProductRepository {
             throw ProductError.unknown
         }
     }
+    
+    func addProduct(_ product: ProductAdd) async throws {
+            do {
+                try await ProductAPI.addProduct(product: product)
+            } catch let error as NetworkError {
+                throw error
+            } catch {
+                throw ProductError.unknown
+            }
+        }
 }

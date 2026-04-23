@@ -39,8 +39,11 @@ final class AddProductViewModel: ObservableObject {
     let barcode: String
     let grades = ["A", "B", "C", "D", "E"]
     
-    init(barcode: String) {
+    private let repository: ProductRepository
+
+    init(barcode: String, repository: ProductRepository = ProductRepositoryImpl()) {
         self.barcode = barcode
+        self.repository = repository
     }
     
     var canSave: Bool {
@@ -102,7 +105,7 @@ final class AddProductViewModel: ObservableObject {
         newProduct.ecoscore_grade = ecoScore.isEmpty ? nil : ecoScore.lowercased()
         
         do {
-            try await ProductAPI.addProduct(product: newProduct)
+            try await repository.addProduct(newProduct)
             isSuccess = true
         } catch {
             self.error = "Error: \(error.localizedDescription)"
