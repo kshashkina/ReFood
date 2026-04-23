@@ -5,6 +5,7 @@ struct AddProductScreen: View {
     @Environment(\.dismiss) var dismiss
     @FocusState private var isFocused: Bool
     @State private var showSuccessCheckmark = false
+    @State private var showCamera = false
     
     private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
     
@@ -20,6 +21,24 @@ struct AddProductScreen: View {
                 VStack(spacing: 20) {
                     headerDescription
                         .padding(.top, 110)
+                    
+                    photoSection
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "list.bullet.clipboard")
+                                .foregroundColor(accent)
+                            Text("Step 2: Product Details")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        
+                        Text("Fill out the remaining details below to complete the product entry.")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .padding(.top, 8)
                     
                     GlassCard(cornerRadius: 20, padding: 20) {
                         VStack(spacing: 16) {
@@ -46,9 +65,11 @@ struct AddProductScreen: View {
                                 Text("Ingredients")
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.white)
+                                
                                 Text("List ingredients separated by commas")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 14))
                                     .foregroundColor(accent.opacity(0.8))
+
                                 TextEditor(text: $vm.ingredients)
                                     .focused($isFocused)
                                     .frame(height: 80)
@@ -81,8 +102,14 @@ struct AddProductScreen: View {
                 .padding(.bottom, 40)
             }
             .animation(.interactiveSpring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.8), value: vm.error)
+            .animation(.interactiveSpring(), value: vm.imageError)
+            .animation(.interactiveSpring(), value: vm.isUploadingImage)
             
             topBar
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker(image: $vm.selectedUIImage)
+                .ignoresSafeArea()
         }
         .toolbar {
             ToolbarItem(placement: .keyboard) {
@@ -106,12 +133,120 @@ struct AddProductScreen: View {
         }
     }
     
+    private var photoSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .foregroundColor(accent)
+                Text("Step 1: Take a Photo")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            
+            Text("Please take a photo first. While you fill in the details, our AI will validate the product in the background.")
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.6))
+            
+            Button {
+                showCamera = true
+            } label: {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.05))
+                        .frame(height: 160)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(vm.imageError != nil ? Color.red.opacity(0.5) : (vm.isImageValid ? accent.opacity(0.5) : Color.white.opacity(0.1)), lineWidth: 2)
+                        )
+                    
+                    if let image = vm.selectedUIImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 160)
+                            .cornerRadius(20)
+                            .clipped()
+                            .blur(radius: vm.isUploadingImage ? 8 : 0)
+                            .overlay(
+                                Color.black.opacity(vm.isUploadingImage ? 0.6 : 0)
+                                    .cornerRadius(20)
+                            )
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 30))
+                            Text("Tap to capture product")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .foregroundColor(accent)
+                    }
+                    
+                    if vm.isUploadingImage {
+                        VStack(spacing: 8) {
+                            ProgressView()
+                                .tint(accent)
+                            Text("AI is analyzing...")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(accent)
+                        }
+                    }
+                    
+                    if !vm.isUploadingImage {
+                        if vm.isImageValid {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(Color.black, accent)
+                                        .font(.system(size: 32))
+                                        .padding(12)
+                                }
+                            }
+                        } else if vm.imageError != nil {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "xmark.circle.fill")
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(.white, .red)
+                                        .font(.system(size: 32))
+                                        .padding(12)
+                                }
+                            }
+                        }
+                    }
+                }
+                .shadow(color: photoShadowColor, radius: 15)
+            }
+            .buttonStyle(.plain)
+            
+            if let imageErr = vm.imageError {
+                errorMessage(imageErr)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .opacity.combined(with: .scale(scale: 0.9))
+                    ))
+            }
+        }
+    }
+    
+    private var photoShadowColor: Color {
+        if vm.isUploadingImage { return .clear }
+        if vm.imageError != nil { return Color.red.opacity(0.6) }
+        if vm.isImageValid { return accent.opacity(0.6) }
+        return .clear
+    }
+    
     private var packagingSectionView: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Packaging").font(.system(size: 14, weight: .bold)).foregroundColor(accent)
-                    Text("Use recycling codes (e.g. PAP 20, PET 01)").font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
+                    Text("Use recycling codes (e.g. PAP 20, PET 01)").font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
                 }
                 Spacer()
                 Button(action: { vm.addPackagingField() }) {

@@ -32,9 +32,23 @@ final class AddProductViewModel: ObservableObject {
     @Published var salt: String = ""
     @Published var caffeine: String = ""
     
+    @Published var selectedUIImage: UIImage? = nil {
+        didSet {
+            if let image = selectedUIImage {
+                processImageUpload(image)
+            }
+        }
+    }
+    @Published var isUploadingImage = false
+    @Published var isImageValid = false
+    @Published var imageError: String? = nil
+    
     @Published var isSaving = false
     @Published var error: String? = nil
     @Published var isSuccess = false
+    
+    private var s3Key: String = ""
+    private var imageId: String = ""
     
     let barcode: String
     let grades = ["A", "B", "C", "D", "E"]
@@ -52,7 +66,32 @@ final class AddProductViewModel: ObservableObject {
         let ingredientsValid = !ingredients.trimmingCharacters(in: .whitespaces).isEmpty
         let nutritionValid = !kcal.isEmpty && !proteins.isEmpty && !fats.isEmpty && !carbs.isEmpty
         
-        return nameValid && brandValid && ingredientsValid && nutritionValid
+        return nameValid && brandValid && ingredientsValid && nutritionValid && isImageValid && !isUploadingImage
+    }
+    
+    func processImageUpload(_ image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+        
+        isUploadingImage = true
+        isImageValid = false
+        imageError = nil
+        
+        Task {
+            do {
+                let uploadInfo = try await repository.prepareUpload()
+                self.s3Key = uploadInfo.s3Key
+                self.imageId = uploadInfo.imageId
+                try await repository.uploadImage(url: uploadInfo.uploadUrl, data: data)
+                let validation = try await repository.validateImage(s3Key: s3Key, imageId: imageId)
+                self.isImageValid = validation.isValid
+                if !validation.isValid {
+                    self.imageError = validation.error_en ?? "AI: Invalid image"
+                }
+            } catch {
+                self.imageError = "Upload failed: \(error.localizedDescription)"
+            }
+            isUploadingImage = false
+        }
     }
     
     func addPackagingField() {
@@ -105,10 +144,14 @@ final class AddProductViewModel: ObservableObject {
         newProduct.ecoscore_grade = ecoScore.isEmpty ? nil : ecoScore.lowercased()
         
         do {
-            try await repository.addProduct(newProduct)
+            try await repository.finalizeAndAdd(
+                product: newProduct,
+                s3Key: s3Key,
+                imageId: imageId
+            )
             isSuccess = true
         } catch {
-            self.error = "Error: \(error.localizedDescription)"
+            self.error = "Saving failed: \(error.localizedDescription)"
         }
         isSaving = false
     }
