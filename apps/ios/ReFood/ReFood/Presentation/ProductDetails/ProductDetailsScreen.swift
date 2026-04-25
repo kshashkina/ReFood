@@ -57,7 +57,9 @@ struct ProductDetailsScreen: View {
         .fullScreenCover(isPresented: $showRecycling) {
             RecyclingScreen(
                 product: product,
-                onBack: { showRecycling = false }
+                languageProvider: SystemLanguageProvider(),
+                onBack: { showRecycling = false },
+                onFindPointTapped: {}
             )
         }
         .fullScreenCover(isPresented: $showEditScreen) {
