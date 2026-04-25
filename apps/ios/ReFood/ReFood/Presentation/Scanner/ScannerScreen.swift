@@ -2,117 +2,141 @@ import SwiftUI
 
 struct ScannerScreen: View {
     let onClose: () -> Void
-    let onManualInput: () -> Void
-
     @StateObject private var vm = ScannerViewModel()
     @State private var showManualInput = false
-    @State private var previewProduct: Product? = nil
-    @State private var detailsProduct: Product? = nil
-    @State private var comparisonProduct: Product? = nil
-    @State private var showAddProduct: Bool = false
+    
+    @State private var path: [Destination] = []
+
+    enum Destination: Hashable {
+        case preview(Product)
+        case details(Product)
+        case comparison(Product, Product)
+    }
 
     var body: some View {
-        ZStack {
-            ScannerView(
-                session: vm.session,
-                onClose: { vm.onDisappear(); onClose() },
-                onTapTorch: { _ in vm.toggleTorch() },
-                onTapManualInput: { showManualInput = true },
-                onTapScan: { vm.startScanning() }
-            )
-        }
-        .onAppear { vm.onAppear() }
-        .onDisappear { vm.onDisappear() }
-        
-        .fullScreenCover(isPresented: $showManualInput) {
-            ManualInputScreen( onBack: {
-                showManualInput = false
-                vm.startScanning()
-            })
-            .onAppear {
-                vm.stopScanning()
-            }
-        }
-        
-        .sheet(isPresented: $vm.isLoadingProduct) {
-            ProductLoadingSheet(
-                isPresented: $vm.isLoadingProduct,
-                progress: vm.loadingProgress,
-                currentStep: vm.currentLoadingStep,
-                isFailed: vm.isProductLoadingFailed,
-                onFinish: {
-                    vm.isLoadingProduct = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        if let fetched = vm.product { previewProduct = fetched }
-                    }
-                },
-                onTryAgain: {
-                    vm.isLoadingProduct = false
-                    vm.scanAgain()
-                },
-                onAddProduct: {
-                    vm.isLoadingProduct = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        showAddProduct = true
-                    }
-                }
-            )
-            .presentationDetents([.height(560)])
-            .presentationDragIndicator(.hidden)
-            .interactiveDismissDisabled(vm.loadingProgress < 1.0 && !vm.isProductLoadingFailed)
-            .onDisappear {
-                if previewProduct == nil && detailsProduct == nil && comparisonProduct == nil && !showAddProduct {
-                    vm.scanAgain()
-                }
-            }
-        }
-        .fullScreenCover(item: $previewProduct) { productB in
-            ProductPreviewScreen(
-                product: productB,
-                firstProductForComparison: vm.firstProductForComparison,
-                onBack: { previewProduct = nil; vm.scanAgain() },
-                onContinue: {
-                    previewProduct = nil
-                    if vm.firstProductForComparison != nil {
-                        comparisonProduct = productB
-                    } else {
-                        detailsProduct = productB
-                    }
-                },
-                onScanAgain: { previewProduct = nil; vm.scanAgain() }
-            )
-        }
-        .fullScreenCover(item: $detailsProduct) { product in
-            ProductDetailsScreen(
-                product: product,
-                onBack: {
-                    detailsProduct = nil
-                    vm.scanAgain()
-                },
-                onCompare: { productA in
-                    detailsProduct = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        vm.setupComparison(with: productA)
-                    }
-                }
-            )
-        }
-        .fullScreenCover(item: $comparisonProduct) { productB in
-            if let productA = vm.firstProductForComparison {
-                ProductComparisonScreen(
-                    productA: productA,
-                    productB: productB,
-                    onBack: {
-                        comparisonProduct = nil
-                        vm.firstProductForComparison = nil
-                        vm.scanAgain()
+        NavigationStack(path: $path) {
+            ZStack {
+                ScannerView(
+                    session: vm.session,
+                    onClose: {
+                        vm.onDisappear()
+                        onClose()
+                    },
+                    onTapTorch: { _ in vm.toggleTorch() },
+                    onTapManualInput: {
+                        showManualInput = true
+                    },
+                    onTapScan: {
+                        vm.startScanning()
                     }
                 )
             }
-        }
-        .fullScreenCover(isPresented: $showAddProduct, onDismiss: {vm.scanAgain()}) {
-            let repository = ProductRepositoryImpl()
-            AddProductScreen(barcode: vm.lastScannedBarcode, repository: repository)
+            .onAppear {
+                vm.onAppear()
+            }
+            .onDisappear {
+                vm.onDisappear()
+            }
+            .toolbar(.hidden)
+            
+            .navigationDestination(for: Destination.self) { destination in
+                switch destination {
+                case .preview(let product):
+                    ProductPreviewScreen(
+                        product: product,
+                        firstProductForComparison: vm.firstProductForComparison,
+                        onBack: {
+                            path.removeAll()
+                            vm.firstProductForComparison = nil
+                            vm.scanAgain()
+                        },
+                        onContinue: {
+                            if let first = vm.firstProductForComparison {
+                                path.append(.comparison(first, product))
+                            } else {
+                                path.append(.details(product))
+                            }
+                        },
+                        onScanAgain: {
+                            path.removeAll()
+                            vm.firstProductForComparison = nil
+                            vm.scanAgain()
+                        }
+                    )
+                    .toolbar(.hidden)
+                    
+                case .details(let product):
+                    ProductDetailsScreen(
+                        product: product,
+                        onBack: {
+                            path.removeAll()
+                            vm.firstProductForComparison = nil
+                            vm.scanAgain()
+                        },
+                        onCompare: { pA in
+                            path.removeAll()
+                            vm.setupComparison(with: pA)
+                        }
+                    )
+                    .toolbar(.hidden)
+                    
+                case .comparison(let pA, let pB):
+                    ProductComparisonScreen(
+                        productA: pA,
+                        productB: pB,
+                        onBack: {
+                            path.removeAll()
+                            vm.firstProductForComparison = nil
+                            vm.scanAgain()
+                        }
+                    )
+                    .toolbar(.hidden)
+                }
+            }
+            .fullScreenCover(isPresented: $showManualInput) {
+                ManualInputScreen(
+                    repository: ProductRepositoryImpl(),
+                    firstProductForComparison: vm.firstProductForComparison,
+                    onClose: {
+                        showManualInput = false
+                        vm.scanAgain()
+                    },
+                    onResetScanner: {
+                        showManualInput = false
+                        vm.firstProductForComparison = nil
+                        vm.scanAgain()
+                    },
+                    onCompareFromDetails: { pA in
+                        showManualInput = false
+                        vm.setupComparison(with: pA)
+                    }
+                )
+            }
+            .sheet(isPresented: $vm.isLoadingProduct, onDismiss: {
+                if path.isEmpty && !showManualInput {
+                    vm.scanAgain()
+                }
+            }) {
+                ProductLoadingSheet(
+                    isPresented: $vm.isLoadingProduct,
+                    progress: vm.loadingProgress,
+                    currentStep: vm.currentLoadingStep,
+                    onFinish: {
+                        vm.isLoadingProduct = false
+                        if let fetched = vm.product {
+                            path.append(.preview(fetched))
+                        }
+                    },
+                    onTryAgain: {
+                        vm.isLoadingProduct = false
+                        vm.scanAgain()
+                    },
+                    onAddProduct: {
+                        vm.isLoadingProduct = false
+                    }
+                )
+                .presentationDetents([.height(560)])
+            }
         }
     }
 }

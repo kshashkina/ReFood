@@ -12,34 +12,31 @@ final class ManualInputViewModel: ObservableObject {
     @Published var currentStep: ProductLoadingSheet.LoadingStep = .searching
     @Published var isFailed = false
     
-    private var loadingTimer: Timer?
     private let repository: ProductRepository
+    private var loadingTimer: Timer?
     
-    init(repository: ProductRepository = ProductRepositoryImpl()) {
+    init(repository: ProductRepository) {
         self.repository = repository
     }
     
+    var isInputValid: Bool {
+        let count = barcode.trimmingCharacters(in: .whitespaces).count
+        return count >= 7 && count <= 14 && !isLoading
+    }
+    
     func findProduct() async {
-        guard !barcode.isEmpty else { return }
+        guard isInputValid else { return }
         
-        isLoading = true
-        isFailed = false
-        error = nil
-        loadingProgress = 0.0
-        currentStep = .searching
-        
+        setupInitialLoadingState()
         startLoadingAnimation()
         
         do {
             let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
-            
             try? await Task.sleep(nanoseconds: 1_000_000_000)
-            
             self.product = fetchedProduct
             finishLoadingSuccess()
         } catch {
-            finishLoadingFailure()
-            self.error = error.localizedDescription
+            finishLoadingFailure(error)
         }
     }
     
@@ -71,10 +68,11 @@ final class ManualInputViewModel: ObservableObject {
         }
     }
     
-    private func finishLoadingFailure() {
+    private func finishLoadingFailure(_ error: Error) {
         stopLoadingAnimation()
         withAnimation(.spring()) {
             self.isFailed = true
+            self.error = error.localizedDescription
             self.loadingProgress = 0.35
         }
     }
@@ -82,5 +80,17 @@ final class ManualInputViewModel: ObservableObject {
     private func stopLoadingAnimation() {
         loadingTimer?.invalidate()
         loadingTimer = nil
+    }
+    
+    private func setupInitialLoadingState() {
+        isLoading = true
+        isFailed = false
+        error = nil
+        loadingProgress = 0.0
+        currentStep = .searching
+    }
+    
+    deinit {
+        loadingTimer?.invalidate()
     }
 }

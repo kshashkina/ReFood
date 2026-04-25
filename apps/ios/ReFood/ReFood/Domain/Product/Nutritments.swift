@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Nutriments: Decodable, Equatable {
+public struct Nutriments: Decodable, Equatable, Hashable {
     public let addedSugars100g: Double?
     public let proteins100g: Double?
     public let energyKcal100g: Double?

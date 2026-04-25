@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Product: Decodable, Equatable {
+public struct Product: Decodable, Equatable, Hashable {
     public var barcode: String = ""
     public let productName: String?
     public let brands: String?
