@@ -5,6 +5,7 @@ struct ScannerScreen: View {
     let onManualInput: () -> Void
 
     @StateObject private var vm = ScannerViewModel()
+    @State private var showManualInput = false
     @State private var previewProduct: Product? = nil
     @State private var detailsProduct: Product? = nil
     @State private var comparisonProduct: Product? = nil
@@ -16,12 +17,22 @@ struct ScannerScreen: View {
                 session: vm.session,
                 onClose: { vm.onDisappear(); onClose() },
                 onTapTorch: { _ in vm.toggleTorch() },
-                onTapManualInput: { vm.onDisappear(); onManualInput() },
+                onTapManualInput: { showManualInput = true },
                 onTapScan: { vm.startScanning() }
             )
         }
         .onAppear { vm.onAppear() }
         .onDisappear { vm.onDisappear() }
+        
+        .fullScreenCover(isPresented: $showManualInput) {
+            ManualInputScreen( onBack: {
+                showManualInput = false
+                vm.startScanning()
+            })
+            .onAppear {
+                vm.stopScanning()
+            }
+        }
         
         .sheet(isPresented: $vm.isLoadingProduct) {
             ProductLoadingSheet(
