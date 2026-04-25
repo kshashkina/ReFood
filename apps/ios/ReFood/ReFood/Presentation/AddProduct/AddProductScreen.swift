@@ -4,13 +4,19 @@ struct AddProductScreen: View {
     @StateObject private var vm: AddProductViewModel
     @Environment(\.dismiss) var dismiss
     @FocusState private var isFocused: Bool
+    
     @State private var showSuccessCheckmark = false
     @State private var showCamera = false
     
-    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
     
-    init(barcode: String, existingProduct: Product? = nil) {
-        _vm = StateObject(wrappedValue: AddProductViewModel(barcode: barcode, existingProduct: existingProduct))
+    init(barcode: String, existingProduct: Product? = nil, repository: ProductRepository = ProductRepositoryImpl()) {
+        let service = ImageUploadService(repository: repository)
+        _vm = StateObject(wrappedValue: AddProductViewModel(
+            barcode: barcode,
+            existingProduct: existingProduct,
+            repository: repository,
+            uploadService: service
+        ))
     }
     
     var body: some View {
@@ -19,86 +25,39 @@ struct AddProductScreen: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    headerDescription
-                        .padding(.top, 110)
+                    HeaderDescriptionView(isEditing: vm.isEditingMode)
+                        .padding(.top, 70)
                     
-                    photoSection
+                    PhotoSectionView(vm: vm, showCamera: $showCamera)
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "list.bullet.clipboard")
-                                .foregroundColor(accent)
-                            Text("Step 2: Product Details")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        
-                        Text("Fill out the remaining details below to complete the product entry.")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .padding(.top, 8)
-                    
-                    GlassCard(cornerRadius: 20, padding: 20) {
-                        VStack(spacing: 16) {
-                            inputField("Product Name", text: $vm.name, placeholder: "e.g. Greek Yogurt", isRequired: true)
-                                .focused($isFocused)
-                            inputField("Brand", text: $vm.brand, placeholder: "e.g. Danone", isRequired: true)
-                                .focused($isFocused)
-                            inputField("Quantity", text: $vm.quantity, placeholder: "Include units (e.g. 500g, 1.5L)", isRequired: false)
-                                .focused($isFocused)
-                            inputField("Categories", text: $vm.categories, placeholder: "Separated by comma (e.g. Dairy, Yogurts)")
-                                .focused($isFocused)
-                            barcodeBadge
-                        }
-                    }
+                    GeneralInfoSectionView(form: $vm.form, barcode: vm.barcode, focus: $isFocused)
                     
                     VStack(alignment: .leading, spacing: 16) {
-                        gradeSection(title: "Nutri-Score", selection: $vm.nutriScore)
-                        gradeSection(title: "Eco-Score", selection: $vm.ecoScore)
+                        GradeSelectionView(title: "Nutri-Score", selection: $vm.form.nutriScore)
+                        GradeSelectionView(title: "Eco-Score", selection: $vm.form.ecoScore)
                     }
                     
-                    GlassCard(cornerRadius: 20, padding: 20) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Ingredients")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                                
-                                Text("List ingredients separated by commas")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(accent.opacity(0.8))
-
-                                TextEditor(text: $vm.ingredients)
-                                    .focused($isFocused)
-                                    .frame(height: 80)
-                                    .scrollContentBackground(.hidden)
-                                    .background(Color.white.opacity(0.05))
-                                    .cornerRadius(12)
-                                    .foregroundColor(.white)
-                                    .tint(accent)
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.1), lineWidth: 1))
-                            }
-                            inputField("Allergens", text: $vm.allergens, placeholder: "e.g. Milk, Nuts, Soy")
-                                .focused($isFocused)
+                    IngredientsSectionView(form: $vm.form, focus: $isFocused)
+                    
+                    PackagingSectionView(packaging: $vm.form.packaging, onAdd: vm.addPackagingField, focus: $isFocused)
+                    
+                    NutritionSectionView(nutrition: $vm.form.nutrition, focus: $isFocused)
+                    
+                    ImportantNoticeView(isEditingMode: vm.isEditingMode)
+                    
+                    VStack(spacing: 8) {
+                        if vm.error != nil {
+                            ErrorMessageView(text: "addProduct_error_system")
+                                .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity.combined(with: .scale(scale: 0.9))))
                         }
+                        
+                        SaveButtonView(
+                            vm: vm,
+                            showSuccess: $showSuccessCheckmark,
+                            isFocused: $isFocused
+                        )
                     }
-                    
-                    packagingSectionView
-                    nutritionSectionView
-                    
-                    noticeSection
-                    
-                    if vm.error != nil {
-                        errorMessage("Our system cannot handle this input. Please check the fields and try again.")
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .bottom).combined(with: .opacity),
-                                removal: .opacity.combined(with: .scale(scale: 0.9))
-                            ))
-                    }
-                    
-                    saveButton.padding(.top, 8)
+                    .padding(.top, 8)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
@@ -107,375 +66,24 @@ struct AddProductScreen: View {
             .animation(.interactiveSpring(), value: vm.imageError)
             .animation(.interactiveSpring(), value: vm.isUploadingImage)
             
-            topBar
+            TopBarView(
+                title: vm.isEditingMode ? "addProduct_title_edit" : "addProduct_title_new",
+                onDismiss: { dismiss() }
+            )
         }
         .fullScreenCover(isPresented: $showCamera) {
-            CameraPicker(image: $vm.selectedUIImage)
-                .ignoresSafeArea()
+            CameraPicker(image: $vm.selectedUIImage).ignoresSafeArea()
         }
         .toolbar {
             ToolbarItem(placement: .keyboard) {
-                HStack {
-                    Spacer()
-                    Button("Done") { isFocused = false }
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(accent)
-                }
+                HStack { Spacer(); Button("addProduct_label_done") { isFocused = false }.font(.system(size: 16, weight: .bold)).foregroundColor(Color.appAccent) }
             }
         }
         .onReceive(vm.$isSuccess) { success in
             if success {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                    showSuccessCheckmark = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-                    dismiss()
-                }
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showSuccessCheckmark = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { dismiss() }
             }
         }
-    }
-    
-    private var noticeSection: some View {
-        GlassCard(cornerRadius: 16, padding: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(accent)
-                    .font(.system(size: 18))
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Important Notice")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    Text(vm.isEditingMode ? "Updates will be processed by our system. Please re-scan the product in a few moments to see the changes." : "The new product will be added to our global database and will be available for all users after validation.")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.7))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(accent.opacity(0.2), lineWidth: 1)
-        )
-    }
-    
-    private var photoSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "sparkles")
-                    .foregroundColor(accent)
-                Text(vm.isEditingMode ? "Step 1: Update Photo (Optional)" : "Step 1: Take a Photo")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
-                Spacer()
-            }
-            
-            Text(vm.isEditingMode ? "You can keep the current photo or take a new one to update it." : "Please take a photo first. While you fill in the details, our AI will validate the product in the background.")
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.6))
-            
-            Button {
-                showCamera = true
-            } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.05))
-                        .frame(height: 160)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(vm.imageError != nil ? Color.red.opacity(0.5) : (vm.isImageValid ? accent.opacity(0.5) : Color.white.opacity(0.1)), lineWidth: 2)
-                        )
-                    
-                    if let image = vm.selectedUIImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 160)
-                            .cornerRadius(20)
-                            .clipped()
-                            .blur(radius: vm.isUploadingImage ? 8 : 0)
-                            .overlay(
-                                Color.black.opacity(vm.isUploadingImage ? 0.6 : 0)
-                                    .cornerRadius(20)
-                            )
-                    } else if vm.isEditingMode, let url = vm.existingImageUrl {
-                        CachedAsyncImage(url: URL(string: url), contentMode: .fill) {
-                            placeholder
-                        }
-                        .frame(height: 160)
-                        .cornerRadius(20)
-                        .clipped()
-                    } else {
-                        VStack(spacing: 12) {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 30))
-                            Text("Tap to capture product")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .foregroundColor(accent)
-                    }
-                    
-                    if vm.isUploadingImage {
-                        VStack(spacing: 8) {
-                            ProgressView()
-                                .tint(accent)
-                            Text("AI is analyzing...")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(accent)
-                        }
-                    }
-                    
-                    if !vm.isUploadingImage {
-                        if vm.isImageValid {
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .symbolRenderingMode(.palette)
-                                        .foregroundStyle(Color.black, accent)
-                                        .font(.system(size: 32))
-                                        .padding(12)
-                                }
-                            }
-                        } else if vm.imageError != nil {
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    Image(systemName: "xmark.circle.fill")
-                                        .symbolRenderingMode(.palette)
-                                        .foregroundStyle(.white, .red)
-                                        .font(.system(size: 32))
-                                        .padding(12)
-                                }
-                            }
-                        }
-                    }
-                }
-                .shadow(color: photoShadowColor, radius: 15)
-            }
-            .buttonStyle(.plain)
-            
-            if let imageErr = vm.imageError {
-                errorMessage(imageErr)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .top).combined(with: .opacity),
-                        removal: .opacity.combined(with: .scale(scale: 0.9))
-                    ))
-            }
-        }
-    }
-    
-    private var placeholder: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "photo")
-                .font(.system(size: 30))
-            Text("No Image")
-                .font(.system(size: 14, weight: .medium))
-        }
-        .foregroundColor(.white.opacity(0.3))
-    }
-    
-    private var photoShadowColor: Color {
-        if vm.isUploadingImage { return .clear }
-        if vm.imageError != nil { return Color.red.opacity(0.6) }
-        if vm.isImageValid { return accent.opacity(0.6) }
-        return .clear
-    }
-    
-    private var packagingSectionView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Packaging").font(.system(size: 14, weight: .bold)).foregroundColor(accent)
-                    Text("Use recycling codes (e.g. PAP 20, PET 01)").font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
-                }
-                Spacer()
-                Button(action: { vm.addPackagingField() }) {
-                    Image(systemName: "plus.circle.fill").foregroundColor(accent).font(.system(size: 20))
-                }
-            }.padding(.horizontal, 4)
-            
-            VStack(spacing: 12) {
-                ForEach(Array(vm.packagingItems.enumerated()), id: \.element.id) { index, _ in
-                    GlassCard(cornerRadius: 16, padding: 12) {
-                        VStack(spacing: 10) {
-                            HStack(spacing: 10) {
-                                TextField("Shape", text: $vm.packagingItems[index].shape).focused($isFocused).inputStyle(accent: accent)
-                                TextField("Material", text: $vm.packagingItems[index].material).focused($isFocused).inputStyle(accent: accent)
-                            }
-                            TextField("Recycling Code", text: $vm.packagingItems[index].recycling).focused($isFocused).inputStyle(accent: accent)
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    private var nutritionSectionView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Nutrition Facts (per 100g)").font(.system(size: 14, weight: .bold)).foregroundColor(accent).padding(.leading, 4)
-            GlassCard(cornerRadius: 20, padding: 20) {
-                VStack(spacing: 20) {
-                    HStack(spacing: 16) {
-                        inputField("Kcal", text: $vm.kcal, placeholder: "0", keyboard: .decimalPad, isRequired: true).focused($isFocused)
-                        inputField("Proteins", text: $vm.proteins, placeholder: "0", keyboard: .decimalPad, isRequired: true).focused($isFocused)
-                    }
-                    HStack(spacing: 16) {
-                        inputField("Fats", text: $vm.fats, placeholder: "0", keyboard: .decimalPad, isRequired: true).focused($isFocused)
-                        inputField("Carbs", text: $vm.carbs, placeholder: "0", keyboard: .decimalPad, isRequired: true).focused($isFocused)
-                    }
-                    Divider().background(Color.white.opacity(0.1))
-                    HStack(spacing: 16) {
-                        inputField("Sat. Fat", text: $vm.saturatedFat, placeholder: "0", keyboard: .decimalPad).focused($isFocused)
-                        inputField("Sugars", text: $vm.sugars, placeholder: "0", keyboard: .decimalPad).focused($isFocused)
-                    }
-                    HStack(spacing: 16) {
-                        inputField("Added Sugars", text: $vm.addedSugars, placeholder: "0", keyboard: .decimalPad).focused($isFocused)
-                        inputField("Salt", text: $vm.salt, placeholder: "0", keyboard: .decimalPad).focused($isFocused)
-                    }
-                    inputField("Caffeine (mg)", text: $vm.caffeine, placeholder: "0", keyboard: .decimalPad).focused($isFocused)
-                }
-            }
-        }
-    }
-
-    private var headerDescription: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(vm.isEditingMode ? "Refine Product Data" : "Help the community").font(.system(size: 24, weight: .bold)).foregroundColor(accent)
-            Text("Fields in **bold** are required. Please be as accurate as possible.").font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
-        }.frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func inputField(_ label: String, text: Binding<String>, placeholder: String, keyboard: UIKeyboardType = .default, isRequired: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(label).font(.system(size: 14, weight: isRequired ? .bold : .semibold)).foregroundColor(isRequired ? .white : .white.opacity(0.6))
-            TextField(placeholder, text: text).keyboardType(keyboard).inputStyle(accent: accent)
-        }
-    }
-
-    private func gradeSection(title: String, selection: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.system(size: 14, weight: .semibold)).foregroundColor(.white.opacity(0.6))
-            HStack(spacing: 10) {
-                ForEach(vm.grades, id: \.self) { grade in
-                    let isSelected = selection.wrappedValue == grade
-                    let color = gradeColor(grade)
-                    Button { selection.wrappedValue = isSelected ? "" : grade } label: {
-                        Text(grade).font(.system(size: 20, weight: .bold)).foregroundColor(isSelected ? color : .white.opacity(0.4))
-                            .frame(maxWidth: .infinity).frame(height: 52)
-                            .background(isSelected ? color.opacity(0.13) : Color.white.opacity(0.05))
-                            .cornerRadius(14).overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? color.opacity(0.3) : Color.white.opacity(0.1), lineWidth: 1))
-                    }.buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    private func gradeColor(_ grade: String) -> Color {
-        switch grade.lowercased() {
-        case "a": return Color(red: 144/255, green: 240/255, blue: 71/255)
-        case "b": return Color(red: 179/255, green: 243/255, blue: 87/255)
-        case "c": return Color(red: 245/255, green: 221/255, blue: 77/255)
-        case "d": return Color(red: 255/255, green: 163/255, blue: 62/255)
-        case "e": return Color(red: 255/255, green: 84/255,  blue: 84/255)
-        default: return Color.white.opacity(0.45)
-        }
-    }
-
-    private var topBar: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(Color.black.opacity(0.7)).frame(height: 110)
-                .overlay(
-                    HStack {
-                        Button(action: { dismiss() }) {
-                            Circle().fill(Color.white.opacity(0.1)).frame(width: 40, height: 40)
-                                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
-                                .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.white))
-                        }.padding(.leading, 24)
-                        Text(vm.isEditingMode ? "Edit Product" : "New Product").font(.system(size: 18, weight: .bold)).foregroundColor(.white).padding(.leading, 8)
-                        Spacer()
-                    }.padding(.top, 50)
-                )
-            Spacer()
-        }.ignoresSafeArea()
-    }
-
-    private var barcodeBadge: some View {
-        HStack {
-            Image(systemName: "barcode.viewfinder")
-            Text("Barcode: \(vm.barcode)")
-            Spacer()
-        }.font(.system(size: 13, weight: .medium)).foregroundColor(accent).padding(12).background(accent.opacity(0.1)).cornerRadius(10)
-    }
-
-    private func errorMessage(_ text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.red)
-            Text(text)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.red.opacity(0.2))
-        .cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.red.opacity(0.3), lineWidth: 1))
-    }
-
-    private var saveButton: some View {
-        Button {
-            isFocused = false
-            if !showSuccessCheckmark {
-                Task { await vm.saveProduct() }
-            }
-        } label: {
-            HStack(spacing: 12) {
-                if showSuccessCheckmark {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.black)
-                        .transition(.scale.combined(with: .opacity))
-                } else if vm.isSaving {
-                    ProgressView().tint(.black)
-                } else {
-                    Text(vm.isEditingMode ? "Save Changes" : "Save to Database")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(vm.canSave ? .black : .white.opacity(0.3))
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity)
-            .frame(height: 58)
-            .background(
-                RoundedRectangle(cornerRadius: showSuccessCheckmark ? 29 : 16)
-                    .fill(showSuccessCheckmark ? accent : (vm.canSave ? accent : Color.white.opacity(0.1)))
-            )
-            .frame(width: showSuccessCheckmark ? 58 : nil)
-            .scaleEffect(showSuccessCheckmark ? 1.05 : 1.0)
-        }
-        .disabled(!vm.canSave || vm.isSaving || showSuccessCheckmark)
-        .shadow(color: (vm.canSave || showSuccessCheckmark) ? accent.opacity(showSuccessCheckmark ? 0.5 : 0.3) : .clear, radius: showSuccessCheckmark ? 20 : 15)
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showSuccessCheckmark)
-        .animation(.default, value: vm.isSaving)
-    }
-}
-
-extension View {
-    func inputStyle(accent: Color) -> some View {
-        self.padding(12)
-            .background(Color.white.opacity(0.05))
-            .cornerRadius(12)
-            .foregroundColor(.white)
-            .tint(accent)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-            )
     }
 }

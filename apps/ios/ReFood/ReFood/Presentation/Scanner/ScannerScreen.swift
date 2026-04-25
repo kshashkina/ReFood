@@ -111,7 +111,8 @@ struct ScannerScreen: View {
             }
         }
         .fullScreenCover(isPresented: $showAddProduct, onDismiss: {vm.scanAgain()}) {
-            AddProductScreen(barcode: vm.lastScannedBarcode)
+            let repository = ProductRepositoryImpl()
+            AddProductScreen(barcode: vm.lastScannedBarcode, repository: repository)
         }
     }
 }
