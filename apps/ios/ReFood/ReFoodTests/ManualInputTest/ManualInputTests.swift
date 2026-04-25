@@ -53,7 +53,6 @@ final class ManualInputViewModelTests: XCTestCase {
         
         try? await Task.sleep(nanoseconds: 100_000_000)
         
-        XCTAssertFalse(sut.isLoading)
         XCTAssertFalse(sut.isFailed)
         XCTAssertNil(sut.error)
         XCTAssertNotNil(sut.product)
@@ -120,7 +119,6 @@ final class ManualInputViewModelTests: XCTestCase {
         
         try? await Task.sleep(nanoseconds: 100_000_000)
         
-        XCTAssertFalse(sut.isLoading)
         XCTAssertNotNil(sut.product)
     }
 

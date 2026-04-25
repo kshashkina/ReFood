@@ -25,28 +25,20 @@ final class ManualInputViewModel: ObservableObject {
     }
     
     func findProduct() async {
-        guard isInputValid else { return }
-        
-        setupInitialLoadingState()
-        startLoadingAnimation()
-        
-        do {
-            let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            stopLoadingAnimation()
-            await MainActor.run {
+            guard isInputValid else { return }
+            
+            setupInitialLoadingState()
+            startLoadingAnimation()
+            
+            do {
+                let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
                 self.product = fetchedProduct
-                self.isLoading = false 
                 finishLoadingSuccess()
-            }
-        } catch {
-            await MainActor.run {
-                stopLoadingAnimation()
-                isLoading = false
+            } catch {
                 finishLoadingFailure(error)
             }
         }
-    }
     
     private func startLoadingAnimation() {
         stopLoadingAnimation()
