@@ -7,6 +7,7 @@ struct ProductDetailsScreen: View {
     var onCompare: (Product) -> Void = { _ in }
     
     @State private var showRecycling = false
+    @State private var showEditScreen = false
     let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     enum NutritionTab: String, CaseIterable {
@@ -59,6 +60,9 @@ struct ProductDetailsScreen: View {
                 onBack: { showRecycling = false }
             )
         }
+        .fullScreenCover(isPresented: $showEditScreen) {
+            AddProductScreen(barcode: product.barcode, existingProduct: product)
+        }
     }
 
 
@@ -75,7 +79,8 @@ struct ProductDetailsScreen: View {
 
                         HStack(spacing: 8) {
                             iconButton("heart") { }
-                            iconButton("square.and.arrow.up") { }
+                            iconButton("square.and.arrow.up") {}
+                            iconButton("pencil"){showEditScreen = true}
                         }
                     }
                     .padding(.horizontal, 24)

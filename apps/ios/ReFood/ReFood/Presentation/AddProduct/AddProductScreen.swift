@@ -9,8 +9,8 @@ struct AddProductScreen: View {
     
     private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
     
-    init(barcode: String) {
-        _vm = StateObject(wrappedValue: AddProductViewModel(barcode: barcode))
+    init(barcode: String, existingProduct: Product? = nil) {
+        _vm = StateObject(wrappedValue: AddProductViewModel(barcode: barcode, existingProduct: existingProduct))
     }
     
     var body: some View {
@@ -88,6 +88,8 @@ struct AddProductScreen: View {
                     packagingSectionView
                     nutritionSectionView
                     
+                    noticeSection
+                    
                     if vm.error != nil {
                         errorMessage("Our system cannot handle this input. Please check the fields and try again.")
                             .transition(.asymmetric(
@@ -133,18 +135,43 @@ struct AddProductScreen: View {
         }
     }
     
+    private var noticeSection: some View {
+        GlassCard(cornerRadius: 16, padding: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(accent)
+                    .font(.system(size: 18))
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Important Notice")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text(vm.isEditingMode ? "Updates will be processed by our system. Please re-scan the product in a few moments to see the changes." : "The new product will be added to our global database and will be available for all users after validation.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.7))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(accent.opacity(0.2), lineWidth: 1)
+        )
+    }
+    
     private var photoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "sparkles")
                     .foregroundColor(accent)
-                Text("Step 1: Take a Photo")
+                Text(vm.isEditingMode ? "Step 1: Update Photo (Optional)" : "Step 1: Take a Photo")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
             }
             
-            Text("Please take a photo first. While you fill in the details, our AI will validate the product in the background.")
+            Text(vm.isEditingMode ? "You can keep the current photo or take a new one to update it." : "Please take a photo first. While you fill in the details, our AI will validate the product in the background.")
                 .font(.system(size: 14))
                 .foregroundColor(.white.opacity(0.6))
             
@@ -172,6 +199,13 @@ struct AddProductScreen: View {
                                 Color.black.opacity(vm.isUploadingImage ? 0.6 : 0)
                                     .cornerRadius(20)
                             )
+                    } else if vm.isEditingMode, let url = vm.existingImageUrl {
+                        CachedAsyncImage(url: URL(string: url), contentMode: .fill) {
+                            placeholder
+                        }
+                        .frame(height: 160)
+                        .cornerRadius(20)
+                        .clipped()
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "camera.fill")
@@ -232,6 +266,16 @@ struct AddProductScreen: View {
                     ))
             }
         }
+    }
+    
+    private var placeholder: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "photo")
+                .font(.system(size: 30))
+            Text("No Image")
+                .font(.system(size: 14, weight: .medium))
+        }
+        .foregroundColor(.white.opacity(0.3))
     }
     
     private var photoShadowColor: Color {
@@ -300,7 +344,7 @@ struct AddProductScreen: View {
 
     private var headerDescription: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Help the community").font(.system(size: 24, weight: .bold)).foregroundColor(accent)
+            Text(vm.isEditingMode ? "Refine Product Data" : "Help the community").font(.system(size: 24, weight: .bold)).foregroundColor(accent)
             Text("Fields in **bold** are required. Please be as accurate as possible.").font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -351,7 +395,7 @@ struct AddProductScreen: View {
                                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                                 .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.white))
                         }.padding(.leading, 24)
-                        Text("New Product").font(.system(size: 18, weight: .bold)).foregroundColor(.white).padding(.leading, 8)
+                        Text(vm.isEditingMode ? "Edit Product" : "New Product").font(.system(size: 18, weight: .bold)).foregroundColor(.white).padding(.leading, 8)
                         Spacer()
                     }.padding(.top, 50)
                 )
@@ -399,7 +443,7 @@ struct AddProductScreen: View {
                 } else if vm.isSaving {
                     ProgressView().tint(.black)
                 } else {
-                    Text("Save to Database")
+                    Text(vm.isEditingMode ? "Save Changes" : "Save to Database")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(vm.canSave ? .black : .white.opacity(0.3))
                         .frame(maxWidth: .infinity)
