@@ -67,6 +67,8 @@ struct ManualInputScreen: View {
                     ProductComparisonScreen(
                         productA: pA,
                         productB: pB,
+                        aiRepository: AIComparisonRepositoryImpl(),
+                        languageProvider: SystemLanguageProvider(),
                         onBack: { onResetScanner() }
                     )
                     .toolbar(.hidden)

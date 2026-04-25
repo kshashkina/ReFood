@@ -84,6 +84,8 @@ struct ScannerScreen: View {
                     ProductComparisonScreen(
                         productA: pA,
                         productB: pB,
+                        aiRepository: AIComparisonRepositoryImpl(),
+                        languageProvider: SystemLanguageProvider(),
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
