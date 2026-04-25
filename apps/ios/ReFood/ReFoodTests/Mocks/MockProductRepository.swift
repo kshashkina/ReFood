@@ -7,9 +7,19 @@ final class MockProductRepository: ProductRepository {
     var shouldReturnError = false
     var isAddProductCalled = false
     var finalizeAndAddCalled = false
+    
+    var mockProduct: Product?
 
     func getProduct(byBarcode barcode: String) async throws -> Product {
-        fatalError("Not used in this context")
+        if shouldReturnError {
+            throw NSError(domain: "TestError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Product not found"])
+        }
+        
+        if let product = mockProduct {
+            return product
+        } else {
+            fatalError("Pleae add mock product to te test!")
+        }
     }
 
     func addProduct(_ product: ProductAdd) async throws {

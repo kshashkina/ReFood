@@ -33,10 +33,18 @@ final class ManualInputViewModel: ObservableObject {
         do {
             let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
             try? await Task.sleep(nanoseconds: 1_000_000_000)
-            self.product = fetchedProduct
-            finishLoadingSuccess()
+            stopLoadingAnimation()
+            await MainActor.run {
+                self.product = fetchedProduct
+                self.isLoading = false 
+                finishLoadingSuccess()
+            }
         } catch {
-            finishLoadingFailure(error)
+            await MainActor.run {
+                stopLoadingAnimation()
+                isLoading = false
+                finishLoadingFailure(error)
+            }
         }
     }
     
