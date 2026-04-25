@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class ScannerViewModel: ObservableObject {
     @Published var scannedCode: String? = nil
+    @Published var lastScannedBarcode: String = ""
     @Published var isTorchEnabled: Bool = false
     @Published var isScanning: Bool = false
     @Published var product: Product? = nil
@@ -62,6 +63,7 @@ final class ScannerViewModel: ObservableObject {
         scanner.onCodeScanned = { [weak self] code in
             guard let self else { return }
             self.scannedCode = code
+            self.lastScannedBarcode = code
             self.stopScanning()
             Task { await self.loadProduct(barcode: code) }
         }

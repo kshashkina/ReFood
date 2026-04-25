@@ -144,7 +144,7 @@ struct ComparisonGradesSection: View {
     }
     
     private func gradeBox(grade: String) -> some View {
-        let color = gradeColor(grade)
+        let color = Color.grade(grade)
         
         return Text(grade)
             .font(.system(size: 24, weight: .bold))
@@ -154,18 +154,6 @@ struct ComparisonGradesSection: View {
             .background(color.opacity(0.15))
             .cornerRadius(14)
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(color.opacity(0.3), lineWidth: 1))
-    }
-    
-    private func gradeColor(_ grade: String) -> Color {
-        switch grade.lowercased() {
-        case "a": return Color(red: 144/255, green: 240/255, blue: 71/255)
-        case "b": return Color(red: 179/255, green: 243/255, blue: 87/255)
-        case "c": return Color(red: 245/255, green: 221/255, blue: 77/255)
-        case "d": return Color(red: 255/255, green: 163/255, blue: 62/255)
-        case "e": return Color(red: 255/255, green: 84/255,  blue: 84/255)
-        case "f": return Color(red: 255/255, green: 50/255,  blue: 50/255)
-        default:  return Color.white.opacity(0.45)
-        }
     }
 }
 

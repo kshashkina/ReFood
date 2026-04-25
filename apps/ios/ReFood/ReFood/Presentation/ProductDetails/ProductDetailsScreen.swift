@@ -63,7 +63,14 @@ struct ProductDetailsScreen: View {
             )
         }
         .fullScreenCover(isPresented: $showEditScreen) {
-            AddProductScreen(barcode: product.barcode, existingProduct: product)
+            let repository = ProductRepositoryImpl()
+            let uploadService = ImageUploadService(repository: repository)
+            AddProductScreen(
+                barcode: product.barcode,
+                existingProduct: product,
+                repository: repository,
+                uploadService: uploadService
+            )
         }
     }
 

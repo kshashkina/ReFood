@@ -9,13 +9,17 @@ struct AddProductScreen: View {
     @State private var showCamera = false
     
     
-    init(barcode: String, existingProduct: Product? = nil, repository: ProductRepository = ProductRepositoryImpl()) {
-        let service = ImageUploadService(repository: repository)
+    init(
+        barcode: String,
+        existingProduct: Product? = nil,
+        repository: ProductRepository,
+        uploadService: ImageUploadServicing
+    ) {
         _vm = StateObject(wrappedValue: AddProductViewModel(
             barcode: barcode,
             existingProduct: existingProduct,
             repository: repository,
-            uploadService: service
+            uploadService: uploadService
         ))
     }
     

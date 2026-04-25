@@ -13,6 +13,7 @@ struct ManualInputScreen: View {
         case preview(Product)
         case details(Product)
         case comparison(Product, Product)
+        case addProduct(String)
     }
 
     init(repository: ProductRepository,
@@ -72,6 +73,17 @@ struct ManualInputScreen: View {
                         onBack: { onResetScanner() }
                     )
                     .toolbar(.hidden)
+                    
+                case .addProduct(let barcode):
+                    let repository = ProductRepositoryImpl()
+                    let uploadService = ImageUploadService(repository: repository)
+                    
+                    AddProductScreen(
+                        barcode: barcode,
+                        repository: repository,
+                        uploadService: uploadService
+                    )
+                    .toolbar(.hidden)
                 }
             }
             .sheet(isPresented: $vm.isLoading, onDismiss: {
@@ -81,6 +93,7 @@ struct ManualInputScreen: View {
                     isPresented: $vm.isLoading,
                     progress: vm.loadingProgress,
                     currentStep: vm.currentStep,
+                    isFailed: vm.isFailed,
                     onFinish: {
                         vm.isLoading = false
                         if let p = vm.product {
@@ -88,7 +101,10 @@ struct ManualInputScreen: View {
                         }
                     },
                     onTryAgain: { vm.isLoading = false },
-                    onAddProduct: { vm.isLoading = false }
+                    onAddProduct: {
+                        vm.isLoading = false
+                        path.append(.addProduct(vm.barcode))
+                    }
                 )
                 .presentationDetents([.height(560)])
             }

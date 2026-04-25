@@ -31,7 +31,7 @@ struct GradeSelectionView: View {
             HStack(spacing: 10) {
                 ForEach(grades, id: \.self) { grade in
                     let isSelected = selection == grade
-                    let color = gradeColor(grade)
+                    let color = Color.grade(grade)
                     Button { selection = isSelected ? "" : grade } label: {
                         Text(grade).font(.system(size: 20, weight: .bold)).foregroundColor(isSelected ? color : .white.opacity(0.4))
                             .frame(maxWidth: .infinity).frame(height: 52)
@@ -41,17 +41,6 @@ struct GradeSelectionView: View {
                     }.buttonStyle(.plain)
                 }
             }
-        }
-    }
-    
-    private func gradeColor(_ grade: String) -> Color {
-        switch grade.lowercased() {
-        case "a": return Color(red: 144/255, green: 240/255, blue: 71/255)
-        case "b": return Color(red: 179/255, green: 243/255, blue: 87/255)
-        case "c": return Color(red: 245/255, green: 221/255, blue: 77/255)
-        case "d": return Color(red: 255/255, green: 163/255, blue: 62/255)
-        case "e": return Color(red: 255/255, green: 84/255,  blue: 84/255)
-        default: return Color.white.opacity(0.45)
         }
     }
 }

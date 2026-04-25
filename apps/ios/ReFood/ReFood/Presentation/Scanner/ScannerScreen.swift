@@ -11,6 +11,7 @@ struct ScannerScreen: View {
         case preview(Product)
         case details(Product)
         case comparison(Product, Product)
+        case addProduct(String)
     }
 
     var body: some View {
@@ -93,6 +94,17 @@ struct ScannerScreen: View {
                         }
                     )
                     .toolbar(.hidden)
+                    
+                case .addProduct(let barcode):
+                    let repository = ProductRepositoryImpl()
+                    let uploadService = ImageUploadService(repository: repository)
+                    
+                    AddProductScreen(
+                        barcode: barcode,
+                        repository: repository,
+                        uploadService: uploadService
+                    )
+                    .toolbar(.hidden)
                 }
             }
             .fullScreenCover(isPresented: $showManualInput) {
@@ -123,6 +135,7 @@ struct ScannerScreen: View {
                     isPresented: $vm.isLoadingProduct,
                     progress: vm.loadingProgress,
                     currentStep: vm.currentLoadingStep,
+                    isFailed: vm.isProductLoadingFailed,
                     onFinish: {
                         vm.isLoadingProduct = false
                         if let fetched = vm.product {
@@ -135,6 +148,8 @@ struct ScannerScreen: View {
                     },
                     onAddProduct: {
                         vm.isLoadingProduct = false
+                        let barcode = vm.lastScannedBarcode
+                        path.append(.addProduct(barcode))
                     }
                 )
                 .presentationDetents([.height(560)])
