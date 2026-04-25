@@ -76,7 +76,7 @@ struct AddProductScreen: View {
         }
         .toolbar {
             ToolbarItem(placement: .keyboard) {
-                HStack { Spacer(); Button("addProduct_label_done") { isFocused = false }.font(.system(size: 16, weight: .bold)).foregroundColor(Color.appAccent) }
+                HStack { Spacer(); Button("common_done") { isFocused = false }.font(.system(size: 16, weight: .bold)).foregroundColor(Color.appAccent) }
             }
         }
         .onReceive(vm.$isSuccess) { success in
