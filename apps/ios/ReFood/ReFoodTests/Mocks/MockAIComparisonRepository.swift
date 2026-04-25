@@ -25,7 +25,3 @@ final class MockAIComparisonRepository: AIComparisonRepository {
         return mockResult
     }
 }
-
-final class MockLanguageProvider: LanguageProvider {
-    var currentLanguageCode: String = "en"
-}
