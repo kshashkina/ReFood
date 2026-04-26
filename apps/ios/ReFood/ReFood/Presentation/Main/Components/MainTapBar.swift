@@ -21,12 +21,12 @@ struct MainTabBar: View {
         .frame(height: 85)
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(Color.black.opacity(0.40))
+                .fill(Color.black)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.25), radius: 25, x: 0, y: 25)
+                .shadow(color: Color.black.opacity(0.5), radius: 20, x: 0, y: 10)
         )
         .padding(.horizontal, 16)
     }
@@ -54,7 +54,7 @@ struct MainTabBar: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(active.opacity(0.5))
+                    .fill(active.opacity(0.3))
                     .frame(width: 84, height: 84)
                     .blur(radius: 20)
 
