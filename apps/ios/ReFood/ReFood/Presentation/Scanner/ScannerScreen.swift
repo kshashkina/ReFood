@@ -47,7 +47,8 @@ struct ScannerScreen: View {
                         vm.onDisappear()
                         onClose()
                     },
-                    onTapTorch: { _ in vm.toggleTorch() },
+                    isTorchOn: vm.isTorchEnabled,
+                    onTapTorch: { vm.toggleTorch() },
                     onTapManualInput: { showManualInput = true },
                     onTapScan: { vm.startScanning() }
                 )

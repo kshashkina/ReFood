@@ -37,7 +37,7 @@ final class ScannerViewModel: ObservableObject {
     func onDisappear() { stopScanning(); stopLoadingAnimation() }
 
     func startScanning() { scanner.start(); isScanning = true }
-    func stopScanning() { scanner.stop(); isScanning = false }
+    func stopScanning() { scanner.stop(); isScanning = false; isTorchEnabled = false; scanner.setTorch(enabled: false) }
 
     func scanAgain() {
         product = nil

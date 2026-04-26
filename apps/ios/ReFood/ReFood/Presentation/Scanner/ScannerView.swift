@@ -4,11 +4,11 @@ import AVFoundation
 struct ScannerView: View {
     let session: AVCaptureSession
     let onClose: () -> Void
-    let onTapTorch: (_ isOn: Bool) -> Void
+    let isTorchOn: Bool
+    let onTapTorch: () -> Void
     let onTapManualInput: () -> Void
     let onTapScan: () -> Void
 
-    @State private var isTorchOn: Bool = false
 
     var body: some View {
         ZStack {
@@ -30,10 +30,7 @@ struct ScannerView: View {
                     titleKey: "scanner_title",
                     onClose: onClose,
                     isTorchOn: isTorchOn,
-                    onTapTorch: {
-                        isTorchOn.toggle()
-                        onTapTorch(isTorchOn)
-                    }
+                    onTapTorch: onTapTorch 
                 )
                 .padding(.top)
                 .padding(.horizontal, 24)

@@ -59,6 +59,7 @@ struct ManualInputScreen: View {
                     ProductPreviewScreen(
                         product: product,
                         firstProductForComparison: firstProductForComparison,
+                        languageProvider: languageProvider,
                         onBack: { onResetScanner() },
                         onContinue: {
                             if let first = firstProductForComparison {
