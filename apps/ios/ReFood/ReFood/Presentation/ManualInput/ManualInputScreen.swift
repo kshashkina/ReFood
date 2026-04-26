@@ -74,6 +74,9 @@ struct ManualInputScreen: View {
                 case .details(let product):
                     ProductDetailsScreen(
                         product: product,
+                        repository: repository,
+                        uploadService: uploadService,
+                        languageProvider: languageProvider,
                         onBack: { onResetScanner() },
                         onCompare: { pA in onCompareFromDetails(pA) }
                     )

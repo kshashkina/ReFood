@@ -67,8 +67,13 @@ struct ScannerScreen: View {
                     .toolbar(.hidden)
                     
                 case .details(let product):
+                    let repository = ProductRepositoryImpl()
+                    let uploadService = ImageUploadService(repository: repository)
                     ProductDetailsScreen(
                         product: product,
+                        repository: repository,
+                        uploadService: uploadService,
+                        languageProvider: SystemLanguageProvider(),
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
