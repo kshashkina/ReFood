@@ -1,7 +1,7 @@
 import { saveProductToDB } from '../services/database.mjs';
-import { normalizeBarcode } from '../helpers/barcode.mjs';
-import { validateProductInput } from '../helpers/validator.mjs';
-import { cleanProductData } from '../helpers/cleanProductData.mjs';
+import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
+import { validateProductInput } from '../helpers/validation/validator.mjs';
+import { cleanProductData } from '../helpers/formatters/cleanProductData.mjs';
 import { response } from '../helpers/response.mjs';
 import { translateProduct, checkProduct } from '../services/aiService.mjs';
 
@@ -44,8 +44,15 @@ export async function createProduct(event) {
         const translatedParts = await translateProduct(productData);
 
         const translatedKeys = new Set(Object.keys(translatedParts));
+        const fieldsToDrop = new Set([
+            'ingredients_text',
+            'ingredients_analysis_tags',
+            'categories_tags',
+            'allergens_tags'
+        ]);
+
         const baseProductData = Object.fromEntries(
-            Object.entries(productData).filter(([key]) => !translatedKeys.has(key))
+            Object.entries(productData).filter(([key]) => !translatedKeys.has(key) && !fieldsToDrop.has(key))
         );
 
         const now = Date.now();

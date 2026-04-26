@@ -1,8 +1,12 @@
-import { cleanValue } from '../helpers/cleanValue.mjs';
-import { extractNutriments } from '../helpers/nutriments.mjs';
+import { cleanValue } from '../helpers/formatters/cleanValue.mjs';
+import { extractNutriments } from '../helpers/nutriments/extractNutriments.mjs';
+import { parseToGrams } from '../helpers/nutriments/parseToGrams.mjs';
 
 export function offProductToProduct(barcode, offProduct) {
     const now = Date.now();
+    
+    const quantityInGrams = parseToGrams(offProduct.product_quantity || offProduct.quantity);
+    const servingInGrams = parseToGrams(offProduct.serving_size || offProduct.serving_quantity);
 
     return {
         barcode,
@@ -20,7 +24,7 @@ export function offProductToProduct(barcode, offProduct) {
         ecoscore_grade: cleanValue(offProduct.ecoscore_grade),
         ecoscore_score: cleanValue(offProduct.ecoscore_score),
         nova_group: cleanValue(offProduct.nova_group),
-        nutriments: extractNutriments(offProduct.nutriments || {}),
+        nutriments: extractNutriments(offProduct.nutriments || {}, servingInGrams, quantityInGrams),
         quantity: cleanValue(offProduct.quantity),
         serving_size: cleanValue(offProduct.serving_size),
         serving_quantity: cleanValue(offProduct.serving_quantity),
@@ -55,6 +59,8 @@ export function toProductResponse(product) {
         nutriments: product.nutriments,
         nova_group: product.nova_group,
         quantity: product.quantity,
+        serving_size: product.serving_size,
+        serving_quantity: product.serving_quantity,
         image_url: product.image_url,
         analysis_ua: product.analysis_ua,
         analysis_en: product.analysis_en,

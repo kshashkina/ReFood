@@ -9,16 +9,20 @@ export function validateProductInput(data) {
         errors.push("product_name is required");
     }
 
-    if (data.categories_tags && !Array.isArray(data.categories_tags)) {
-        errors.push("categories_tags must be an array");
+    if (!data.ingredients_text || typeof data.ingredients_text !== 'string') {
+        errors.push("ingredients_text is required and must be a string");
     }
 
-    if (data.allergens_tags && !Array.isArray(data.allergens_tags)) {
-        errors.push("allergens_tags must be an array");
+    if (data.categories_tags && typeof data.categories_tags !== 'string') {
+        errors.push("categories_tags must be a string");
     }
 
-    if (data.nutriments && typeof data.nutriments !== 'object') {
-        errors.push("nutriments must be an object");
+    if (data.allergens_tags && typeof data.allergens_tags !== 'string') {
+        errors.push("allergens_tags must be a string");
+    }
+
+    if (!data.nutriments || typeof data.nutriments !== 'object') {
+        errors.push("nutriments required and must be an object");
     }
 
     if (data.packaging && !Array.isArray(data.packaging)) {

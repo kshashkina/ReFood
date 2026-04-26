@@ -1,11 +1,13 @@
 import { translateProduct } from './actions/translateProduct.mjs';
 import { checkUserProduct } from './actions/checkUserProduct.mjs';
 import { compareTwoProducts } from './actions/compareTwoProducts.mjs';
+import { checkUserPhoto } from './actions/checkUserPhoto.mjs';
 
 const actions = {
     translate_product: translateProduct,
     check_product: checkUserProduct,
-    compare_products: compareTwoProducts
+    compare_products: compareTwoProducts,
+    check_photo: checkUserPhoto
 };
 
 export const handler = async (event) => {
@@ -26,7 +28,6 @@ export const handler = async (event) => {
 
         return await actions[action](data);
     } catch (error) {
-        console.error("Error details:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ 
