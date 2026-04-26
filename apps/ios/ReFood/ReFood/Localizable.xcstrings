@@ -2292,7 +2292,28 @@
             "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan" } },
             "uk" : { "stringUnit" : { "state" : "translated", "value" : "Сканувати" } }
           }
-        }
+        },
+        "network_error_title" : {
+              "extractionState" : "manual",
+              "localizations" : {
+                "en" : { "stringUnit" : { "state" : "translated", "value" : "No Internet Connection" } },
+                "uk" : { "stringUnit" : { "state" : "translated", "value" : "Немає підключення" } }
+              }
+            },
+            "network_error_desc" : {
+              "extractionState" : "manual",
+              "localizations" : {
+                "en" : { "stringUnit" : { "state" : "translated", "value" : "Please check your network settings and try again. We need the internet to fetch product data." } },
+                "uk" : { "stringUnit" : { "state" : "translated", "value" : "Будь ласка, перевірте налаштування мережі та спробуйте ще раз. Нам потрібен інтернет для отримання даних про продукт." } }
+              }
+            },
+            "common_got_it" : {
+              "extractionState" : "manual",
+              "localizations" : {
+                "en" : { "stringUnit" : { "state" : "translated", "value" : "Got it" } },
+                "uk" : { "stringUnit" : { "state" : "translated", "value" : "Зрозуміло" } }
+              }
+            }
   },
   "version" : "1.1"
 }

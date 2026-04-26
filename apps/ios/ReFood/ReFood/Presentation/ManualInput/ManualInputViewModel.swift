@@ -11,6 +11,7 @@ final class ManualInputViewModel: ObservableObject {
     @Published var loadingProgress: Double = 0.0
     @Published var currentStep: ProductLoadingSheet.LoadingStep = .searching
     @Published var isFailed = false
+    @Published var showNoInternet = false
     
     private let repository: ProductRepository
     private var loadingTimer: Timer?
@@ -25,20 +26,45 @@ final class ManualInputViewModel: ObservableObject {
     }
     
     func findProduct() async {
-            guard isInputValid else { return }
-            
-            setupInitialLoadingState()
-            startLoadingAnimation()
-            
-            do {
-                let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                self.product = fetchedProduct
-                finishLoadingSuccess()
-            } catch {
+        guard isInputValid else { return }
+        
+        let isConnected = await NetworkMonitor.shared.waitForConnectionStatus()
+        
+        guard isConnected else {
+            stopLoadingAnimation()
+            isLoading = false
+            isFailed = false
+            error = nil
+            showNoInternet = true
+            return
+        }
+        
+        setupInitialLoadingState()
+        startLoadingAnimation()
+        
+        do {
+            let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            self.product = fetchedProduct
+            finishLoadingSuccess()
+        } catch let error as ProductError {
+            if error == .network {
+                stopLoadingAnimation()
+                isLoading = false
+                isFailed = false
+                self.error = nil
+                showNoInternet = true
+            } else {
                 finishLoadingFailure(error)
             }
+        } catch {
+            stopLoadingAnimation()
+            isLoading = false
+            isFailed = false
+            self.error = nil
+            showNoInternet = true
         }
+    }
     
     private func startLoadingAnimation() {
         stopLoadingAnimation()
@@ -78,8 +104,17 @@ final class ManualInputViewModel: ObservableObject {
     }
     
     func updateBarcode(with rawValue: String) {
-            barcode = String(rawValue.filter { $0.isNumber }.prefix(14))
-        }
+        barcode = String(rawValue.filter { $0.isNumber }.prefix(14))
+    }
+    
+    func resetAfterNoInternet() {
+        showNoInternet = false
+        isLoading = false
+        isFailed = false
+        error = nil
+        loadingProgress = 0.0
+        currentStep = .searching
+    }
     
     private func stopLoadingAnimation() {
         loadingTimer?.invalidate()
@@ -90,6 +125,8 @@ final class ManualInputViewModel: ObservableObject {
         isLoading = true
         isFailed = false
         error = nil
+        product = nil
+        showNoInternet = false
         loadingProgress = 0.0
         currentStep = .searching
     }

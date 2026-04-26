@@ -13,6 +13,7 @@ final class ScannerViewModel: ObservableObject {
     @Published var isProductLoadingFailed: Bool = false
     @Published var productErrorMessage: String? = nil
     @Published var firstProductForComparison: Product? = nil
+    @Published var showNoInternet: Bool = false
     
     @Published var loadingProgress: Double = 0.0
     @Published var currentLoadingStep: ProductLoadingSheet.LoadingStep = .searching
@@ -46,6 +47,7 @@ final class ScannerViewModel: ObservableObject {
         scannedCode = nil
         loadingProgress = 0.0
         currentLoadingStep = .searching
+        showNoInternet = false
         scanner.reset()
         startScanning()
     }
@@ -105,6 +107,17 @@ final class ScannerViewModel: ObservableObject {
     }
 
     func loadProduct(barcode: String) async {
+        let isConnected = await NetworkMonitor.shared.waitForConnectionStatus()
+        
+        guard isConnected else {
+            stopLoadingAnimation()
+            isLoadingProduct = false
+            isProductLoadingFailed = false
+            productErrorMessage = nil
+            showNoInternet = true
+            return
+        }
+        
         isLoadingProduct = true
         productErrorMessage = nil
         isProductLoadingFailed = false
@@ -113,24 +126,36 @@ final class ScannerViewModel: ObservableObject {
 
         do {
             let fetchedProduct = try await productRepository.getProduct(byBarcode: barcode)
+            
             if let urlString = fetchedProduct.imageUrl, let url = URL(string: urlString) {
                 Task {
                     try? await ImageLoader.shared.load(url: url)
                 }
             }
+            
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             self.product = fetchedProduct
             finishLoadingSuccess()
         } catch let error as ProductError {
             if error == .notFound {
                 finishLoadingFailure()
+            } else if error == .network {
+                stopLoadingAnimation()
+                isLoadingProduct = false
+                isProductLoadingFailed = false
+                productErrorMessage = nil
+                showNoInternet = true
             } else {
                 stopLoadingAnimation()
                 isLoadingProduct = false
                 productErrorMessage = error.localizedDescription
             }
         } catch {
-            finishLoadingFailure()
+            stopLoadingAnimation()
+            isLoadingProduct = false
+            isProductLoadingFailed = false
+            productErrorMessage = nil
+            showNoInternet = true
         }
     }
 

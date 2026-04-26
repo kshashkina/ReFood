@@ -41,5 +41,11 @@ struct ProductComparisonScreen: View {
             
             ComparisonTopBar(onBack: onBack)
         }
+        .sheet(isPresented: $vm.showNoInternet) {
+            NoInternetSheet {
+                vm.showNoInternet = false
+            }
+            .presentationDetents([.height(360)])
+        }
     }
 }

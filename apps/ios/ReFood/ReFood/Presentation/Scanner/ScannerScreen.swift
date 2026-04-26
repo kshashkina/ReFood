@@ -169,6 +169,15 @@ struct ScannerScreen: View {
                 )
                 .presentationDetents([.height(560)])
             }
+                .sheet(isPresented: $vm.showNoInternet, onDismiss: {
+                    if path.isEmpty && !showManualInput {
+                        vm.scanAgain()
+                    }
+                }) {
+                    NoInternetSheet {
+                        vm.showNoInternet = false
+                    }
+                    .presentationDetents([.height(360)])}
         }
     }
 }

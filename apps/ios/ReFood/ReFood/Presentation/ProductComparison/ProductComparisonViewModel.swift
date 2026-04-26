@@ -8,6 +8,7 @@ final class ProductComparisonViewModel: ObservableObject {
     @Published var aiResult: AIComparisonAnalysis? = nil
     @Published var isAnalyzing: Bool = false
     @Published var aiError: String? = nil
+    @Published var showNoInternet: Bool = false
     
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
@@ -30,8 +31,19 @@ final class ProductComparisonViewModel: ObservableObject {
     
     func fetchAIAnalysis() async {
         guard !isAnalyzing else { return }
+        
+        let isConnected = await NetworkMonitor.shared.waitForConnectionStatus()
+        
+        guard isConnected else {
+            isAnalyzing = false
+            aiError = nil
+            showNoInternet = true
+            return
+        }
+        
         isAnalyzing = true
         aiError = nil
+        showNoInternet = false
         
         do {
             let analysis = try await aiRepository.getComparison(
@@ -41,9 +53,19 @@ final class ProductComparisonViewModel: ObservableObject {
             
             self.aiResult = analysis
             self.isAnalyzing = false
+        } catch let error as ProductError {
+            self.isAnalyzing = false
+            
+            if error == .network {
+                self.aiError = nil
+                self.showNoInternet = true
+            } else {
+                self.aiError = "comparison_ai_error_message"
+            }
         } catch {
             self.isAnalyzing = false
-            self.aiError = "comparison_ai_error_message"
+            self.aiError = nil
+            self.showNoInternet = true
         }
     }
     

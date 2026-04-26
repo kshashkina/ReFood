@@ -116,13 +116,23 @@ struct ManualInputScreen: View {
                             path.append(.preview(p))
                         }
                     },
-                    onTryAgain: { vm.isLoading = false },
+                    onTryAgain: {
+                        vm.isLoading = false
+                    },
                     onAddProduct: {
                         vm.isLoading = false
                         path.append(.addProduct(vm.barcode))
                     }
                 )
                 .presentationDetents([.height(560)])
+            }
+            .sheet(isPresented: $vm.showNoInternet, onDismiss: {
+                vm.resetAfterNoInternet()
+            }) {
+                NoInternetSheet {
+                    vm.showNoInternet = false
+                }
+                .presentationDetents([.height(360)])
             }
         }
     }
