@@ -1,11 +1,9 @@
 import SwiftUI
 
-struct CameraAccessModalView: View {
+struct LocationAccessModalView: View {
 
     @Binding var isPresented: Bool
     let onOpenSettings: () -> Void
-
-    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     var body: some View {
         ZStack {
@@ -27,16 +25,16 @@ struct CameraAccessModalView: View {
                     RoundedRectangle(cornerRadius: 24)
                         .stroke(Color.white.opacity(0.10), lineWidth: 0.56)
                 )
-                .shadow(color: accent.opacity(0.60), radius: 34)
+                .shadow(color: Color.appAccent.opacity(0.60), radius: 34)
 
             VStack(spacing: 0) {
                 ZStack {
                     Rectangle()
-                        .fill(accent)
+                        .fill(Color.appAccent)
                         .frame(width: 40, height: 61)
                         .blur(radius: 24)
 
-                    Image("CameraAccessBot")
+                    Image("NoLocation")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 245, height: 120)
@@ -44,30 +42,31 @@ struct CameraAccessModalView: View {
                 }
                 .padding(.top, 8)
 
-                Text("Camera Access")
+                Text(LocalizedStringKey("location_modal_title"))
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.top, 8)
 
-                Text("To scan products, please\n enable camera access in Settings")
+                Text(LocalizedStringKey("location_modal_desc"))
                     .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(.white.opacity(0.60))
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 12)
                     .padding(.horizontal, 24)
 
                 Button {
                     onOpenSettings()
                 } label: {
-                    Text("Go to Settings")
+                    Text(LocalizedStringKey("location_modal_btn_settings"))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(accent)
+                        .background(Color.appAccent)
                         .cornerRadius(16)
-                        .shadow(color: accent.opacity(0.40), radius: 15)
+                        .shadow(color: Color.appAccent.opacity(0.40), radius: 15)
                 }
                 .padding(.top, 28)
                 .padding(.horizontal, 24)
@@ -89,4 +88,3 @@ struct CameraAccessModalView: View {
         .frame(height: 352)
     }
 }
-
