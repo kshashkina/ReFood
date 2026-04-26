@@ -108,8 +108,12 @@ struct ScannerScreen: View {
                 }
             }
             .fullScreenCover(isPresented: $showManualInput) {
+                let repo = ProductRepositoryImpl()
                 ManualInputScreen(
-                    repository: ProductRepositoryImpl(),
+                    repository: repo,
+                    uploadService: ImageUploadService(repository: repo),
+                    aiRepository: AIComparisonRepositoryImpl(),
+                    languageProvider: SystemLanguageProvider(),
                     firstProductForComparison: vm.firstProductForComparison,
                     onClose: {
                         showManualInput = false

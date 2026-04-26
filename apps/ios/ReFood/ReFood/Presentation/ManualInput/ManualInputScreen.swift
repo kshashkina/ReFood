@@ -3,6 +3,10 @@ import SwiftUI
 struct ManualInputScreen: View {
     @StateObject private var vm: ManualInputViewModel
     @State private var path: [Destination] = []
+    private let repository: ProductRepository
+    private let uploadService: ImageUploadServicing
+    private let aiRepository: AIComparisonRepository
+    private let languageProvider: LanguageProvider
     
     let firstProductForComparison: Product?
     let onClose: () -> Void
@@ -16,12 +20,23 @@ struct ManualInputScreen: View {
         case addProduct(String)
     }
 
-    init(repository: ProductRepository,
-         firstProductForComparison: Product? = nil,
-         onClose: @escaping () -> Void,
-         onResetScanner: @escaping () -> Void,
-         onCompareFromDetails: @escaping (Product) -> Void) {
+    init(
+        repository: ProductRepository,
+        uploadService: ImageUploadServicing,
+        aiRepository: AIComparisonRepository,
+        languageProvider: LanguageProvider,
+        firstProductForComparison: Product? = nil,
+        onClose: @escaping () -> Void,
+        onResetScanner: @escaping () -> Void,
+        onCompareFromDetails: @escaping (Product) -> Void
+    ) {
         self._vm = StateObject(wrappedValue: ManualInputViewModel(repository: repository))
+        
+        self.repository = repository
+        self.uploadService = uploadService
+        self.aiRepository = aiRepository
+        self.languageProvider = languageProvider
+        
         self.firstProductForComparison = firstProductForComparison
         self.onClose = onClose
         self.onResetScanner = onResetScanner
@@ -68,16 +83,13 @@ struct ManualInputScreen: View {
                     ProductComparisonScreen(
                         productA: pA,
                         productB: pB,
-                        aiRepository: AIComparisonRepositoryImpl(),
-                        languageProvider: SystemLanguageProvider(),
+                        aiRepository: aiRepository,
+                        languageProvider: languageProvider,
                         onBack: { onResetScanner() }
                     )
                     .toolbar(.hidden)
                     
                 case .addProduct(let barcode):
-                    let repository = ProductRepositoryImpl()
-                    let uploadService = ImageUploadService(repository: repository)
-                    
                     AddProductScreen(
                         barcode: barcode,
                         repository: repository,

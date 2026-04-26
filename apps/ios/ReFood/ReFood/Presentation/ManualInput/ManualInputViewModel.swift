@@ -77,6 +77,10 @@ final class ManualInputViewModel: ObservableObject {
         }
     }
     
+    func updateBarcode(with rawValue: String) {
+            barcode = String(rawValue.filter { $0.isNumber }.prefix(14))
+        }
+    
     private func stopLoadingAnimation() {
         loadingTimer?.invalidate()
         loadingTimer = nil

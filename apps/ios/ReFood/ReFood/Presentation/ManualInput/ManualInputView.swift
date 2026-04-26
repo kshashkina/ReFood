@@ -25,7 +25,7 @@ public struct ManualInputView: View {
                         ManualInputFeatureCard()
                         
                         ManualInputTextField(text: $vm.barcode, focus: $isFocused) { newValue in
-                            vm.barcode = String(newValue.filter { $0.isNumber }.prefix(14))
+                            vm.updateBarcode(with: newValue)
                         }
                         
                         BarcodeTipView()
