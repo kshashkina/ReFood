@@ -1,17 +1,41 @@
 import SwiftUI
 
 struct ScannerScreen: View {
+    @StateObject private var vm: ScannerViewModel
     let onClose: () -> Void
-    @StateObject private var vm = ScannerViewModel()
-    @State private var showManualInput = false
     
+    @State private var showManualInput = false
     @State private var path: [Destination] = []
+
+    private let repository: ProductRepository
+    private let uploadService: ImageUploadServicing
+    private let aiRepository: AIComparisonRepository
+    private let languageProvider: LanguageProvider
 
     enum Destination: Hashable {
         case preview(Product)
         case details(Product)
         case comparison(Product, Product)
         case addProduct(String)
+    }
+
+    init(
+        repository: ProductRepository,
+        uploadService: ImageUploadServicing,
+        aiRepository: AIComparisonRepository,
+        languageProvider: LanguageProvider,
+        scannerService: BarcodeScanning = BarcodeScannerService(),
+        onClose: @escaping () -> Void
+    ) {
+        self._vm = StateObject(wrappedValue: ScannerViewModel(
+            scanner: scannerService,
+            productRepository: repository
+        ))
+        self.repository = repository
+        self.uploadService = uploadService
+        self.aiRepository = aiRepository
+        self.languageProvider = languageProvider
+        self.onClose = onClose
     }
 
     var body: some View {
@@ -24,29 +48,20 @@ struct ScannerScreen: View {
                         onClose()
                     },
                     onTapTorch: { _ in vm.toggleTorch() },
-                    onTapManualInput: {
-                        showManualInput = true
-                    },
-                    onTapScan: {
-                        vm.startScanning()
-                    }
+                    onTapManualInput: { showManualInput = true },
+                    onTapScan: { vm.startScanning() }
                 )
             }
-            .onAppear {
-                vm.onAppear()
-            }
-            .onDisappear {
-                vm.onDisappear()
-            }
+            .onAppear { vm.onAppear() }
+            .onDisappear { vm.onDisappear() }
             .toolbar(.hidden)
-            
             .navigationDestination(for: Destination.self) { destination in
                 switch destination {
                 case .preview(let product):
                     ProductPreviewScreen(
                         product: product,
                         firstProductForComparison: vm.firstProductForComparison,
-                        languageProvider: SystemLanguageProvider(),
+                        languageProvider: languageProvider,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -68,13 +83,11 @@ struct ScannerScreen: View {
                     .toolbar(.hidden)
                     
                 case .details(let product):
-                    let repository = ProductRepositoryImpl()
-                    let uploadService = ImageUploadService(repository: repository)
                     ProductDetailsScreen(
                         product: product,
                         repository: repository,
                         uploadService: uploadService,
-                        languageProvider: SystemLanguageProvider(),
+                        languageProvider: languageProvider,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -91,8 +104,8 @@ struct ScannerScreen: View {
                     ProductComparisonScreen(
                         productA: pA,
                         productB: pB,
-                        aiRepository: AIComparisonRepositoryImpl(),
-                        languageProvider: SystemLanguageProvider(),
+                        aiRepository: aiRepository,
+                        languageProvider: languageProvider,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -102,9 +115,6 @@ struct ScannerScreen: View {
                     .toolbar(.hidden)
                     
                 case .addProduct(let barcode):
-                    let repository = ProductRepositoryImpl()
-                    let uploadService = ImageUploadService(repository: repository)
-                    
                     AddProductScreen(
                         barcode: barcode,
                         repository: repository,
@@ -114,12 +124,11 @@ struct ScannerScreen: View {
                 }
             }
             .fullScreenCover(isPresented: $showManualInput) {
-                let repo = ProductRepositoryImpl()
                 ManualInputScreen(
-                    repository: repo,
-                    uploadService: ImageUploadService(repository: repo),
-                    aiRepository: AIComparisonRepositoryImpl(),
-                    languageProvider: SystemLanguageProvider(),
+                    repository: repository,
+                    uploadService: uploadService,
+                    aiRepository: aiRepository,
+                    languageProvider: languageProvider,
                     firstProductForComparison: vm.firstProductForComparison,
                     onClose: {
                         showManualInput = false
@@ -137,9 +146,7 @@ struct ScannerScreen: View {
                 )
             }
             .sheet(isPresented: $vm.isLoadingProduct, onDismiss: {
-                if path.isEmpty && !showManualInput {
-                    vm.scanAgain()
-                }
+                if path.isEmpty && !showManualInput { vm.scanAgain() }
             }) {
                 ProductLoadingSheet(
                     isPresented: $vm.isLoadingProduct,
@@ -148,9 +155,7 @@ struct ScannerScreen: View {
                     isFailed: vm.isProductLoadingFailed,
                     onFinish: {
                         vm.isLoadingProduct = false
-                        if let fetched = vm.product {
-                            path.append(.preview(fetched))
-                        }
+                        if let fetched = vm.product { path.append(.preview(fetched)) }
                     },
                     onTryAgain: {
                         vm.isLoadingProduct = false
@@ -158,8 +163,7 @@ struct ScannerScreen: View {
                     },
                     onAddProduct: {
                         vm.isLoadingProduct = false
-                        let barcode = vm.lastScannedBarcode
-                        path.append(.addProduct(barcode))
+                        path.append(.addProduct(vm.lastScannedBarcode))
                     }
                 )
                 .presentationDetents([.height(560)])

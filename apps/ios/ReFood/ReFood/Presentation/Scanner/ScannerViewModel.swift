@@ -1,7 +1,6 @@
 import Foundation
 import AVFoundation
 import Combine
-import SwiftUI
 
 @MainActor
 final class ScannerViewModel: ObservableObject {
@@ -22,10 +21,7 @@ final class ScannerViewModel: ObservableObject {
     private let scanner: BarcodeScanning
     private let productRepository: ProductRepository
 
-    init(
-        scanner: BarcodeScanning = BarcodeScannerService(),
-        productRepository: ProductRepository = ProductRepositoryImpl()
-    ) {
+    init(scanner: BarcodeScanning, productRepository: ProductRepository) {
         self.scanner = scanner
         self.productRepository = productRepository
         bindScanner()
@@ -84,7 +80,7 @@ final class ScannerViewModel: ObservableObject {
                     self.loadingProgress += step
                     
                     if self.loadingProgress > 0.60 && self.currentLoadingStep == .searching {
-                        withAnimation(.easeInOut(duration: 0.5)) { self.currentLoadingStep = .processing }
+                        self.currentLoadingStep = .processing
                     }
                 }
             }
@@ -93,18 +89,14 @@ final class ScannerViewModel: ObservableObject {
 
     func finishLoadingSuccess() {
         stopLoadingAnimation()
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-            loadingProgress = 1.0
-            currentLoadingStep = .ready
-        }
+        loadingProgress = 1.0
+        currentLoadingStep = .ready
     }
 
     func finishLoadingFailure() {
         stopLoadingAnimation()
-        withAnimation(.spring()) {
-            isProductLoadingFailed = true
-            loadingProgress = 0.35
-        }
+        isProductLoadingFailed = true
+        loadingProgress = 0.35
     }
 
     func stopLoadingAnimation() {
@@ -135,7 +127,7 @@ final class ScannerViewModel: ObservableObject {
             } else {
                 stopLoadingAnimation()
                 isLoadingProduct = false
-                productErrorMessage = "Network Error"
+                productErrorMessage = error.localizedDescription
             }
         } catch {
             finishLoadingFailure()

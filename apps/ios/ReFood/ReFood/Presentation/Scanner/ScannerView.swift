@@ -2,7 +2,6 @@ import SwiftUI
 import AVFoundation
 
 struct ScannerView: View {
-
     let session: AVCaptureSession
     let onClose: () -> Void
     let onTapTorch: (_ isOn: Bool) -> Void
@@ -10,11 +9,9 @@ struct ScannerView: View {
     let onTapScan: () -> Void
 
     @State private var isTorchOn: Bool = false
-    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     var body: some View {
         ZStack {
-
             CameraPreviewView(session: session)
                 .ignoresSafeArea()
 
@@ -30,7 +27,7 @@ struct ScannerView: View {
 
             VStack(spacing: 0) {
                 ScannerTopBarView(
-                    title: "Scanning",
+                    titleKey: "scanner_title",
                     onClose: onClose,
                     isTorchOn: isTorchOn,
                     onTapTorch: {
@@ -49,8 +46,8 @@ struct ScannerView: View {
                 Spacer()
 
                 ScannerBottomPanelView(
-                    title: "Point your camera at the barcode",
-                    subtitle: "Position the barcode inside the frame",
+                    titleKey: "scanner_hint_title",
+                    subtitleKey: "scanner_hint_subtitle",
                     onTapManualInput: onTapManualInput,
                     onTapScan: onTapScan
                 )

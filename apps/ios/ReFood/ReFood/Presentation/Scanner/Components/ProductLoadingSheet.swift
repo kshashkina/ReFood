@@ -10,27 +10,24 @@ struct ProductLoadingSheet: View {
     let onTryAgain: () -> Void
     let onAddProduct: () -> Void
     
-    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
-    private let errorColor = Color(red: 255/255, green: 59/255, blue: 48/255)
-    
     enum LoadingStep: Int, CaseIterable {
         case searching = 0
         case processing = 1
         case ready = 2
         
-        var title: String {
+        var titleKey: String {
             switch self {
-            case .searching: return "Starting search..."
-            case .processing: return "Product found"
-            case .ready: return "Product ready!"
+            case .searching: return "sheet_step_search_title"
+            case .processing: return "sheet_step_process_title"
+            case .ready: return "sheet_step_ready_title"
             }
         }
         
-        var subtitle: String {
+        var subtitleKey: String {
             switch self {
-            case .searching: return "Searching for your product in the database..."
-            case .processing: return "Preparing information about your product..."
-            case .ready: return "All information has been successfully loaded"
+            case .searching: return "sheet_step_search_sub"
+            case .processing: return "sheet_step_process_sub"
+            case .ready: return "sheet_step_ready_sub"
             }
         }
     }
@@ -45,10 +42,10 @@ struct ProductLoadingSheet: View {
             HStack(spacing: 12) {
                 headerIcon
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(isFailed ? "Search error" : currentStep.title)
+                    Text(LocalizedStringKey(isFailed ? "sheet_error_title" : currentStep.titleKey))
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(isFailed ? errorColor : .white)
-                    Text(isFailed ? "Could not find your product in the database" : "Looking for your product...")
+                        .foregroundColor(isFailed ? .red : .white)
+                    Text(LocalizedStringKey(isFailed ? "sheet_error_sub" : "sheet_looking"))
                         .font(.system(size: 13))
                         .foregroundColor(.white.opacity(0.5))
                 }
@@ -64,17 +61,17 @@ struct ProductLoadingSheet: View {
                         .frame(height: 8)
                     
                     Capsule()
-                        .fill(isFailed ? errorColor : accent)
+                        .fill(isFailed ? Color.red : Color.appAccent)
                         .frame(width: max(0, min(CGFloat(progress) * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)), height: 8)
-                        .shadow(color: (isFailed ? errorColor : accent).opacity(0.6), radius: 6)
+                        .shadow(color: (isFailed ? Color.red : Color.appAccent).opacity(0.6), radius: 6)
                 }
                 
                 HStack {
-                    Text("Start").foregroundColor(progress >= 0.1 ? (isFailed ? errorColor : accent) : .gray)
+                    Text(LocalizedStringKey("sheet_lbl_start")).foregroundColor(progress >= 0.1 ? (isFailed ? .red : Color.appAccent) : .gray)
                     Spacer()
-                    Text(isFailed ? "Error" : "Found").foregroundColor(isFailed ? errorColor : (progress >= 0.5 ? accent : .gray))
+                    Text(LocalizedStringKey(isFailed ? "sheet_lbl_error" : "sheet_lbl_found")).foregroundColor(isFailed ? .red : (progress >= 0.5 ? Color.appAccent : .gray))
                     Spacer()
-                    Text("Ready").foregroundColor(progress >= 1.0 ? accent : .gray)
+                    Text(LocalizedStringKey("sheet_lbl_ready")).foregroundColor(progress >= 1.0 ? Color.appAccent : .gray)
                 }
                 .font(.system(size: 11, weight: .bold))
             }
@@ -92,17 +89,19 @@ struct ProductLoadingSheet: View {
         }
         .background(Color(red: 26/255, green: 26/255, blue: 26/255))
         .animation(.spring(), value: isFailed)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progress)
+        .animation(.easeInOut(duration: 0.5), value: currentStep)
     }
 
     private var headerIcon: some View {
         ZStack {
             Circle()
-                .fill((isFailed ? errorColor : accent).opacity(0.12))
+                .fill((isFailed ? Color.red : Color.appAccent).opacity(0.12))
                 .frame(width: 48, height: 48)
-                .overlay(Circle().stroke((isFailed ? errorColor : accent).opacity(0.2), lineWidth: 1))
+                .overlay(Circle().stroke((isFailed ? Color.red : Color.appAccent).opacity(0.2), lineWidth: 1))
             
             Image(systemName: isFailed ? "xmark" : (progress >= 1.0 ? "checkmark" : "magnifyingglass"))
-                .foregroundColor(isFailed ? errorColor : accent)
+                .foregroundColor(isFailed ? .red : Color.appAccent)
                 .font(.system(size: 20, weight: .bold))
         }
     }
@@ -123,11 +122,11 @@ struct ProductLoadingSheet: View {
     private var failureView: some View {
         VStack(spacing: 20) {
             VStack(spacing: 10) {
-                Text("Product not found")
+                Text(LocalizedStringKey("sheet_fail_title"))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
                 
-                Text("This product has not yet been added to our database. You can try again or enter the information manually.")
+                Text(LocalizedStringKey("sheet_fail_desc"))
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
@@ -143,21 +142,21 @@ struct ProductLoadingSheet: View {
                 Button(action: onTryAgain) {
                     HStack {
                         Image(systemName: "arrow.clockwise")
-                        Text("Try Again")
+                        Text(LocalizedStringKey("sheet_btn_try_again"))
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(errorColor)
+                    .background(Color.red)
                     .cornerRadius(16)
-                    .shadow(color: errorColor.opacity(0.3), radius: 15)
+                    .shadow(color: Color.red.opacity(0.3), radius: 15)
                 }
                 
                 Button(action: onAddProduct) {
                     HStack {
                         Image(systemName: "text.badge.plus")
-                        Text("Add product to the database")
+                        Text(LocalizedStringKey("sheet_btn_add"))
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white.opacity(0.7))
@@ -170,16 +169,16 @@ struct ProductLoadingSheet: View {
             } else if progress >= 1.0 {
                 Button(action: onFinish) {
                     HStack {
-                        Text("View Product")
+                        Text(LocalizedStringKey("sheet_btn_view"))
                         Image(systemName: "chevron.right")
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(accent)
+                    .background(Color.appAccent)
                     .cornerRadius(16)
-                    .shadow(color: accent.opacity(0.4), radius: 15)
+                    .shadow(color: Color.appAccent.opacity(0.4), radius: 15)
                 }
             } else {
                 Spacer().frame(height: 104)
@@ -193,34 +192,33 @@ struct StepRow: View {
     let step: ProductLoadingSheet.LoadingStep
     let isActive: Bool
     let isCompleted: Bool
-    private let accent = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(isCompleted || isActive ? accent.opacity(0.2) : Color.white.opacity(0.05))
+                    .fill(isCompleted || isActive ? Color.appAccent.opacity(0.2) : Color.white.opacity(0.05))
                     .frame(width: 28, height: 28)
                 
                 if isCompleted {
-                    Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).foregroundColor(accent)
+                    Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).foregroundColor(Color.appAccent)
                 } else if isActive {
-                    Circle().fill(accent).frame(width: 8, height: 8)
-                        .shadow(color: accent, radius: 4)
+                    Circle().fill(Color.appAccent).frame(width: 8, height: 8)
+                        .shadow(color: Color.appAccent, radius: 4)
                 } else {
                     Text("\(step.rawValue + 1)").font(.system(size: 12, weight: .bold)).foregroundColor(.white.opacity(0.3))
                 }
             }
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(step.title)
+                Text(LocalizedStringKey(step.titleKey))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(isActive || isCompleted ? .white : .white.opacity(0.35))
                     .fixedSize(horizontal: false, vertical: true)
                 
-                Text(step.subtitle)
+                Text(LocalizedStringKey(step.subtitleKey))
                     .font(.system(size: 12))
-                    .foregroundColor(isActive ? accent.opacity(0.7) : .white.opacity(0.2))
+                    .foregroundColor(isActive ? Color.appAccent.opacity(0.7) : .white.opacity(0.2))
                     .fixedSize(horizontal: false, vertical: true)
                     .multilineTextAlignment(.leading)
             }
@@ -228,18 +226,18 @@ struct StepRow: View {
             Spacer(minLength: 8)
             
             if isCompleted {
-                Text("✓").foregroundColor(accent).font(.system(size: 11, weight: .bold))
+                Text("✓").foregroundColor(Color.appAccent).font(.system(size: 11, weight: .bold))
             }
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(minHeight: 72)
-        .background(isActive ? accent.opacity(0.08) : Color.white.opacity(0.02))
+        .background(isActive ? Color.appAccent.opacity(0.08) : Color.white.opacity(0.02))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isActive ? accent.opacity(0.2) : Color.clear, lineWidth: 1)
+                .stroke(isActive ? Color.appAccent.opacity(0.2) : Color.clear, lineWidth: 1)
         )
     }
 }
