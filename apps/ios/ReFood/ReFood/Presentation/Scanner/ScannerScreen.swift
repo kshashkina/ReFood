@@ -46,6 +46,7 @@ struct ScannerScreen: View {
                     ProductPreviewScreen(
                         product: product,
                         firstProductForComparison: vm.firstProductForComparison,
+                        languageProvider: SystemLanguageProvider(),
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
