@@ -53,10 +53,10 @@ final class MapViewModel: ObservableObject {
     let filters = FilterType.allCases.map { $0.rawValue }
     
     private let repository: LocationRepository
-    private let networkMonitor: NetworkMonitor
+    private let networkMonitor: NetworkMonitoring
     private let locationService: LocationServiceProtocol
 
-    init(repository: LocationRepository, networkMonitor: NetworkMonitor, locationService: LocationServiceProtocol) {
+    init(repository: LocationRepository, networkMonitor: NetworkMonitoring, locationService: LocationServiceProtocol) {
         self.repository = repository
         self.networkMonitor = networkMonitor
         self.locationService = locationService

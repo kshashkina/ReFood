@@ -47,3 +47,9 @@ final class NetworkMonitor {
         }
     }
 }
+
+protocol NetworkMonitoring {
+    func waitForConnectionStatus() async -> Bool
+}
+
+extension NetworkMonitor: NetworkMonitoring {}
