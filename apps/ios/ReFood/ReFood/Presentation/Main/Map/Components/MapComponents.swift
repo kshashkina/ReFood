@@ -1,5 +1,23 @@
 import SwiftUI
 
+struct MapToastModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color.black.opacity(0.9))
+            .cornerRadius(25)
+            .shadow(color: Color.black.opacity(0.4), radius: 10)
+            .padding(.top, 12)
+    }
+}
+
+extension View {
+    func mapToastStyle() -> some View {
+        self.modifier(MapToastModifier())
+    }
+}
+
 struct MapTopBarView: View {
     let filters: [String]
     @Binding var selectedFilter: String
@@ -57,14 +75,9 @@ struct MapSearchAreaButton: View {
                 Text(LocalizedStringKey("map_btn_search_area"))
                     .font(.system(size: 14, weight: .semibold))
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color.black.opacity(0.9))
             .foregroundColor(Color.appAccent)
-            .cornerRadius(25)
-            .shadow(color: Color.black.opacity(0.4), radius: 10)
+            .mapToastStyle()
         }
-        .padding(.top, 12)
     }
 }
 
@@ -76,12 +89,35 @@ struct MapLoaderView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.black.opacity(0.9))
-        .cornerRadius(25)
-        .shadow(color: Color.black.opacity(0.4), radius: 10)
-        .padding(.top, 12)
+        .mapToastStyle()
+    }
+}
+
+struct MapNoPointsToast: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.yellow)
+                .font(.system(size: 14))
+            Text(LocalizedStringKey("map_lbl_no_points"))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .mapToastStyle()
+    }
+}
+
+struct MapNoRouteToast: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.red)
+                .font(.system(size: 14))
+            Text(LocalizedStringKey("map_lbl_no_route"))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .mapToastStyle()
     }
 }
 
@@ -95,6 +131,32 @@ struct MapLocationRequestButton: View {
                     .overlay(Circle().stroke(Color.appAccent.opacity(0.5), lineWidth: 1))
                 Image(systemName: "location.slash.fill").font(.system(size: 18)).foregroundColor(Color.appAccent)
             }.shadow(color: Color.black.opacity(0.3), radius: 10)
+        }
+    }
+}
+
+struct MapTrackingButton: View {
+    let mode: MapViewModel.TrackingMode
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle().fill(Color.black.opacity(0.8)).frame(width: 48, height: 48)
+                    .overlay(Circle().stroke(Color.appAccent.opacity(0.5), lineWidth: 1))
+                
+                Image(systemName: iconName)
+                    .font(.system(size: 18))
+                    .foregroundColor(mode == .none ? .white : Color.appAccent)
+            }.shadow(color: Color.black.opacity(0.3), radius: 10)
+        }
+    }
+    
+    private var iconName: String {
+        switch mode {
+        case .none: return "location"
+        case .location: return "location.fill"
+        case .heading: return "location.north.line.fill"
         }
     }
 }
@@ -128,6 +190,9 @@ struct MapMarkerIcon: View {
 struct MapPointDetailsSheet: View {
     let point: MapPoint
     let displayName: String
+    let loadingMode: RouteMode?
+    let formatMaterial: (String) -> String
+    let onGetRoute: (RouteMode) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -154,7 +219,7 @@ struct MapPointDetailsSheet: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
                     ForEach(point.details.acceptedMaterials, id: \.self) { material in
-                        Text(formattedMaterialName(material))
+                        Text(formatMaterial(material))
                             .font(.caption)
                             .fontWeight(.semibold)
                             .padding(.horizontal, 12)
@@ -169,6 +234,20 @@ struct MapPointDetailsSheet: View {
                     }
                 }
             }
+            
+            VStack(spacing: 12) {
+                Text(LocalizedStringKey("map_get_route_title"))
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 16) {
+                    RouteModeButton(icon: "figure.walk", locKey: "route_mode_walk", isLoading: loadingMode == .walk, action: { onGetRoute(.walk) })
+                    RouteModeButton(icon: "bicycle", locKey: "route_mode_bicycle", isLoading: loadingMode == .bicycle, action: { onGetRoute(.bicycle) })
+                    RouteModeButton(icon: "car.fill", locKey: "route_mode_drive", isLoading: loadingMode == .drive, action: { onGetRoute(.drive) })
+                }
+            }
+            .padding(.top, 8)
+            
             Spacer()
         }
         .padding(24)
@@ -176,16 +255,82 @@ struct MapPointDetailsSheet: View {
         .background(Color.black)
         .presentationBackground(Color.black)
     }
+}
+
+struct RouteModeButton: View {
+    let icon: String
+    let locKey: String
+    let isLoading: Bool
+    let action: () -> Void
     
-    private func formattedMaterialName(_ material: String) -> String {
-        let key = "filter_\(material.lowercased().replacingOccurrences(of: " ", with: "_"))"
-        let fallback = material.replacingOccurrences(of: "_", with: " ").capitalized
-        let localized = NSLocalizedString(key, comment: "")
-        
-        if localized == key {
-            return fallback
-        } else {
-            return localized
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                if isLoading {
+                    ProgressView()
+                        .tint(.black)
+                        .scaleEffect(1.2)
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                }
+                
+                Text(LocalizedStringKey(locKey))
+                    .font(.system(size: 12, weight: .bold))
+            }
+            .foregroundColor(.black)
+            .frame(maxWidth: .infinity)
+            .frame(height: 64)
+            .background(Color.appAccent)
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
+    }
+}
+
+struct RouteInfoBanner: View {
+    let route: MapRoute
+    let formattedTime: String
+    let formattedDistance: String
+    let onCancel: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: iconForMode(route.mode))
+                .font(.title2)
+                .foregroundColor(Color.appAccent)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formattedTime)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Text(formattedDistance)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            
+            Spacer()
+            
+            Button(action: onCancel) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+        }
+        .padding(16)
+        .background(Color.black.opacity(0.9))
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.3), radius: 10)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 140)
+    }
+    
+    private func iconForMode(_ mode: String) -> String {
+        switch mode.lowercased() {
+        case "bicycle": return "bicycle"
+        case "drive": return "car.fill"
+        default: return "figure.walk"
         }
     }
 }
