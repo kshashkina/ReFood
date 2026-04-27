@@ -38,4 +38,32 @@ enum MapAPI {
 
         return data
     }
+    
+    static func fetchRoute(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double, mode: String = "walk") async throws -> Data {
+        let url = APIConfig.baseURL.appendingPathComponent("map").appendingPathComponent("route")
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = [
+            URLQueryItem(name: "fromLat", value: "\(fromLat)"),
+            URLQueryItem(name: "fromLon", value: "\(fromLon)"),
+            URLQueryItem(name: "toLat", value: "\(toLat)"),
+            URLQueryItem(name: "toLon", value: "\(toLon)"),
+            URLQueryItem(name: "mode", value: mode)
+        ]
+        
+        guard let finalURL = components?.url else {
+            throw NetworkError.invalidResponse
+        }
+        
+        var request = URLRequest(url: finalURL)
+        request.httpMethod = "GET"
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw NetworkError.invalidResponse
+        }
+        
+        return data
+    }
 }

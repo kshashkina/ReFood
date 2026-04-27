@@ -3,6 +3,7 @@ import CoreLocation
 
 public protocol LocationRepository {
     func getLocations(lat: Double, lon: Double, materials: String?) async throws -> [MapPoint]
+    func getRoute(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: String) async throws -> MapRoute
 }
 
 final class LocationRepositoryImpl: LocationRepository {
@@ -22,4 +23,20 @@ final class LocationRepositoryImpl: LocationRepository {
             throw error
         }
     }
+    
+    func getRoute(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: String) async throws -> MapRoute {
+            do {
+                let data = try await MapAPI.fetchRoute(
+                    fromLat: from.latitude,
+                    fromLon: from.longitude,
+                    toLat: to.latitude,
+                    toLon: to.longitude,
+                    mode: mode
+                )
+                let decoder = JSONDecoder()
+                return try decoder.decode(MapRoute.self, from: data)
+            } catch {
+                throw NetworkError.invalidResponse
+            }
+        }
 }
