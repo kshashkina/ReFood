@@ -4,6 +4,7 @@ struct MainContainerView: View {
     @State private var selectedTab: MainTab = .home
     @StateObject private var vm = MainContainerViewModel()
     @Environment(\.scenePhase) var scenePhase
+    @State private var mapFilter: String = "filter_all"
 
     var body: some View {
         ZStack {
@@ -44,7 +45,13 @@ struct MainContainerView: View {
                 vm.refreshStatuses()
             }
         }
-
+        .onChange(of: vm.isScannerPresented) { isPresented in
+                    if isPresented {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            selectedTab = .home
+                        }
+                    }
+        }
         .fullScreenCover(isPresented: $vm.isScannerPresented) {
             let repository = ProductRepositoryImpl()
             ScannerScreen(
@@ -52,7 +59,15 @@ struct MainContainerView: View {
                 uploadService: ImageUploadService(repository: repository),
                 aiRepository: AIComparisonRepositoryImpl(),
                 languageProvider: SystemLanguageProvider(),
-                onClose: { vm.isScannerPresented = false }
+                onClose: { vm.isScannerPresented = false },
+                onFindRecyclingPoint: { selectedFilter in
+                    vm.isScannerPresented = false
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.mapFilter = selectedFilter
+                        self.selectedTab = .map
+                    }
+                }
             )
         }
     }
@@ -70,6 +85,7 @@ struct MainContainerView: View {
                 networkMonitor: NetworkMonitor.shared,
                 locationService: LocationService(),
                 showLocationWarning: showWarning,
+                externalFilter: $mapFilter,
                 onRequestLocationAccess: {
                     vm.isLocationAccessModalPresented = true
                 }

@@ -5,6 +5,7 @@ import Combine
 final class RecyclingViewModel: ObservableObject {
     private let product: Product
     private let languageProvider: LanguageProvider
+    @Published var selectedWasteType: WasteType?
     
     init(product: Product, languageProvider: LanguageProvider) {
         self.product = product
@@ -23,6 +24,7 @@ final class RecyclingViewModel: ObservableObject {
         let id = UUID()
         let emoji: String
         let titleKey: String
+        let filterKey: String
     }
     
     var productName: String {
@@ -57,12 +59,12 @@ final class RecyclingViewModel: ObservableObject {
     }
     
     let standardWasteTypes: [WasteType] = [
-        WasteType(emoji: "📄", titleKey: "recycling_type_paper"),
-        WasteType(emoji: "♻️", titleKey: "recycling_type_plastic"),
-        WasteType(emoji: "🫙", titleKey: "recycling_type_glass"),
-        WasteType(emoji: "🔩", titleKey: "recycling_type_metal"),
-        WasteType(emoji: "🌱", titleKey: "recycling_type_organic"),
-        WasteType(emoji: "🗑️", titleKey: "recycling_type_mixed")
+        WasteType(emoji: "📄", titleKey: "recycling_type_paper", filterKey: "filter_paper"),
+        WasteType(emoji: "♻️", titleKey: "recycling_type_plastic", filterKey: "filter_plastic"),
+        WasteType(emoji: "🫙", titleKey: "recycling_type_glass", filterKey: "filter_glass"),
+        WasteType(emoji: "🔩", titleKey: "recycling_type_metal", filterKey: "filter_metal"),
+        WasteType(emoji: "🌱", titleKey: "recycling_type_organic", filterKey: "filter_all"),
+        WasteType(emoji: "🗑️", titleKey: "recycling_type_mixed", filterKey: "filter_all")
     ]
     
     private func categoryTitle(for category: RecyclingCategory) -> String {

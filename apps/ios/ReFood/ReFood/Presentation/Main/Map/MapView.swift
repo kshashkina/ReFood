@@ -3,11 +3,13 @@ import MapKit
 
 struct MapView: View {
     @StateObject private var vm: MapViewModel
+    @Binding var externalFilter: String
     let showLocationWarning: Bool
     let onRequestLocationAccess: () -> Void
     
-    init(repository: LocationRepository, networkMonitor: NetworkMonitor, locationService: LocationServiceProtocol, showLocationWarning: Bool, onRequestLocationAccess: @escaping () -> Void) {
+    init(repository: LocationRepository, networkMonitor: NetworkMonitor, locationService: LocationServiceProtocol, showLocationWarning: Bool, externalFilter: Binding<String>, onRequestLocationAccess: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: MapViewModel(repository: repository, networkMonitor: networkMonitor, locationService: locationService))
+        self._externalFilter = externalFilter
         self.showLocationWarning = showLocationWarning
         self.onRequestLocationAccess = onRequestLocationAccess
     }
@@ -44,8 +46,16 @@ struct MapView: View {
             
             floatingButtonsLayer
         }
-        .onAppear { vm.onAppear() }
-        .onChange(of: vm.selectedFilter) { _ in vm.onFilterChange() }
+        .onAppear {
+            vm.selectedFilter = externalFilter
+            vm.onAppear()
+        }
+        .onChange(of: vm.selectedFilter) { newValue in
+            if externalFilter != newValue { externalFilter = newValue }
+        }
+        .onChange(of: externalFilter) { newValue in
+            if vm.selectedFilter != newValue { vm.selectedFilter = newValue }
+        }
         .onChange(of: vm.showLocationSettings) { _, show in
             if show {
                 onRequestLocationAccess()

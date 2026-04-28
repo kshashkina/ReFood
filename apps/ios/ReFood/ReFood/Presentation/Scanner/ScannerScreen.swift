@@ -11,6 +11,7 @@ struct ScannerScreen: View {
     private let uploadService: ImageUploadServicing
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
+    let onFindRecyclingPoint: (String) -> Void
 
     enum Destination: Hashable {
         case preview(Product)
@@ -25,7 +26,8 @@ struct ScannerScreen: View {
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
         scannerService: BarcodeScanning = BarcodeScannerService(),
-        onClose: @escaping () -> Void
+        onClose: @escaping () -> Void,
+        onFindRecyclingPoint: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: ScannerViewModel(
             scanner: scannerService,
@@ -36,7 +38,8 @@ struct ScannerScreen: View {
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
         self.onClose = onClose
-    }
+        self.onFindRecyclingPoint = onFindRecyclingPoint
+        }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -97,6 +100,9 @@ struct ScannerScreen: View {
                         onCompare: { pA in
                             path.removeAll()
                             vm.setupComparison(with: pA)
+                        },
+                        onFindRecyclingPoint: { filter in
+                            onFindRecyclingPoint(filter)
                         }
                     )
                     .toolbar(.hidden)
@@ -143,6 +149,10 @@ struct ScannerScreen: View {
                     onCompareFromDetails: { pA in
                         showManualInput = false
                         vm.setupComparison(with: pA)
+                    },
+                    onFindRecyclingPoint: { filter in
+                        showManualInput = false
+                        onFindRecyclingPoint(filter)
                     }
                 )
             }

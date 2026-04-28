@@ -48,16 +48,29 @@ struct RecyclingProductHeader: View {
 
 struct RecyclingWasteTypesSection: View {
     let wasteTypes: [RecyclingViewModel.WasteType]
+    let selectedType: RecyclingViewModel.WasteType?
+    let onSelect: (RecyclingViewModel.WasteType) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("recycling_waste_types")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("recycling_waste_types")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Text("recycling_select_type_prompt")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.6))
+            }
             
             VStack(spacing: 12) {
                 ForEach(wasteTypes) { type in
-                    RecyclingWasteTypeRow(emoji: type.emoji, titleKey: type.titleKey)
+                    RecyclingWasteTypeRow(
+                        emoji: type.emoji,
+                        titleKey: type.titleKey,
+                        isSelected: selectedType?.id == type.id
+                    )
+                    .onTapGesture { onSelect(type) }
                 }
             }
         }
@@ -68,6 +81,7 @@ struct RecyclingWasteTypesSection: View {
 struct RecyclingWasteTypeRow: View {
     let emoji: String
     let titleKey: String
+    let isSelected: Bool
     
     var body: some View {
         HStack(spacing: 12) {
@@ -81,13 +95,20 @@ struct RecyclingWasteTypeRow: View {
             Text(LocalizedStringKey(titleKey))
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.white)
+            
             Spacer()
+            
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.appAccent)
+                    .font(.system(size: 20))
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: 66)
-        .background(Color.white.opacity(0.05))
+        .background(isSelected ? Color.appAccent.opacity(0.15) : Color.white.opacity(0.05))
         .cornerRadius(14)
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.10), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? Color.appAccent : Color.white.opacity(0.10), lineWidth: 1))
     }
 }
 
@@ -157,6 +178,27 @@ struct RecyclingComponentCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .recyclingCardStyle()
+    }
+}
+
+struct RecyclingFindPointButton: View {
+    let isDisabled: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text("recycling_find_point_button")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(isDisabled ? .white.opacity(0.4) : .black)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(isDisabled ? Color.white.opacity(0.1) : Color.appAccent)
+                .cornerRadius(16)
+                .shadow(color: isDisabled ? .clear : Color.appAccent.opacity(0.4), radius: 15, y: 5)
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .padding(.top, 8)
     }
 }
 
