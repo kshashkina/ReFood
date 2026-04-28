@@ -3,13 +3,13 @@ import SwiftUI
 struct RecyclingScreen: View {
     @StateObject private var vm: RecyclingViewModel
     let onBack: () -> Void
-    let onFindPointTapped: () -> Void
+    let onFindPointTapped: (String) -> Void
     
     init(
         product: Product,
         languageProvider: LanguageProvider,
         onBack: @escaping () -> Void,
-        onFindPointTapped: @escaping () -> Void
+        onFindPointTapped: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: RecyclingViewModel(
             product: product,
@@ -38,20 +38,18 @@ struct RecyclingScreen: View {
                         RecyclingEmptyStateView()
                     }
                     
-                    RecyclingWasteTypesSection(wasteTypes: vm.standardWasteTypes)
+                    RecyclingWasteTypesSection(
+                        wasteTypes: vm.standardWasteTypes,
+                        selectedType: vm.selectedWasteType,
+                        onSelect: { vm.selectedWasteType = $0 }
+                    )
                     
-                    Button(action: onFindPointTapped) {
-                        Text("recycling_find_point_button")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.appAccent)
-                            .cornerRadius(16)
-                            .shadow(color: Color.appAccent.opacity(0.4), radius: 15, y: 5)
+                    let isButtonDisabled = vm.selectedWasteType == nil
+                    
+                    RecyclingFindPointButton(isDisabled: isButtonDisabled) {
+                        guard let selected = vm.selectedWasteType else { return }
+                        onFindPointTapped(selected.filterKey)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.top, 8)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 105)

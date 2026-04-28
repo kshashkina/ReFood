@@ -9,6 +9,7 @@ struct ProductDetailsScreen: View {
     
     let onBack: () -> Void
     var onCompare: (Product) -> Void
+    let onFindRecyclingPoint: (String) -> Void
     
     @State private var showRecycling = false
     @State private var showEditScreen = false
@@ -24,7 +25,8 @@ struct ProductDetailsScreen: View {
         uploadService: ImageUploadServicing,
         languageProvider: LanguageProvider,
         onBack: @escaping () -> Void,
-        onCompare: @escaping (Product) -> Void = { _ in }
+        onCompare: @escaping (Product) -> Void = { _ in },
+        onFindRecyclingPoint: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: ProductDetailsViewModel(product: product, languageProvider: languageProvider))
         self.repository = repository
@@ -32,6 +34,7 @@ struct ProductDetailsScreen: View {
         self.languageProvider = languageProvider
         self.onBack = onBack
         self.onCompare = onCompare
+        self.onFindRecyclingPoint = onFindRecyclingPoint
     }
 
     var body: some View {
@@ -80,7 +83,10 @@ struct ProductDetailsScreen: View {
                 product: vm.product,
                 languageProvider: languageProvider,
                 onBack: { showRecycling = false },
-                onFindPointTapped: {}
+                onFindPointTapped: { filter in
+                    showRecycling = false
+                    onFindRecyclingPoint(filter)
+                }
             )
         }
         .fullScreenCover(isPresented: $showEditScreen) {

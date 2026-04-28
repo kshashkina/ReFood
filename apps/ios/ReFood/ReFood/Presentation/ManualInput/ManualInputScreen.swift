@@ -12,6 +12,7 @@ struct ManualInputScreen: View {
     let onClose: () -> Void
     let onResetScanner: () -> Void
     let onCompareFromDetails: (Product) -> Void
+    let onFindRecyclingPoint: (String) -> Void
 
     enum Destination: Hashable {
         case preview(Product)
@@ -28,7 +29,8 @@ struct ManualInputScreen: View {
         firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,
         onResetScanner: @escaping () -> Void,
-        onCompareFromDetails: @escaping (Product) -> Void
+        onCompareFromDetails: @escaping (Product) -> Void,
+        onFindRecyclingPoint: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: ManualInputViewModel(repository: repository))
         
@@ -41,6 +43,7 @@ struct ManualInputScreen: View {
         self.onClose = onClose
         self.onResetScanner = onResetScanner
         self.onCompareFromDetails = onCompareFromDetails
+        self.onFindRecyclingPoint = onFindRecyclingPoint
     }
 
     var body: some View {
@@ -79,7 +82,8 @@ struct ManualInputScreen: View {
                         uploadService: uploadService,
                         languageProvider: languageProvider,
                         onBack: { onResetScanner() },
-                        onCompare: { pA in onCompareFromDetails(pA) }
+                        onCompare: { pA in onCompareFromDetails(pA) },
+                        onFindRecyclingPoint: { filter in onFindRecyclingPoint(filter) }
                     )
                     .toolbar(.hidden)
                     
