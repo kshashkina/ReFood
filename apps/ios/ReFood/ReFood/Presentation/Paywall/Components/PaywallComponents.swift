@@ -19,8 +19,8 @@ struct CloseCircleButton: View {
 
 struct FeatureRow: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -52,23 +52,23 @@ struct FeaturesCard: View {
         VStack(alignment: .leading, spacing: 16) {
             FeatureRow(
                 icon: "sparkles",
-                title: "AI Product Analysis",
-                subtitle: "Artificial intelligence analyzes ingredients and provides personalized recommendations",
+                title: "paywall_feature_ai_title",
+                subtitle: "paywall_feature_ai_subtitle"
             )
             FeatureRow(
                 icon: "arrow.left.and.right.circle",
-                title: "Smart Product Comparison",
-                subtitle: "Compare two products and choose the healthier option",
+                title: "paywall_feature_compare_title",
+                subtitle: "paywall_feature_compare_subtitle"
             )
             FeatureRow(
                 icon: "nosign",
-                title: "Ad-Free Experience",
-                subtitle: "Experience the app without intrusive ads and stay fully focused on your health goals",
+                title: "paywall_feature_adfree_title",
+                subtitle: "paywall_feature_adfree_subtitle"
             )
             FeatureRow(
                 icon: "bolt",
-                title: "Unlimited Access",
-                subtitle: "Unlock unlimited scans and powerful AI insights whenever you need them",
+                title: "paywall_feature_unlimited_title",
+                subtitle: "paywall_feature_unlimited_subtitle"
             )
         }
         .padding(16)
@@ -82,17 +82,17 @@ struct FeaturesCard: View {
 }
 
 struct FooterLink: View {
-    let title: String
+    let titleKey: LocalizedStringKey
     let action: () -> Void
 
-    init(_ title: String, action: @escaping () -> Void) {
-        self.title = title
+    init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
+        self.titleKey = titleKey
         self.action = action
     }
 
     var body: some View {
         Button(action: action) {
-            Text(title)
+            Text(titleKey)
                 .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(.white.opacity(0.50))
                 .underline()
@@ -102,10 +102,10 @@ struct FooterLink: View {
 }
 
 struct PlanCard: View {
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     let price: String
-    let period: String
+    let period: LocalizedStringKey
     let isSelected: Bool
     let selectedGradient: Bool
     let onTap: () -> Void
@@ -175,7 +175,7 @@ struct PoweredByPill: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.appAccent)
 
-            Text("Powered by AI")
+            Text("paywall_powered_by_ai")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.appAccent)
         }

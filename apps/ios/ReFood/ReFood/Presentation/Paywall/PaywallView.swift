@@ -21,11 +21,11 @@ struct PaywallView: View {
                 plans
                     .padding(.top, 14)
 
-                PrimaryButton(title: "Continue") {}
+                PrimaryButton(title: String(localized: "paywall_btn_continue")) {}
                 .padding(.top, 18)
 
                 Button {} label: {
-                    Text("Restore Purchases")
+                    Text("paywall_btn_restore")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.50))
                 }
@@ -61,13 +61,13 @@ struct PaywallView: View {
             VStack(spacing: 16) {
                 PoweredByPill()
 
-                Text("Unlock the Power of AI")
+                Text("paywall_title")
                     .font(.system(size: 30, weight: .bold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 9)
 
-                Text("Your personal AI assistant for healthy eating")
+                Text("paywall_subtitle")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(.white.opacity(0.60))
                     .multilineTextAlignment(.center)
@@ -84,19 +84,19 @@ struct PaywallView: View {
     private var plans: some View {
         VStack(spacing: 6) {
             PlanCard(
-                title: "Weekly Subscription",
-                subtitle: "Try it for 7 days",
+                title: "paywall_plan_weekly_title",
+                subtitle: "paywall_plan_weekly_subtitle",
                 price: "$3.99",
-                period: "/week",
+                period: "paywall_plan_weekly_period",
                 isSelected: selectedPlan == .weekly,
                 selectedGradient: true
             ) { selectedPlan = .weekly }
 
             PlanCard(
-                title: "Yearly Subscription",
-                subtitle: "Only $2.49 per month",
+                title: "paywall_plan_yearly_title",
+                subtitle: "paywall_plan_yearly_subtitle",
                 price: "$29.99",
-                period: "/year",
+                period: "paywall_plan_yearly_period",
                 isSelected: selectedPlan == .yearly,
                 selectedGradient: true
             ) { selectedPlan = .yearly }
@@ -105,17 +105,17 @@ struct PaywallView: View {
 
     private var footer: some View {
         VStack(spacing: 6) {
-            Text("Auto-renewable subscription. Cancel anytime.")
+            Text("paywall_footer_disclaimer")
                 .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(.white.opacity(0.40))
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 8) {
-                FooterLink("Terms of Service") {}
+                FooterLink("paywall_footer_terms") {}
                 Text("•").foregroundStyle(.white.opacity(0.30))
-                FooterLink("Privacy Policy") {}
+                FooterLink("paywall_footer_privacy") {}
                 Text("•").foregroundStyle(.white.opacity(0.30))
-                FooterLink("Subscription Terms") {}
+                FooterLink("paywall_footer_sub_terms") {}
             }
         }
     }
