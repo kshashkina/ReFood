@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct PaywallView: View {
+    let onClose: () -> Void
+
     enum Plan { case weekly, yearly }
     @State private var selectedPlan: Plan = .weekly
 
@@ -13,7 +15,7 @@ struct PaywallView: View {
             VStack(spacing: 0) {
                 header
 
-                FeaturesCard(green: PaywallTheme.green)
+                FeaturesCard()
                     .padding(.top, 20)
 
                 plans
@@ -41,13 +43,13 @@ struct PaywallView: View {
     private var glowBackground: some View {
         ZStack {
             Circle()
-                .fill(PaywallTheme.green.opacity(0.20))
+                .fill(Color.appAccent.opacity(0.20))
                 .frame(width: 250, height: 250)
                 .blur(radius: 100)
                 .position(x: UIScreen.main.bounds.width / 2, y: 205)
 
             Circle()
-                .fill(PaywallTheme.green.opacity(0.12))
+                .fill(Color.appAccent.opacity(0.12))
                 .frame(width: 200, height: 200)
                 .blur(radius: 80)
                 .position(x: UIScreen.main.bounds.width / 2, y: 418)
@@ -57,7 +59,7 @@ struct PaywallView: View {
     private var header: some View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 16) {
-                PoweredByPill(green: PaywallTheme.green)
+                PoweredByPill()
 
                 Text("Unlock the Power of AI")
                     .font(.system(size: 30, weight: .bold))
@@ -74,7 +76,7 @@ struct PaywallView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 12)
 
-            CloseCircleButton {}
+            CloseCircleButton {onClose()}
             .padding(.trailing, 5)
         }
     }
@@ -87,7 +89,6 @@ struct PaywallView: View {
                 price: "$3.99",
                 period: "/week",
                 isSelected: selectedPlan == .weekly,
-                green: PaywallTheme.green,
                 selectedGradient: true
             ) { selectedPlan = .weekly }
 
@@ -97,7 +98,6 @@ struct PaywallView: View {
                 price: "$29.99",
                 period: "/year",
                 isSelected: selectedPlan == .yearly,
-                green: PaywallTheme.green,
                 selectedGradient: true
             ) { selectedPlan = .yearly }
         }
