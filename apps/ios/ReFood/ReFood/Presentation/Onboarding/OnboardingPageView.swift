@@ -30,13 +30,13 @@ struct OnboardingPageView: View {
                 .frame(height: 240) 
                 .padding(.top, iconFixedTopOffset)
 
-                Text(page.title)
+                Text(LocalizedStringKey(page.title))
                     .font(.system(size: 36, weight: .bold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
 
-                Text(page.subtitle)
+                Text(LocalizedStringKey(page.subtitle))
                     .font(.system(size: 18, weight: .regular))
                     .foregroundStyle(.white.opacity(0.60))
                     .multilineTextAlignment(.center)
