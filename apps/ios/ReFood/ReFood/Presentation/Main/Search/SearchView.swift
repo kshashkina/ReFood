@@ -4,7 +4,7 @@ struct SearchView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             Color.black.ignoresSafeArea()
-            MainHeaderView(title: "Search")
+            MainHeaderView(title: String(localized: "tab_search"))
         }
     }
 }
