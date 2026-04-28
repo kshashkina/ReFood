@@ -7,7 +7,7 @@ struct MapView: View {
     let showLocationWarning: Bool
     let onRequestLocationAccess: () -> Void
     
-    init(repository: LocationRepository, networkMonitor: NetworkMonitor, locationService: LocationServiceProtocol, showLocationWarning: Bool, externalFilter: Binding<String>, onRequestLocationAccess: @escaping () -> Void) {
+    init(repository: LocationRepository, networkMonitor: NetworkMonitoring, locationService: LocationServiceProtocol, showLocationWarning: Bool, externalFilter: Binding<String>, onRequestLocationAccess: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: MapViewModel(repository: repository, networkMonitor: networkMonitor, locationService: locationService))
         self._externalFilter = externalFilter
         self.showLocationWarning = showLocationWarning
@@ -52,6 +52,7 @@ struct MapView: View {
         }
         .onChange(of: vm.selectedFilter) { newValue in
             if externalFilter != newValue { externalFilter = newValue }
+            vm.onFilterChange()
         }
         .onChange(of: externalFilter) { newValue in
             if vm.selectedFilter != newValue { vm.selectedFilter = newValue }
