@@ -9,13 +9,13 @@ struct MainTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            tabButton(.home, title: "Home", system: "house")
-            tabButton(.search, title: "Search", system: "magnifyingglass")
+            tabButton(.home, titleKey: "tab_home", system: "house")
+            tabButton(.search, titleKey: "tab_search", system: "magnifyingglass")
 
             scannerButton
 
-            tabButton(.map, title: "Map", system: "map")
-            tabButton(.profile, title: "Profile", system: "person")
+            tabButton(.map, titleKey: "tab_map", system: "map")
+            tabButton(.profile, titleKey: "tab_profile", system: "person")
         }
         .padding(12)
         .frame(height: 85)
@@ -31,14 +31,14 @@ struct MainTabBar: View {
         .padding(.horizontal, 16)
     }
 
-    private func tabButton(_ tab: MainTab, title: String, system: String) -> some View {
+    private func tabButton(_ tab: MainTab, titleKey: LocalizedStringKey, system: String) -> some View {
         Button {
             selected = tab
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: system)
                     .font(.system(size: 20, weight: .semibold))
-                Text(title)
+                Text(titleKey)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)

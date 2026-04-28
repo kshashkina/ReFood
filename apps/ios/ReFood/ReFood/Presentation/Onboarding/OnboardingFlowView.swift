@@ -8,18 +8,18 @@ struct OnboardingFlowView: View {
 
     private let pages: [OnboardingPage] = [
         .init(
-            title: "Scan Products",
-            subtitle: "Simply point your camera at a barcode and instantly get complete product information",
+            title: "onboarding_page1_title",
+            subtitle: "onboarding_page1_subtitle",
             imageName: "ONB_1"
         ),
         .init(
-            title: "Understand Ingredients Clearly",
-            subtitle: "Learn about ingredients in simple terms and evaluate their impact on your health",
+            title: "onboarding_page2_title",
+            subtitle: "onboarding_page2_subtitle",
             imageName: "ONB_2"
         ),
         .init(
-            title: "Recycle the Right Way",
-            subtitle: "Get clear recycling instructions and find nearby collection points",
+            title: "onboarding_page3_title",
+            subtitle: "onboarding_page3_subtitle",
             imageName: "ONB_3"
         )
     ]
@@ -42,7 +42,7 @@ struct OnboardingFlowView: View {
                 Dots(total: pages.count, current: index)
 
                 PrimaryButton(
-                    title: index < pages.count - 1 ? "Next" : "Get Started"
+                    title: index < pages.count - 1 ? String(localized: "onboarding_btn_next") : String(localized: "onboarding_btn_start")
                 ) {
                     if index < pages.count - 1 {
                         withAnimation(.easeInOut) { index += 1 }
