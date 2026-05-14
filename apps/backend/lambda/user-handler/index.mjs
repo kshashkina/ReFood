@@ -1,4 +1,5 @@
 import { registerUser } from "./handlers/registerUser.mjs";
+import { getDashboard } from "./handlers/getUserDashboard.mjs";
 import { response, optionsResponse } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
@@ -14,6 +15,10 @@ export const handler = async (event) => {
 
         if (method === 'POST' && path.endsWith('/users/register')) {
             return await registerUser(event);
+        }
+
+        if (method === 'GET' && path.endsWith('/users/dashboard')) {
+            return await getDashboard(event);
         }
 
         return response(404, {

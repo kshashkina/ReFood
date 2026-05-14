@@ -1,5 +1,5 @@
 import { response } from '../helpers/response.mjs';
-import { findUserByDevice, createUser, updateIdentityId } from '../services/database.mjs';
+import { findUserByDevice, createUser, updateIdentityId } from '../services/usersDatabase.mjs';
 import { validateRegisterRequest } from '../helpers/validation/userValidator.mjs';
 import { toUserDBModel } from '../mappers/userMapper.mjs';
 
