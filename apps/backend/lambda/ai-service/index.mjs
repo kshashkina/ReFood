@@ -2,12 +2,14 @@ import { translateProduct } from './actions/translateProduct.mjs';
 import { checkUserProduct } from './actions/checkUserProduct.mjs';
 import { compareTwoProducts } from './actions/compareTwoProducts.mjs';
 import { checkUserPhoto } from './actions/checkUserPhoto.mjs';
+import { processResearch } from './actions/processResearch.mjs';
 
 const actions = {
     translate_product: translateProduct,
     check_product: checkUserProduct,
     compare_products: compareTwoProducts,
-    check_photo: checkUserPhoto
+    check_photo: checkUserPhoto,
+    process_research: processResearch
 };
 
 export const handler = async (event) => {
