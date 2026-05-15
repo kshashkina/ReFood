@@ -4,6 +4,7 @@ import { validateProductInput } from '../helpers/validation/validator.mjs';
 import { cleanProductData } from '../helpers/formatters/cleanProductData.mjs';
 import { response } from '../helpers/response.mjs';
 import { translateProduct, checkProduct } from '../services/aiService.mjs';
+import { finalizeImage } from '../services/s3Service.mjs';
 
 export async function createProduct(event) {
     let body;
@@ -55,6 +56,23 @@ export async function createProduct(event) {
             Object.entries(productData).filter(([key]) => !translatedKeys.has(key) && !fieldsToDrop.has(key))
         );
 
+        let imageUrl = null;
+        const { imageId, s3Key } = body;
+
+        if (imageId && s3Key) {
+            const imageResult = await finalizeImage({ s3Key, imageId, barcode });
+
+            if (!imageResult.success) {
+                return response(400, {
+                    error: "Image finalization failed",
+                    code: imageResult.code,
+                    details: imageResult.message,
+                });
+            }
+
+            imageUrl = imageResult.publicUrl;
+        }
+
         const now = Date.now();
         const finalProduct = {
             ...baseProductData,
@@ -62,8 +80,9 @@ export async function createProduct(event) {
             barcode,
             checkAI: true,
             checkHuman: false,
+            image_url: imageUrl || null,
             source: "user",
-            updated_at: now,
+            updated_at: now
         };
 
         await saveProductToDB(finalProduct);

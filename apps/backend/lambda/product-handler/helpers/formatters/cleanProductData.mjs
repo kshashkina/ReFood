@@ -20,14 +20,13 @@ export function cleanProductData(data) {
         quantity: cleanValue(data.quantity),
         serving_size: cleanValue(data.serving_size),
         serving_quantity: cleanValue(data.serving_quantity),
-        packaging: cleanPackaging(data.packaging),
-        image_url: cleanValue(data.image_url),
+        packaging: cleanPackaging(data.packaging)
     };
 }
 
 function cleanPackaging(packaging) {
     if (!Array.isArray(packaging)) return [];
-    
+
     return packaging.map(pkg => ({
         material: cleanValue(pkg.material),
         number_of_units: typeof pkg.number_of_units === 'number' ? pkg.number_of_units : 1,

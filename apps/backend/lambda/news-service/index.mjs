@@ -1,4 +1,5 @@
 import { fetchNewsHandler } from "./handlers/fetchNewsHandler.mjs";
+import { getSummaryHandler } from "./handlers/getDailyDashboardHandler.mjs";
 import { response } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
