@@ -1,4 +1,4 @@
-import { saveProductToDB } from '../services/database.mjs';
+import { saveProductToDB } from '../services/productDatabase.mjs';
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { validateProductInput } from '../helpers/validation/validator.mjs';
 import { cleanProductData } from '../helpers/formatters/cleanProductData.mjs';
