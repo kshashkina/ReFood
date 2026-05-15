@@ -1,58 +1,37 @@
-import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { response } from "../helpers/response.mjs";
+import { updateJobStatus } from "../services/uploadJobsDatabase.mjs";
 import { checkPhoto } from "../services/aiService.mjs";
 
-const s3Client = new S3Client({ region: process.env.AWS_REGION || "eu-north-1" });
 const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 export async function validateImage(event) {
-    let body;
-    try {
-        body = JSON.parse(event.body || "{}");
-    } catch {
-        return response(400, { error: "Invalid JSON body" });
-    }
+    const results = [];
 
-    const { s3Key, imageId } = body;
+    for (const record of event.Records) {
+        const s3Key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
+        const filename = s3Key.split("/").pop();
+        const imageId = filename.split(".").slice(0, -1).join(".");
 
-    if (!s3Key || !imageId) {
-        return response(400, { error: "Missing required fields: s3Key, imageId" });
-    }
+        console.log(`S3 notification received: s3Key=${s3Key}, imageId=${imageId}`);
+        try {
+            const imageUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${s3Key}`;
+            const aiResult = await checkPhoto(imageUrl);
 
-    if (!s3Key.startsWith("temp/")) {
-        return response(400, { error: "Invalid s3Key: must be in temp/ prefix" });
-    }
+            const isValid = aiResult?.isValid ?? false;
+            const error_en = aiResult?.error_en || null;
+            const error_ua = aiResult?.error_ua || null;
+            const status = isValid ? "APPROVED" : "REJECTED";
 
-    try {
-        await s3Client.send(new HeadObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: s3Key,
-        }));
-    } catch (error) {
-        if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
-            return response(404, {
-                error: "Image not found in S3. Please upload the file first.",
+            await updateJobStatus(imageId, status, error_en, error_ua);
+
+            results.push({ imageId, status });
+        } catch (error) {
+            await updateJobStatus(imageId, "REJECTED", {
+                error_en: "Validation error. Please try again.",
+                error_ua: "Помилка валідації. Спробуйте ще раз.",
             });
+            results.push({ imageId, status: "REJECTED", error: error.message });
         }
-        throw error;
     }
 
-    const imageUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${s3Key}`;
-
-    console.log(`Validating image: ${imageUrl}`);
-
-    const aiResult = await checkPhoto(imageUrl);
-
-    const isValid = aiResult?.isValid ?? false;
-    const error_en = aiResult?.error_en || null;
-    const error_ua = aiResult?.error_ua || null;
-
-    return response(200, {
-        imageId,
-        s3Key,
-        imageUrl,
-        isValid,
-        error_en,
-        error_ua
-    });
+    return { processed: results.length, results };
 }

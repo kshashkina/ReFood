@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { response } from "../helpers/response.mjs";
 import { randomUUID } from "crypto";
+import { createPendingJob } from "../services/uploadJobsDatabase.mjs";
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION || "eu-north-1" });
 const BUCKET_NAME = process.env.S3_BUCKET_NAME;
@@ -30,6 +31,8 @@ export async function getPresignedUrl() {
     const presignedUrl = await getSignedUrl(s3Client, command, {
         expiresIn: URL_EXPIRY_SECONDS,
     });
+
+    await createPendingJob(imageId, s3Key);
 
     const imageUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${s3Key}`;
 
