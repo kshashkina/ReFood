@@ -871,6 +871,23 @@
         }
       }
     },
+    "common_no_brand" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand not specified"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бренд не вказано"
+          }
+        }
+      }
+    },
     "common_unknown" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3783,6 +3800,193 @@
         }
       }
     },
+    "search_empty_desc_history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan your first product, and it will appear here."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відскануйте свій перший продукт, і він з'явиться тут."
+          }
+        }
+      }
+    },
+    "search_empty_desc_no_favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like products to easily find them later."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лайкайте продукти, щоб швидко їх знаходити."
+          }
+        }
+      }
+    },
+    "search_empty_desc_not_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unfortunately, there are no products with this name. Check your query."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продуктів з такою назвою, на жаль, немає. Перевірте правильність запиту."
+          }
+        }
+      }
+    },
+    "search_empty_title_history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History is empty 🍃"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Історія порожня 🍃"
+          }
+        }
+      }
+    },
+    "search_empty_title_no_favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favorites 🍃"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає улюблених 🍃"
+          }
+        }
+      }
+    },
+    "search_empty_title_not_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing found 🔍"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нічого не знайдено 🔍"
+          }
+        }
+      }
+    },
+    "search_header_all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Scans"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всі сканування"
+          }
+        }
+      }
+    },
+    "search_header_favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улюблені"
+          }
+        }
+      }
+    },
+    "search_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search products..."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шукати продукти..."
+          }
+        }
+      }
+    },
+    "search_time_just_now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щойно"
+          }
+        }
+      }
+    },
+    "search_unknown_brand" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand not specified"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бренд не вказано"
+          }
+        }
+      }
+    },
     "sheet_btn_add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4090,31 +4294,122 @@
       }
     },
     "tab_home" : {
-          "extractionState" : "manual",
-          "localizations" : {
-            "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
-            "uk" : { "stringUnit" : { "state" : "translated", "value" : "Головна" } }
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
           }
         },
-        "tab_search" : {
-          "extractionState" : "manual",
-          "localizations" : {
-            "en" : { "stringUnit" : { "state" : "translated", "value" : "Search" } },
-            "uk" : { "stringUnit" : { "state" : "translated", "value" : "Пошук" } }
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Головна"
+          }
+        }
+      }
+    },
+    "tab_map" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
           }
         },
-        "tab_map" : {
-          "extractionState" : "manual",
-          "localizations" : {
-            "en" : { "stringUnit" : { "state" : "translated", "value" : "Map" } },
-            "uk" : { "stringUnit" : { "state" : "translated", "value" : "Карта" } }
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Карта"
+          }
+        }
+      }
+    },
+    "tab_profile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
           }
         },
-        "tab_profile" : {
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль"
+          }
+        }
+      }
+    },
+    "tab_search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук"
+          }
+        }
+      }
+    },
+    "time_just_now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щойно"
+          }
+        }
+      }
+    },
+    "search_segment_all" : {
           "extractionState" : "manual",
           "localizations" : {
-            "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-            "uk" : { "stringUnit" : { "state" : "translated", "value" : "Профіль" } }
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "All"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Всі"
+              }
+            }
+          }
+        },
+        "search_segment_favorites" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Favorites"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Улюблені"
+              }
+            }
           }
         },
     "To scan products, please\n enable camera access in Settings" : {
