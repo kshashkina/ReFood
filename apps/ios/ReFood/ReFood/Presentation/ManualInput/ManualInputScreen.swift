@@ -26,13 +26,14 @@ struct ManualInputScreen: View {
         uploadService: ImageUploadServicing,
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
+        historyRepository: HistoryRepository,
         firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,
         onResetScanner: @escaping () -> Void,
         onCompareFromDetails: @escaping (Product) -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
-        self._vm = StateObject(wrappedValue: ManualInputViewModel(repository: repository))
+        self._vm = StateObject(wrappedValue: ManualInputViewModel(repository: repository, historyRepository: historyRepository))
         
         self.repository = repository
         self.uploadService = uploadService

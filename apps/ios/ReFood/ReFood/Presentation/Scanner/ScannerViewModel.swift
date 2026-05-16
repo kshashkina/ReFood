@@ -21,10 +21,16 @@ final class ScannerViewModel: ObservableObject {
 
     private let scanner: BarcodeScanning
     private let productRepository: ProductRepository
+    private let historyRepository: HistoryRepository
 
-    init(scanner: BarcodeScanning, productRepository: ProductRepository) {
+    init(
+        scanner: BarcodeScanning,
+        productRepository: ProductRepository,
+        historyRepository: HistoryRepository
+    ) {
         self.scanner = scanner
         self.productRepository = productRepository
+        self.historyRepository = historyRepository
         bindScanner()
         scanner.configure()
     }
@@ -135,6 +141,11 @@ final class ScannerViewModel: ObservableObject {
             
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             self.product = fetchedProduct
+            
+            Task {
+                try? await historyRepository.saveProduct(fetchedProduct, isFavorite: false)
+            }
+            
             finishLoadingSuccess()
         } catch let error as ProductError {
             if error == .notFound {
