@@ -17,7 +17,7 @@ struct MainContainerView: View {
                     onTapScanner: { vm.onTapScan()}, selected: $selectedTab
                 )
                 .padding(.bottom, 16)
-            }
+            }.ignoresSafeArea(.keyboard, edges: .bottom)
 
             if vm.isCameraAccessModalPresented {
                 CameraAccessModalView(
@@ -59,10 +59,30 @@ struct MainContainerView: View {
                 uploadService: ImageUploadService(repository: repository),
                 aiRepository: AIComparisonRepositoryImpl(),
                 languageProvider: SystemLanguageProvider(),
+                historyRepository: HistoryRepositoryImpl(),
                 onClose: { vm.isScannerPresented = false },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
                     
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.mapFilter = selectedFilter
+                        self.selectedTab = .map
+                    }
+                }
+            )
+        }
+        .fullScreenCover(item: $vm.selectedSearchProduct) { product in
+            let repository = ProductRepositoryImpl()
+            ProductDetailsScreen(
+                product: product,
+                repository: repository,
+                uploadService: ImageUploadService(repository: repository),
+                languageProvider: SystemLanguageProvider(),
+                onBack: {
+                    vm.selectedSearchProduct = nil
+                },
+                onFindRecyclingPoint: { selectedFilter in
+                    vm.selectedSearchProduct = nil
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self.mapFilter = selectedFilter
                         self.selectedTab = .map
@@ -76,7 +96,14 @@ struct MainContainerView: View {
     private var content: some View {
         switch selectedTab {
         case .home: HomeView()
-        case .search: SearchView()
+        case .search:
+            let historyRepo = HistoryRepositoryImpl()            
+            SearchView(
+                historyRepository: historyRepo,
+                onProductTap: { product in
+                    vm.selectedSearchProduct = product
+                }
+            )
         case .map:
             let showWarning = vm.locationPermissionStatus == .denied || vm.locationPermissionStatus == .restricted
 
