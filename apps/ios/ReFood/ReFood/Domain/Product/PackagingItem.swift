@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PackagingItem: Decodable, Equatable, Hashable {
+public struct PackagingItem: Codable, Equatable, Hashable {
     public let numberOfUnits: Int?
     public let material: String?
     public let recycling: String?
