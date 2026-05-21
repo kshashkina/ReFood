@@ -27,20 +27,24 @@ export const registerUser = async (event) => {
                 await updateIdentityId(existingUser.userId, body.identityId);
             }
 
-            return response(200, {
-                userId: existingUser.userId,
-                message: "User recognized"
-            });
+            return response(200, { message: "User recognized" });
         }
 
         const newUser = toUserDBModel(body.deviceId, body.identityId);
-        await createUser(newUser);
 
-        return response(201, {
-            userId: newUser.userId,
-            message: "New user created"
-        });
+        try {
+            await createUser(newUser);
+        } catch (error) {
+            if (error.name === 'ConditionalCheckFailedException') {
+                const findedUser = await findUserByDevice(body.deviceId);
+                if (findedUser) {
+                    return response(200, { message: "User recognized" });
+                }
+            }
+            throw error;
+        }
 
+        return response(201, { message: "New user created" });
     } catch (error) {
         console.error("Error:", error);
         return response(500, {

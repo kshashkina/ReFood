@@ -12,7 +12,9 @@ export const getRequestIdentity = (event) => {
     }
 
     const mockIdentityId = event.headers?.['x-mock-identity-id'];
-    if (mockIdentityId) return { type: 'identityId', id: mockIdentityId };
+    if (mockIdentityId && process.env.STAGE !== 'prod') {
+        return { type: 'identityId', id: mockIdentityId };
+    }
 
     return null;
 };

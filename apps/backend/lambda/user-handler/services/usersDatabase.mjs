@@ -43,7 +43,8 @@ export const findUserByDevice = async (deviceId) => {
 export const createUser = async (user) => {
     const params = {
         TableName: USERS_TABLE,
-        Item: user
+        Item: user,
+        ConditionExpression: "attribute_not_exists(userId)"
     };
     return await docClient.send(new PutCommand(params));
 };
