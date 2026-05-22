@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -18,4 +18,33 @@ export const getUserScans = async (userId, limit = 20) => {
 
     const result = await docClient.send(new QueryCommand(params));
     return result.Items || [];
+};
+
+export const deleteAllUserScans = async (userId) => {
+    let lastKey;
+    const deletePromises = [];
+
+    do {
+        const result = await docClient.send(new QueryCommand({
+            TableName: SCANS_TABLE,
+            KeyConditionExpression: "userId = :uid",
+            ExpressionAttributeValues: { ":uid": userId },
+            ExclusiveStartKey: lastKey,
+            ProjectionExpression: "userId, #ts",
+            ExpressionAttributeNames: { "#ts": "timestamp" }
+        }));
+
+        for (const item of result.Items || []) {
+            deletePromises.push(
+                docClient.send(new DeleteCommand({
+                    TableName: SCANS_TABLE,
+                    Key: { userId: item.userId, timestamp: item.timestamp }
+                }))
+            );
+        }
+
+        lastKey = result.LastEvaluatedKey;
+    } while (lastKey);
+
+    await Promise.all(deletePromises);
 };

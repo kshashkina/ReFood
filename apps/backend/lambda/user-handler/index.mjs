@@ -1,5 +1,7 @@
 import { registerUser } from "./handlers/registerUser.mjs";
+import { registerLinkAccount } from "./handlers/registerLinkAccount.mjs";
 import { getDashboard } from "./handlers/getUserDashboard.mjs";
+import { deleteUserData } from "./handlers/deleteUserFromDatabase.mjs";
 import { response, optionsResponse } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
@@ -13,12 +15,21 @@ export const handler = async (event) => {
             return optionsResponse();
         }
 
-        if (method === 'POST' && path.endsWith('/users/register')) {
-            return await registerUser(event);
+        if (method === 'POST') {
+            if (path.endsWith('/users/register')) {
+                return await registerUser(event);
+            }
+            if (path.endsWith('/users/register/link-account')) {
+                return await registerLinkAccount(event);
+            }
         }
 
         if (method === 'GET' && path.endsWith('/users/dashboard')) {
             return await getDashboard(event);
+        }
+
+        if (method === 'DELETE' && path.endsWith('/users')) {
+            return await deleteUserData(event);
         }
 
         return response(404, {

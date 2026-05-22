@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, PutCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -54,9 +54,7 @@ export const updateIdentityId = async (userId, newIdentityId) => {
         TableName: USERS_TABLE,
         Key: { userId },
         UpdateExpression: "set identityId = :i",
-        ExpressionAttributeValues: {
-            ":i": newIdentityId
-        }
+        ExpressionAttributeValues: { ":i": newIdentityId }
     };
     return await docClient.send(new UpdateCommand(params));
 };
@@ -70,3 +68,47 @@ export const getUserProfile = async (userId) => {
     return result.Item;
 };
 
+export const findUserByCognitoSub = async (cognitoSub) => {
+    const params = {
+        TableName: USERS_TABLE,
+        IndexName: JWT_INDEX,
+        KeyConditionExpression: `${JWT_NAME} = :sub`,
+        ExpressionAttributeValues: { ":sub": cognitoSub }
+    };
+    const { Items } = await docClient.send(new QueryCommand(params));
+    return Items && Items.length > 0 ? Items[0] : null;
+};
+
+export const linkUserToApple = async (userId, { cognitoSub, email, givenName }) => {
+    const params = {
+        TableName: USERS_TABLE,
+        Key: { userId },
+        UpdateExpression: "SET cognitoSub = :sub, email = :email, givenName = :name, authProvider = :provider, linkedAt = :now",
+        ExpressionAttributeValues: {
+            ":sub": cognitoSub,
+            ":email": email || null,
+            ":name": givenName || null,
+            ":provider": "apple",
+            ":now": new Date().toISOString()
+        }
+    };
+    return await docClient.send(new UpdateCommand(params));
+};
+
+export const updateUserDevice = async (userId, deviceId) => {
+    const params = {
+        TableName: USERS_TABLE,
+        Key: { userId },
+        UpdateExpression: "SET deviceId = :d",
+        ExpressionAttributeValues: { ":d": deviceId }
+    };
+    return await docClient.send(new UpdateCommand(params));
+};
+
+export const deleteUser = async (userId) => {
+    const params = {
+        TableName: USERS_TABLE,
+        Key: { userId }
+    };
+    return await docClient.send(new DeleteCommand(params));
+};
