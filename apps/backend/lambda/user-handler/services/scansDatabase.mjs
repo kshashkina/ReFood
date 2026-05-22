@@ -20,6 +20,22 @@ export const getUserScans = async (userId, limit = 20) => {
     return result.Items || [];
 };
 
+export const getUserScansPaginated = async (userId, limit = 20, lastKey = undefined) => {
+    const result = await docClient.send(new QueryCommand({
+        TableName: SCANS_TABLE,
+        KeyConditionExpression: "userId = :uid",
+        ExpressionAttributeValues: { ":uid": userId },
+        ScanIndexForward: false,
+        Limit: limit,
+        ...(lastKey && { ExclusiveStartKey: lastKey })
+    }));
+
+    return {
+        items: result.Items || [],
+        lastKey: result.LastEvaluatedKey || null
+    };
+};
+
 export const deleteAllUserScans = async (userId) => {
     let lastKey;
     const deletePromises = [];

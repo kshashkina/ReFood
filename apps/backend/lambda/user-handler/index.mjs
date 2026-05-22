@@ -1,6 +1,7 @@
 import { registerUser } from "./handlers/registerUser.mjs";
 import { registerLinkAccount } from "./handlers/registerLinkAccount.mjs";
 import { getDashboard } from "./handlers/getUserDashboard.mjs";
+import { getUserScanHistory } from "./handlers/getUserScanHistory.mjs";
 import { deleteUserData } from "./handlers/deleteUserFromDatabase.mjs";
 import { showProductsFavorites } from "./handlers/showProductsFavorites.mjs";
 import { response, optionsResponse } from "./helpers/response.mjs";
@@ -28,6 +29,10 @@ export const handler = async (event) => {
         if (method === 'GET') {
             if (path.endsWith('/users/dashboard')) {
                 return await getDashboard(event);
+            }
+
+            if (path.endsWith('/users/scans')) {
+                return await getUserScanHistory(event);
             }
 
             if (path.endsWith('/users/favorites')) {
