@@ -7,7 +7,7 @@ const parser = new XMLParser();
 
 export async function fetchNewsFromPubMed() {
     const searchTerm = encodeURIComponent("nutrition food science");
-    const searchParams = `db=pubmed&term=${searchTerm}&retmode=json&retmax=10&api_key=${NCBI_API_KEY}`;
+    const searchParams = `db=pubmed&term=${searchTerm}&retmode=json&retmax=10&sort=date&api_key=${NCBI_API_KEY}`;
 
     try {
         const results = await fetch(`${SEARCH_URL}?${searchParams}`, {
