@@ -8,7 +8,7 @@ struct SearchBarView: View {
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(isSearchFocused.wrappedValue ? .appAccent : .white.opacity(0.5))
+                .foregroundColor(isSearchFocused.wrappedValue ? .appAccent : .white.opacity(0.4))
                 .font(.system(size: 16, weight: .semibold))
             
             TextField(LocalizedStringKey("search_placeholder"), text: $searchText)
@@ -21,52 +21,89 @@ struct SearchBarView: View {
                     withAnimation { searchText = "" }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.appAccent)
+                        .foregroundColor(.appAccent.opacity(0.8))
                 }
             }
         }
         .padding(14)
-        .background(Color.white.opacity(0.08))
+        .background(
+            LinearGradient(
+                colors: [Color.white.opacity(0.06), Color.white.opacity(0.02)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isSearchFocused.wrappedValue ? .appAccent : Color.white.opacity(0.1), lineWidth: isSearchFocused.wrappedValue ? 1.5 : 1)
+                .stroke(
+                    isSearchFocused.wrappedValue ?
+                    LinearGradient(colors: [.appAccent.opacity(0.6), .appAccent.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                    LinearGradient(colors: [.white.opacity(0.15), .clear], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: isSearchFocused.wrappedValue ? Color.appAccent.opacity(0.15) : .clear, radius: 10, y: 4)
     }
 }
 
 struct SearchSegmentControlView: View {
     @Binding var showFavoritesOnly: Bool
+    @Namespace private var animation
     
     var body: some View {
         HStack(spacing: 0) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) { showFavoritesOnly = false }
-            } label: {
-                Text(String(localized: "search_segment_all"))
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(showFavoritesOnly ? Color.clear : .appAccent)
-                    .foregroundColor(showFavoritesOnly ? .white : .black)
-                    .cornerRadius(12)
+            SegmentButton(
+                title: String(localized: "search_segment_all"),
+                isSelected: !showFavoritesOnly,
+                animation: animation
+            ) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showFavoritesOnly = false }
             }
 
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) { showFavoritesOnly = true }
-            } label: {
-                Text(String(localized: "search_segment_favorites"))
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(showFavoritesOnly ? .appAccent : Color.clear)
-                    .foregroundColor(showFavoritesOnly ? .black : .white)
-                    .cornerRadius(12)
+            SegmentButton(
+                title: String(localized: "search_segment_favorites"),
+                isSelected: showFavoritesOnly,
+                animation: animation
+            ) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showFavoritesOnly = true }
             }
         }
         .padding(4)
-        .background(Color.white.opacity(0.08))
+        .background(Color.white.opacity(0.04))
         .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+struct SegmentButton: View {
+    let title: String
+    let isSelected: Bool
+    var animation: Namespace.ID
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .bold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .foregroundColor(isSelected ? .black : .white.opacity(0.6))
+                .contentShape(Rectangle())
+        }
+        .background(
+            ZStack {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.appAccent)
+                        .matchedGeometryEffect(id: "TabBackground", in: animation)
+                        .shadow(color: Color.appAccent.opacity(0.3), radius: 8, y: 4)
+                }
+            }
+        )
     }
 }
 
@@ -182,13 +219,11 @@ struct SearchProductRowView: View {
     let onToggleFavorite: () -> Void
     let onDelete: () -> Void
     
-    private let cardBg = Color.white.opacity(0.04)
-    
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 16) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color.white.opacity(0.05))
                         .frame(width: 56, height: 56)
 
@@ -199,24 +234,33 @@ struct SearchProductRowView: View {
                                 .font(.system(size: 24))
                         }
                         .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     } else {
                         Image(systemName: "leaf.fill")
-                            .foregroundColor(.appAccent.opacity(0.7))
+                            .foregroundColor(.appAccent.opacity(0.5))
                             .font(.system(size: 24))
                     }
                 }
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.1), lineWidth: 1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(uiModel.name).font(.system(size: 16, weight: .bold)).foregroundColor(.white).lineLimit(1)
+                    Text(uiModel.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
                     
                     HStack(spacing: 6) {
-                        Text(uiModel.brand).font(.system(size: 13, weight: .medium)).foregroundColor(.gray).lineLimit(1)
-                        Circle().fill(Color.gray.opacity(0.6)).frame(width: 3, height: 3)
+                        Text(uiModel.brand)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white.opacity(0.5))
+                            .lineLimit(1)
+                        Circle().fill(Color.white.opacity(0.3)).frame(width: 3, height: 3)
                         Text(uiModel.timeAgo)
                             .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(.gray.opacity(0.7))
+                            .foregroundColor(.white.opacity(0.4))
                             .lineLimit(1)
                     }
                 }
@@ -226,15 +270,40 @@ struct SearchProductRowView: View {
                 Button(action: onToggleFavorite) {
                     Image(systemName: uiModel.originalModel.isFavorite ? "heart.fill" : "heart")
                         .font(.system(size: 22))
-                        .foregroundColor(uiModel.originalModel.isFavorite ? .appAccent : .gray.opacity(0.4))
+                        .foregroundColor(uiModel.originalModel.isFavorite ? .appAccent : .white.opacity(0.2))
+                        .shadow(color: uiModel.originalModel.isFavorite ? Color.appAccent.opacity(0.5) : .clear, radius: 4, y: 0)
                         .scaleEffect(uiModel.originalModel.isFavorite ? 1.1 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: uiModel.originalModel.isFavorite)
                 }
                 .buttonStyle(.borderless)
             }
             .padding(14)
-            .background(cardBg)
-            .cornerRadius(18)
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(uiModel.originalModel.isFavorite ? Color.appAccent.opacity(0.3) : Color.white.opacity(0.05), lineWidth: 1))
+            .background(
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.06), Color.white.opacity(0.02)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    LinearGradient(
+                        colors: [Color.appAccent.opacity(0.15), Color.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .opacity(uiModel.originalModel.isFavorite ? 1.0 : 0.0)
+                }
+            )
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        uiModel.originalModel.isFavorite ?
+                        LinearGradient(colors: [.appAccent.opacity(0.4), .clear], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                        LinearGradient(colors: [.white.opacity(0.12), .clear], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1
+                    )
+            )
+            .animation(.easeInOut(duration: 0.25), value: uiModel.originalModel.isFavorite)
         }
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
