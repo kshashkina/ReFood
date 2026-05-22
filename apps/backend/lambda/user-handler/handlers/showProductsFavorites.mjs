@@ -1,7 +1,7 @@
-import { response } from '../helpers/response.mjs';
 import { getRequestIdentity } from '../helpers/auth/identity.mjs';
 import { findUserIdByAnyMethod } from '../services/usersDatabase.mjs';
 import { getUserFavorites } from '../services/productsFavoritesDatabase.mjs';
+import { response } from '../helpers/response.mjs';
 
 export const showProductsFavorites = async (event) => {
     const identity = getRequestIdentity(event);

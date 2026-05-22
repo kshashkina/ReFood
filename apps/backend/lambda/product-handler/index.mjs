@@ -2,7 +2,6 @@ import { getProduct } from './handlers/getProduct.mjs';
 import { createProduct } from './handlers/createProduct.mjs';
 import { getCompareProducts } from './handlers/getCompareProducts.mjs';
 import { addProductsFavorites } from './handlers/addProductsFavorites.mjs';
-import { showProductsFavorites } from './handlers/showProductsFavorites.mjs';
 import { removeProductFromFavorites } from './handlers/removeProductFromFavorites.mjs';
 import { response, optionsResponse } from './helpers/response.mjs';
 
@@ -22,10 +21,6 @@ export const handler = async (event) => {
         if (method === 'GET') {
             if (pathParts.includes('compare')) {
                 return await getCompareProducts(event);
-            }
-
-            if (path.endsWith('/product/favorites')) {
-                return await showProductsFavorites(event);
             }
 
             if (pathParts[pathParts.length - 2] === 'product') {
