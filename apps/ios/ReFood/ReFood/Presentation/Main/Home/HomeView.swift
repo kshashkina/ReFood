@@ -36,6 +36,18 @@ struct HomeView: View {
                     }.padding(.top, 8)
                 }
             }
+            
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [.black.opacity(0.0), .black.opacity(0.8), .black],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 120)
+                .allowsHitTesting(false)
+            }
+            .ignoresSafeArea()
         }
         .onAppear {
             vm.loadMetrics()
