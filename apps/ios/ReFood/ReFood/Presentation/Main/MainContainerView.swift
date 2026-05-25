@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MainContainerView: View {
+    let dashboardData: DailyDashboardResponse?    
     @State private var selectedTab: MainTab = .home
     @StateObject private var vm = MainContainerViewModel()
     @Environment(\.scenePhase) var scenePhase
@@ -95,9 +96,23 @@ struct MainContainerView: View {
     @ViewBuilder
     private var content: some View {
         switch selectedTab {
-        case .home: HomeView()
+        case .home:
+            let languageProvider = SystemLanguageProvider()
+            let metricsRepo = UserDefaultsMetricsRepository()
+            
+            HomeView(
+                dashboardData: dashboardData,
+                languageProvider: languageProvider,
+                metricsRepository: metricsRepo,
+                onProductTap: { product in
+                    vm.selectedSearchProduct = product
+                },
+                onSeeAllTap: {
+                    selectedTab = .search
+                }
+            )
         case .search:
-            let historyRepo = HistoryRepositoryImpl()            
+            let historyRepo = HistoryRepositoryImpl()
             SearchView(
                 historyRepository: historyRepo,
                 onProductTap: { product in

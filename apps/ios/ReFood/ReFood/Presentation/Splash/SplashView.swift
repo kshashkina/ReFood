@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct SplashView: View {
-    var onFinish: () -> Void = {}
+    let repository: DashboardRepository
+    var onFinish: (DailyDashboardResponse?) -> Void
     
     @State private var logoScale: CGFloat = 0.86
     @State private var logoRotation: Double = 0
@@ -39,27 +40,37 @@ struct SplashView: View {
             .position(x: glowCenterX, y: glowCenterY)
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 2.0)) {
-                logoScale = 1.0
-            }
-
-            withAnimation(.easeInOut(duration: 1.0)) {
-                logoRotation = 6
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.easeInOut(duration: 1.0)) {
-                    logoRotation = 0
+            startAnimations()
+            
+            Task {
+                async let fetchTask = try? repository.getDailyDashboard()
+                try? await Task.sleep(nanoseconds: 2_200_000_000)
+                let dashboardData = await fetchTask
+                await MainActor.run {
+                    onFinish(dashboardData)
                 }
             }
+        }
+    }
+    
+    private func startAnimations() {
+        withAnimation(.easeInOut(duration: 2.0)) {
+            logoScale = 1.0
+        }
 
-            withAnimation(.easeInOut(duration: 2.0)) {
-                textScale = 1.0
-                textOpacity = 1.0
+        withAnimation(.easeInOut(duration: 1.0)) {
+            logoRotation = 6
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeInOut(duration: 1.0)) {
+                logoRotation = 0
             }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-                            onFinish()
-                        }
+        }
+
+        withAnimation(.easeInOut(duration: 2.0)) {
+            textScale = 1.0
+            textOpacity = 1.0
         }
     }
 }
@@ -93,8 +104,4 @@ private struct LogoCard: View {
         }
         .frame(width: 128, height: 128)
     }
-}
-
-#Preview {
-    SplashView()
 }
