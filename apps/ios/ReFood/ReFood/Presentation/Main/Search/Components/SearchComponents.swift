@@ -187,6 +187,7 @@ struct SearchHistoryListView: View {
                 ForEach(uiModels) { uiModel in
                     SearchProductRowView(
                         uiModel: uiModel,
+                        model: uiModel.originalModel,
                         onTap: {
                             if let decodedProduct = uiModel.product {
                                 isSearchFocused.wrappedValue = false
@@ -215,6 +216,7 @@ struct SearchHistoryListView: View {
 
 struct SearchProductRowView: View {
     let uiModel: SearchItemUIModel
+    @Bindable var model: ScannedHistoryModel
     let onTap: () -> Void
     let onToggleFavorite: () -> Void
     let onDelete: () -> Void
@@ -267,13 +269,16 @@ struct SearchProductRowView: View {
 
                 Spacer()
 
-                Button(action: onToggleFavorite) {
-                    Image(systemName: uiModel.originalModel.isFavorite ? "heart.fill" : "heart")
+                Button(action: {
+                    model.isFavorite.toggle()
+                    onToggleFavorite() 
+                }) {
+                    Image(systemName: model.isFavorite ? "heart.fill" : "heart")
                         .font(.system(size: 22))
-                        .foregroundColor(uiModel.originalModel.isFavorite ? .appAccent : .white.opacity(0.2))
-                        .shadow(color: uiModel.originalModel.isFavorite ? Color.appAccent.opacity(0.5) : .clear, radius: 4, y: 0)
-                        .scaleEffect(uiModel.originalModel.isFavorite ? 1.1 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: uiModel.originalModel.isFavorite)
+                        .foregroundColor(model.isFavorite ? .appAccent : .white.opacity(0.2))
+                        .shadow(color: model.isFavorite ? Color.appAccent.opacity(0.5) : .clear, radius: 4, y: 0)
+                        .scaleEffect(model.isFavorite ? 1.1 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: model.isFavorite)
                 }
                 .buttonStyle(.borderless)
             }
@@ -290,20 +295,20 @@ struct SearchProductRowView: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .opacity(uiModel.originalModel.isFavorite ? 1.0 : 0.0)
+                    .opacity(model.isFavorite ? 1.0 : 0.0)
                 }
             )
             .cornerRadius(20)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
-                        uiModel.originalModel.isFavorite ?
+                        model.isFavorite ?
                         LinearGradient(colors: [.appAccent.opacity(0.4), .clear], startPoint: .topLeading, endPoint: .bottomTrailing) :
                         LinearGradient(colors: [.white.opacity(0.12), .clear], startPoint: .topLeading, endPoint: .bottomTrailing),
                         lineWidth: 1
                     )
             )
-            .animation(.easeInOut(duration: 0.25), value: uiModel.originalModel.isFavorite)
+            .animation(.easeInOut(duration: 0.25), value: model.isFavorite)
         }
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {

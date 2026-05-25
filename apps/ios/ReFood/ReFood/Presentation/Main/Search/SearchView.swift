@@ -39,7 +39,7 @@ struct SearchView: View {
                     .padding(.bottom, 8)
 
                 SearchHistoryListView(
-                    uiModels: vm.getUIModels(from: history),
+                    uiModels: vm.uiModels,
                     showFavoritesOnly: vm.showFavoritesOnly,
                     isSearching: !vm.searchText.isEmpty,
                     isSearchFocused: $isSearchFocused,
@@ -52,6 +52,18 @@ struct SearchView: View {
                     }
                 )
             }
+        }
+        .onAppear {
+            vm.updateUIModels(from: history)
+        }
+        .onChange(of: history) { newHistory in
+            vm.updateUIModels(from: newHistory)
+        }
+        .onChange(of: vm.searchText) { _ in
+            vm.updateUIModels(from: history)
+        }
+        .onChange(of: vm.showFavoritesOnly) { _ in
+            vm.updateUIModels(from: history)
         }
     }
 }

@@ -3,21 +3,20 @@ import SwiftData
 import Combine
 
 struct SearchItemUIModel: Identifiable {
-    var id: String { originalModel.id }
+    let id: String
     let originalModel: ScannedHistoryModel
     let name: String
     let brand: String
     let imageUrl: String?
     let timeAgo: String
-    var product: Product? {
-        try? JSONDecoder().decode(Product.self, from: originalModel.productData)
-    }
+    let product: Product?
 }
 
 @MainActor
 final class SearchViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var showFavoritesOnly: Bool = false
+    @Published var uiModels: [SearchItemUIModel] = []
     
     private let historyRepository: HistoryRepository
     
@@ -32,8 +31,8 @@ final class SearchViewModel: ObservableObject {
         self.historyRepository = historyRepository
     }
     
-    func getUIModels(from history: [ScannedHistoryModel]) -> [SearchItemUIModel] {
-        return history.compactMap { item in
+    func updateUIModels(from history: [ScannedHistoryModel]) {
+        self.uiModels = history.compactMap { item in
             if showFavoritesOnly && !item.isFavorite { return nil }
             let name = item.productName
             let brand = item.brand
@@ -44,12 +43,16 @@ final class SearchViewModel: ObservableObject {
                 if !matchesSearch { return nil }
             }
             
+            let decodedProduct = try? JSONDecoder().decode(Product.self, from: item.productData)
+            
             return SearchItemUIModel(
+                id: item.id,
                 originalModel: item,
                 name: name,
                 brand: brand,
                 imageUrl: item.imageUrl,
-                timeAgo: timeAgo(from: item.scanDate)
+                timeAgo: timeAgo(from: item.scanDate),
+                product: decodedProduct
             )
         }
     }
@@ -57,7 +60,7 @@ final class SearchViewModel: ObservableObject {
     private func timeAgo(from date: Date) -> String {
         let diff = Date().timeIntervalSince(date)
         if diff < 60 {
-            return String(localized: "search_time_just_now")
+            return String(localized: "search_time_just_now", defaultValue: "Щойно")
         }
         return Self.timeFormatter.localizedString(for: date, relativeTo: Date())
     }
