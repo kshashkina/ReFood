@@ -7,6 +7,22 @@ struct MainContainerView: View {
     @Environment(\.scenePhase) var scenePhase
     @State private var mapFilter: String = "filter_all"
 
+    private let languageProvider = SystemLanguageProvider()
+    private let metricsRepo = UserDefaultsMetricsRepository()
+    private let historyRepo = HistoryRepositoryImpl()
+    private let productRepo: ProductRepositoryImpl
+    private let uploadService: ImageUploadService
+    private let aiRepo = AIComparisonRepositoryImpl()
+    private let locationRepo = LocationRepositoryImpl()
+    private let locationService = LocationService()
+
+    init(dashboardData: DailyDashboardResponse?) {
+        self.dashboardData = dashboardData
+        let pRepo = ProductRepositoryImpl()
+        self.productRepo = pRepo
+        self.uploadService = ImageUploadService(repository: pRepo)
+    }
+
     var body: some View {
         ZStack {
             content
@@ -47,20 +63,20 @@ struct MainContainerView: View {
             }
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
-                    if isPresented {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            selectedTab = .home
-                        }
-                    }
+            if isPresented {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    selectedTab = .home
+                }
+            }
         }
         .fullScreenCover(isPresented: $vm.isScannerPresented) {
-            let repository = ProductRepositoryImpl()
             ScannerScreen(
-                repository: repository,
-                uploadService: ImageUploadService(repository: repository),
-                aiRepository: AIComparisonRepositoryImpl(),
-                languageProvider: SystemLanguageProvider(),
-                historyRepository: HistoryRepositoryImpl(),
+                repository: productRepo,
+                uploadService: uploadService,
+                aiRepository: aiRepo,
+                languageProvider: languageProvider,
+                historyRepository: historyRepo,
+                metricsRepository: metricsRepo,
                 onClose: { vm.isScannerPresented = false },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
@@ -73,12 +89,12 @@ struct MainContainerView: View {
             )
         }
         .fullScreenCover(item: $vm.selectedSearchProduct) { product in
-            let repository = ProductRepositoryImpl()
             ProductDetailsScreen(
                 product: product,
-                repository: repository,
-                uploadService: ImageUploadService(repository: repository),
-                languageProvider: SystemLanguageProvider(),
+                repository: productRepo,
+                uploadService: uploadService,
+                languageProvider: languageProvider,
+                metricsRepository: metricsRepo,
                 onBack: {
                     vm.selectedSearchProduct = nil
                 },
@@ -97,9 +113,6 @@ struct MainContainerView: View {
     private var content: some View {
         switch selectedTab {
         case .home:
-            let languageProvider = SystemLanguageProvider()
-            let metricsRepo = UserDefaultsMetricsRepository()
-            
             HomeView(
                 dashboardData: dashboardData,
                 languageProvider: languageProvider,
@@ -112,7 +125,6 @@ struct MainContainerView: View {
                 }
             )
         case .search:
-            let historyRepo = HistoryRepositoryImpl()
             SearchView(
                 historyRepository: historyRepo,
                 onProductTap: { product in
@@ -123,9 +135,9 @@ struct MainContainerView: View {
             let showWarning = vm.locationPermissionStatus == .denied || vm.locationPermissionStatus == .restricted
 
             MapView(
-                repository: LocationRepositoryImpl(),
+                repository: locationRepo,
                 networkMonitor: NetworkMonitor.shared,
-                locationService: LocationService(),
+                locationService: locationService,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
                 onRequestLocationAccess: {

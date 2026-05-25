@@ -12,6 +12,7 @@ struct ScannerScreen: View {
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
     private let historyRepository: HistoryRepository
+    private let metricsRepository: MetricsRepositoryProtocol
     let onFindRecyclingPoint: (String) -> Void
 
     enum Destination: Hashable {
@@ -28,22 +29,25 @@ struct ScannerScreen: View {
         languageProvider: LanguageProvider,
         scannerService: BarcodeScanning = BarcodeScannerService(),
         historyRepository: HistoryRepository,
+        metricsRepository: MetricsRepositoryProtocol,
         onClose: @escaping () -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: ScannerViewModel(
             scanner: scannerService,
             productRepository: repository,
-            historyRepository: historyRepository
+            historyRepository: historyRepository,
+            metricsRepository: metricsRepository
         ))
         self.repository = repository
         self.uploadService = uploadService
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
         self.historyRepository = historyRepository
+        self.metricsRepository = metricsRepository
         self.onClose = onClose
         self.onFindRecyclingPoint = onFindRecyclingPoint
-        }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -96,6 +100,7 @@ struct ScannerScreen: View {
                         repository: repository,
                         uploadService: uploadService,
                         languageProvider: languageProvider,
+                        metricsRepository: metricsRepository,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -141,6 +146,7 @@ struct ScannerScreen: View {
                     aiRepository: aiRepository,
                     languageProvider: languageProvider,
                     historyRepository: historyRepository,
+                    metricsRepository: metricsRepository, 
                     firstProductForComparison: vm.firstProductForComparison,
                     onClose: {
                         showManualInput = false

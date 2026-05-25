@@ -4,16 +4,17 @@ struct RecyclingScreen: View {
     @StateObject private var vm: RecyclingViewModel
     let onBack: () -> Void
     let onFindPointTapped: (String) -> Void
-    
     init(
         product: Product,
         languageProvider: LanguageProvider,
+        metricsRepository: MetricsRepositoryProtocol,
         onBack: @escaping () -> Void,
         onFindPointTapped: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: RecyclingViewModel(
             product: product,
-            languageProvider: languageProvider
+            languageProvider: languageProvider,
+            metricsRepository: metricsRepository
         ))
         self.onBack = onBack
         self.onFindPointTapped = onFindPointTapped
@@ -48,6 +49,7 @@ struct RecyclingScreen: View {
                     
                     RecyclingFindPointButton(isDisabled: isButtonDisabled) {
                         guard let selected = vm.selectedWasteType else { return }
+                        vm.incrementSortedCount()
                         onFindPointTapped(selected.filterKey)
                     }
                 }

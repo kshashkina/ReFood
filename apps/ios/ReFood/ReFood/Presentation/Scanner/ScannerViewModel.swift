@@ -22,15 +22,18 @@ final class ScannerViewModel: ObservableObject {
     private let scanner: BarcodeScanning
     private let productRepository: ProductRepository
     private let historyRepository: HistoryRepository
+    private let metricsRepository: MetricsRepositoryProtocol
 
     init(
         scanner: BarcodeScanning,
         productRepository: ProductRepository,
-        historyRepository: HistoryRepository
+        historyRepository: HistoryRepository,
+        metricsRepository: MetricsRepositoryProtocol
     ) {
         self.scanner = scanner
         self.productRepository = productRepository
         self.historyRepository = historyRepository
+        self.metricsRepository = metricsRepository
         bindScanner()
         scanner.configure()
     }
@@ -141,6 +144,7 @@ final class ScannerViewModel: ObservableObject {
             
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             self.product = fetchedProduct
+            metricsRepository.incrementScannedCount()
             
             Task {
                 try? await historyRepository.saveProduct(fetchedProduct, isFavorite: false)

@@ -6,6 +6,7 @@ struct ProductDetailsScreen: View {
     private let repository: ProductRepository
     private let uploadService: ImageUploadServicing
     private let languageProvider: LanguageProvider
+    private let metricsRepository: MetricsRepositoryProtocol
     
     let onBack: () -> Void
     var onCompare: (Product) -> Void
@@ -24,6 +25,7 @@ struct ProductDetailsScreen: View {
         repository: ProductRepository,
         uploadService: ImageUploadServicing,
         languageProvider: LanguageProvider,
+        metricsRepository: MetricsRepositoryProtocol,
         onBack: @escaping () -> Void,
         onCompare: @escaping (Product) -> Void = { _ in },
         onFindRecyclingPoint: @escaping (String) -> Void
@@ -32,6 +34,7 @@ struct ProductDetailsScreen: View {
         self.repository = repository
         self.uploadService = uploadService
         self.languageProvider = languageProvider
+        self.metricsRepository = metricsRepository 
         self.onBack = onBack
         self.onCompare = onCompare
         self.onFindRecyclingPoint = onFindRecyclingPoint
@@ -82,6 +85,7 @@ struct ProductDetailsScreen: View {
             RecyclingScreen(
                 product: vm.product,
                 languageProvider: languageProvider,
+                metricsRepository: metricsRepository,
                 onBack: { showRecycling = false },
                 onFindPointTapped: { filter in
                     showRecycling = false

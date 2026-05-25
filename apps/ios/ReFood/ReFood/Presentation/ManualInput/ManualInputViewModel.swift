@@ -15,11 +15,13 @@ final class ManualInputViewModel: ObservableObject {
     
     private let repository: ProductRepository
     private let historyRepository: HistoryRepository
+    private let metricsRepository: MetricsRepositoryProtocol
     private var loadingTimer: Timer?
     
-    init(repository: ProductRepository, historyRepository: HistoryRepository) {
+    init(repository: ProductRepository, historyRepository: HistoryRepository, metricsRepository: MetricsRepositoryProtocol) {
         self.repository = repository
         self.historyRepository = historyRepository
+        self.metricsRepository = metricsRepository
     }
     
     var isInputValid: Bool {
@@ -48,6 +50,7 @@ final class ManualInputViewModel: ObservableObject {
             let fetchedProduct = try await repository.getProduct(byBarcode: barcode)
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             self.product = fetchedProduct
+            metricsRepository.incrementScannedCount()
             
             Task {
                 try? await historyRepository.saveProduct(fetchedProduct, isFavorite: false)
