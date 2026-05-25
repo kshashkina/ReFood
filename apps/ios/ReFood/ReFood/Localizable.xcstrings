@@ -2422,6 +2422,40 @@
         }
       }
     },
+    "home_stat_scanned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanned"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відскановано"
+          }
+        }
+      }
+    },
+    "home_stat_sorted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorted"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відсортовано"
+          }
+        }
+      }
+    },
     "location_modal_btn_settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3953,6 +3987,40 @@
         }
       }
     },
+    "search_segment_all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всі"
+          }
+        }
+      }
+    },
+    "search_segment_favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улюблені"
+          }
+        }
+      }
+    },
     "search_time_just_now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4378,36 +4446,104 @@
         }
       }
     },
-    "search_segment_all" : {
+    "home_tip_title" : {
           "extractionState" : "manual",
           "localizations" : {
             "en" : {
               "stringUnit" : {
                 "state" : "translated",
-                "value" : "All"
+                "value" : "Eco-tip of the day"
               }
             },
             "uk" : {
               "stringUnit" : {
                 "state" : "translated",
-                "value" : "Всі"
+                "value" : "Еко-порада дня"
               }
             }
           }
         },
-        "search_segment_favorites" : {
+        "home_news_title" : {
           "extractionState" : "manual",
           "localizations" : {
             "en" : {
               "stringUnit" : {
                 "state" : "translated",
-                "value" : "Favorites"
+                "value" : "News of the day"
               }
             },
             "uk" : {
               "stringUnit" : {
                 "state" : "translated",
-                "value" : "Улюблені"
+                "value" : "Новина дня"
+              }
+            }
+          }
+        },
+        "home_read_article" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Read full article"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Читати повністю"
+              }
+            }
+          }
+        },
+        "home_recent_scans" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Recent scans"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Останні сканування"
+              }
+            }
+          }
+        },
+        "home_see_all" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "See all"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Показати всі"
+              }
+            }
+          }
+        },
+        "home_empty_history" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "History is empty. Scan your first product!"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Історія порожня. Відскануйте свій перший продукт!"
               }
             }
           }
