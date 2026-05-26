@@ -2,8 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var vm: ProfileViewModel
+    private let metricsRepository: MetricsRepositoryProtocol
+    @State private var showAchievements = false
     
     init(metricsRepository: MetricsRepositoryProtocol) {
+        self.metricsRepository = metricsRepository
         self._vm = StateObject(wrappedValue: ProfileViewModel(metricsRepository: metricsRepository))
     }
     
@@ -34,7 +37,9 @@ struct ProfileView: View {
                         }
                         
                         VStack(spacing: 12) {
-                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) { }
+                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) {
+                                showAchievements = true
+                            }
                             
                             ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { }
                             ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { }
@@ -49,6 +54,12 @@ struct ProfileView: View {
         }
         .onAppear {
             vm.loadMetrics()
+        }
+        .fullScreenCover(isPresented: $showAchievements) {
+            AchievementsView(
+                metricsRepository: metricsRepository,
+                onBack: { showAchievements = false }
+            )
         }
     }
 }

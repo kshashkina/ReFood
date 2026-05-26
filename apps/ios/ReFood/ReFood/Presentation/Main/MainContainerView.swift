@@ -145,7 +145,8 @@ struct MainContainerView: View {
                     vm.isLocationAccessModalPresented = true
                 }
             )
-            .onAppear { vm.requestLocationIfNeeded() }
+            .onAppear { vm.requestLocationIfNeeded()
+                metricsRepo.trackMapCheck()}
         case .profile: ProfileView(metricsRepository: metricsRepo)
         }
     }
