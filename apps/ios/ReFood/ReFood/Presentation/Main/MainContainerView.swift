@@ -60,6 +60,7 @@ struct MainContainerView: View {
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
                 vm.refreshStatuses()
+                metricsRepo.updateStreak()
             }
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
@@ -145,7 +146,7 @@ struct MainContainerView: View {
                 }
             )
             .onAppear { vm.requestLocationIfNeeded() }
-        case .profile: ProfileView()
+        case .profile: ProfileView(metricsRepository: metricsRepo)
         }
     }
 }
