@@ -1,9 +1,12 @@
-import { getLatestProductFromDB, saveProductToDB } from '../services/database.mjs';
+import { getLatestProductFromDB, saveProductToDB } from '../services/productDatabase.mjs';
 import { fetchFromOpenFoodFacts } from '../services/fetchOffApi.mjs';
 import { translateProduct } from '../services/aiService.mjs';
 import { toProductResponse } from '../mappers/productMapper.mjs';
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
+import { getRequestIdentity } from '../helpers/auth/identity.mjs';
+import { findUserIdByAnyMethod, incrementUserScanCount } from '../services/usersDatabase.mjs';
+import { recordScan } from '../services/scansDatabase.mjs';
 
 export async function getProduct(event) {
     const barcodeRaw = event.pathParameters?.barcode;
@@ -13,34 +16,50 @@ export async function getProduct(event) {
         return response(400, { error: "Invalid barcode format" });
     }
 
-    const dbProduct = await getLatestProductFromDB(barcode);
+    let product;
+    let source = "local";
 
+    const dbProduct = await getLatestProductFromDB(barcode);
     if (dbProduct) {
         console.log(`Found product in DB for barcode: ${barcode}`);
-        return response(200, {
-            source: "local",
-            product: dbProduct
-        });
+        product = dbProduct;
+    } else {
+        console.log(`DB miss, fetching from OFF: ${barcode}`);
+        const offProduct = await fetchFromOpenFoodFacts(barcode);
+
+        if (!offProduct) {
+            return response(404, {
+                error: "Product not found"
+            });
+        }
+
+        const translated = await translateProduct(offProduct);
+        const { categories_tags, allergens_tags, ingredients_text, packaging, ...baseProduct } = offProduct;
+        product = { ...baseProduct, ...translated };
+        source = "openfoodfacts";
+
+        await saveProductToDB(product);
     }
 
-    console.log(`DB miss, fetching from OFF: ${barcode}`);
-    const offProduct = await fetchFromOpenFoodFacts(barcode);
+    try {
+        const identity = getRequestIdentity(event);
+        const userId = await findUserIdByAnyMethod(identity);
 
-    if (!offProduct) {
-        return response(404, {
-            error: "Product not found"
-        });
+        if (userId) {
+            await Promise.all([
+                incrementUserScanCount(userId),
+                recordScan(userId, product)
+            ]);
+            console.log(`History updated for user: ${userId}`);
+        } else {
+            console.log("User not found or identity missing, skipping increment.");
+        }
+    } catch (authError) {
+        console.error("Failed to increment scan count:", authError);
     }
-
-    const translated = await translateProduct(offProduct);
-
-    const { categories_tags, allergens_tags, ingredients_text, packaging, ...baseProduct } = offProduct;
-    const cleanProduct = { ...baseProduct, ...translated };
-
-    await saveProductToDB(cleanProduct);
 
     return response(200, {
-        source: "openfoodfacts",
-        product: toProductResponse(cleanProduct),
+        source: source,
+        product: source === "local" ? product : toProductResponse(product),
     });
 }

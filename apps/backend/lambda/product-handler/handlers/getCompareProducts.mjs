@@ -1,6 +1,6 @@
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
-import { getLatestProductFromDB } from '../services/database.mjs';
+import { getLatestProductFromDB } from '../services/productDatabase.mjs';
 import { compareProducts } from '../services/aiService.mjs';
 
 export async function getCompareProducts(event) {
