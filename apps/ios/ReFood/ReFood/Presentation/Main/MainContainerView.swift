@@ -148,7 +148,7 @@ struct MainContainerView: View {
             )
             .onAppear { vm.requestLocationIfNeeded()
                 metricsRepo.trackMapCheck()}
-        case .profile: ProfileView(metricsRepository: metricsRepo)
+        case .profile: ProfileView(metricsRepository: metricsRepo, emailService: emailService)
         }
     }
 }
