@@ -3,10 +3,17 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var vm: ProfileViewModel
     private let metricsRepository: MetricsRepositoryProtocol
-    @State private var showAchievements = false
+    private let emailService: EmailServiceProtocol
     
-    init(metricsRepository: MetricsRepositoryProtocol) {
+    @State private var showAchievements = false
+    @State private var showHelp = false
+    
+    init(
+        metricsRepository: MetricsRepositoryProtocol,
+        emailService: EmailServiceProtocol
+    ) {
         self.metricsRepository = metricsRepository
+        self.emailService = emailService
         self._vm = StateObject(wrappedValue: ProfileViewModel(metricsRepository: metricsRepository))
     }
     
@@ -42,7 +49,7 @@ struct ProfileView: View {
                             }
                             
                             ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { }
-                            ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { }
+                            ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { showHelp = true }
                         }
                         .padding(.top, 8)
                         .padding(.bottom, 160)
@@ -59,6 +66,12 @@ struct ProfileView: View {
             AchievementsView(
                 metricsRepository: metricsRepository,
                 onBack: { showAchievements = false }
+            )
+        }
+        .fullScreenCover(isPresented: $showHelp) {
+            HelpView(
+                emailService: emailService,
+                onBack: { showHelp = false }
             )
         }
     }

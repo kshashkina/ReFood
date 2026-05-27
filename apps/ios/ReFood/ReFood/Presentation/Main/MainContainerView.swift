@@ -15,6 +15,7 @@ struct MainContainerView: View {
     private let aiRepo = AIComparisonRepositoryImpl()
     private let locationRepo = LocationRepositoryImpl()
     private let locationService = LocationService()
+    private let emailService = URLEmailService()
 
     init(dashboardData: DailyDashboardResponse?) {
         self.dashboardData = dashboardData
