@@ -1,0 +1,10 @@
+export const ACHIEVEMENTS = [
+    { id: 'first_step', title_en: 'First Step', title_ua: 'Перший крок', description_en: 'Scan your very first product', description_ua: 'Відскануй свій найперший продукт', goal: 1, type: 'scannedCount' },
+    { id: 'active_user', title_en: 'Active User', title_ua: 'Активний користувач', description_en: 'Scan 10 products to build data', description_ua: 'Відскануй 10 продуктів і сствоори свою історію', goal: 10, type: 'scannedCount' },
+    { id: 'week_streak', title_en: 'Week Streak', title_ua: 'Тижневий стаж', description_en: 'Use app for 7 days in a row', description_ua: 'Використовуй додаток 7 днів поспіль', goal: 7, type: 'streakDays' },
+    { id: 'ninja_sorting', title_en: 'Sorting Ninja', title_ua: 'Майстер сортування', description_en: 'Check the recycling points map in the evening (after 8:00 PM) or on weekends', description_ua: 'Переглянь карту пунктів прийому вторсировини ввечері (після 20:00) або на вихідних', goal: 1, type: 'ninjaSortingUnlocked' },
+    { id: 'early_bird', title_en: 'Early Bird', title_ua: 'Жайвір', description_en: 'Make your first scan of the day before 9:00 AM', description_ua: 'Зробіть перший сканування продукту вранці до 9:00', goal: 1, type: 'earlyBirdUnlocked' },
+    { id: 'eco_weekend', title_en: 'Eco-Friendly Weekend', title_ua: 'Еко-френдлі вихідний', description_en: 'Make at least one scan and check the map on Saturday or Sunday', description_ua: 'Зробіть принаймні одне сканування та перегляньте карту пунктів прийому вторсировини в суботу/неділю', goal: 1, type: 'ecoWeekendUnlocked' },
+    { id: 'master_informer', title_en: 'Master Informer', title_ua: 'Майстер-інформатор', description_en: 'Add 5 products that were missing in our database', description_ua: 'Додайте 5 продуктів, яких бракувало в нашій базі даних', goal: 5, type: 'addedProductsCount' },
+    { id: 'eco_addict', title_en: 'Eco-Addict', title_ua: 'Еко-залежний', description_en: 'Maintain a perfect app usage streak for 30 days', description_ua: 'Користуйся додатком 30 днів поспіль', goal: 30, type: 'streakDays' },
+];
