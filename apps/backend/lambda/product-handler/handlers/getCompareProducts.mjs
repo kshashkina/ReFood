@@ -1,6 +1,6 @@
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
-import { getLatestProductFromDB } from '../services/productDatabase.mjs';
+import { getLatestProductFromDB } from '../services/databases/productDatabase.mjs';
 import { compareProducts } from '../services/aiService.mjs';
 
 export async function getCompareProducts(event) {
@@ -12,8 +12,8 @@ export async function getCompareProducts(event) {
         const normBarcodeB = normalizeBarcode(barcodeB);
 
         if (!normBarcodeA || !normBarcodeB) {
-            return response(400, { 
-                error: "Both barcodeA and barcodeB query parameters are required" 
+            return response(400, {
+                error: "Both barcodeA and barcodeB query parameters are required"
             });
         }
 
@@ -25,8 +25,8 @@ export async function getCompareProducts(event) {
         ]);
 
         if (!productA || !productB) {
-            return response(404, { 
-                error: "One or both products not found. Please scan them first." 
+            return response(404, {
+                error: "One or both products not found. Please scan them first."
             });
         }
 
@@ -39,7 +39,7 @@ export async function getCompareProducts(event) {
     } catch (error) {
         console.error("Comparison Error:", error);
         return response(500, {
-            error: "Failed to compare products" 
+            error: "Failed to compare products"
         });
     }
 }

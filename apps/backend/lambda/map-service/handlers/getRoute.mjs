@@ -1,6 +1,9 @@
 import { fetchRoute } from "../services/geoapifyService.mjs";
 import { routeMapper } from "../mappers/routeMapper.mjs";
 import { response } from "../helpers/response.mjs";
+import { findUserIdByAnyMethod } from "../services/usersDatabase.mjs";
+import { invokeMetrics } from "../services/metricsService.mjs";
+import { getRequestIdentity } from "../helpers/auth/identity.mjs";
 
 export async function getRoute(event) {
     try {
@@ -32,6 +35,11 @@ export async function getRoute(event) {
                 message: 'Route not found'
             });
         }
+
+        const identity = getRequestIdentity(event);
+        const userId = await findUserIdByAnyMethod(identity);
+        invokeMetrics('increment_sorted', userId);
+        invokeMetrics('track_map_check', userId);
 
         return response(200, route);
     } catch (error) {
