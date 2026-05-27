@@ -1,0 +1,52 @@
+{
+    "auth": {
+        "plugins": {
+            "awsCognitoAuthPlugin": {
+                "UserAgent": "aws-amplify-cli/2.0",
+                "Version": "0.1.0",
+                "IdentityManager": { "Default": {} },
+                "CredentialsProvider": {
+                    "CognitoIdentity": {
+                        "Default": {
+                            "PoolId": "eu-north-1:b2da8e01-00c7-4149-bfa3-b15b6f39a16c",
+                            "Region": "eu-north-1"
+                        }
+                    }
+                },
+                "CognitoUserPool": {
+                    "Default": {
+                        "PoolId": "eu-north-1_XOO8EBNjt",
+                        "AppClientId": "hq0iul46kutf3rc283ls56cie",
+                        "Region": "eu-north-1"
+                    }
+                },
+                "Auth": {
+                    "Default": {
+                        "authenticationFlowType": "USER_SRP_AUTH",
+                        "socialProviders": [],
+                        "usernameAttributes": ["EMAIL"],
+                        "signupAttributes": ["EMAIL"],
+                        "passwordProtectionSettings": {
+                            "passwordPolicyMinLength": 8,
+                            "passwordPolicyCharacters": []
+                        },
+                        "mfaConfiguration": "OFF",
+                        "verificationMechanisms": ["EMAIL"]
+                    }
+                }
+            }
+        }
+    },
+    "api": {
+        "plugins": {
+            "awsAPIPlugin": {
+                "ReFoodAPI": {
+                    "endpointType": "REST",
+                    "endpoint": "https://eg768eyzc1.execute-api.eu-north-1.amazonaws.com/v1",
+                    "region": "eu-north-1",
+                    "authorizationType": "AWS_IAM"
+                }
+            }
+        }
+    }
+}
