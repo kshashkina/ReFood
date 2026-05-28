@@ -10,11 +10,17 @@ struct ProfileView: View {
     
     init(
         metricsRepository: MetricsRepositoryProtocol,
-        emailService: EmailServiceProtocol
+        emailService: EmailServiceProtocol,
+        linkAccountUseCase: LinkAppleAccountUseCase,
+        localStorage: LocalStorageProtocol
     ) {
         self.metricsRepository = metricsRepository
         self.emailService = emailService
-        self._vm = StateObject(wrappedValue: ProfileViewModel(metricsRepository: metricsRepository))
+        self._vm = StateObject(wrappedValue: ProfileViewModel(
+            metricsRepository: metricsRepository,
+            linkAccountUseCase: linkAccountUseCase,
+            localStorage: localStorage
+        ))
     }
     
     var body: some View {
@@ -28,8 +34,18 @@ struct ProfileView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 24) {
                         
-                        ProfileAuthCard(action: {
-                        })
+                        if !vm.isLinked {
+                            ProfileAuthCard(action: {
+                                vm.linkAppleAccount()
+                            })
+                            .opacity(vm.isLoading ? 0.5 : 1.0)
+                            .disabled(vm.isLoading)
+                        } else {
+                            ProfileLinkedCard(
+                                greeting: vm.greetingText,
+                                subtitle: String(localized: "profile_linked_subtitle")
+                            )
+                        }
                         
                         VStack(alignment: .leading, spacing: 16) {
                             Text(String(localized: "profile_section_statistics"))
@@ -44,10 +60,7 @@ struct ProfileView: View {
                         }
                         
                         VStack(spacing: 12) {
-                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) {
-                                showAchievements = true
-                            }
-                            
+                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) { showAchievements = true }
                             ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { }
                             ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { showHelp = true }
                         }
@@ -58,21 +71,20 @@ struct ProfileView: View {
                     .padding(.top, 8)
                 }
             }
+            
+            if vm.isLoading {
+                Color.black.opacity(0.5).ignoresSafeArea()
+                ProgressView().scaleEffect(1.5).tint(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .onAppear {
             vm.loadMetrics()
         }
         .fullScreenCover(isPresented: $showAchievements) {
-            AchievementsView(
-                metricsRepository: metricsRepository,
-                onBack: { showAchievements = false }
-            )
+            AchievementsView(metricsRepository: metricsRepository, onBack: { showAchievements = false })
         }
         .fullScreenCover(isPresented: $showHelp) {
-            HelpView(
-                emailService: emailService,
-                onBack: { showHelp = false }
-            )
+            HelpView(emailService: emailService, onBack: { showHelp = false })
         }
     }
 }

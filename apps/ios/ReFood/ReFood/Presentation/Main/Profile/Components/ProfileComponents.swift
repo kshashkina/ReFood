@@ -96,3 +96,33 @@ struct ProfileRowButton: View {
         .buttonStyle(.plain)
     }
 }
+
+struct ProfileLinkedCard: View {
+    let greeting: String
+    let subtitle: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle().fill(Color.appAccent.opacity(0.2)).frame(width: 56, height: 56)
+                Image(systemName: "checkmark.seal.fill").font(.system(size: 24)).foregroundColor(.appAccent)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(greeting)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                Text(subtitle)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.white.opacity(0.6))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 16)
+            Image(systemName: "applelogo").font(.system(size: 20)).foregroundColor(.white.opacity(0.8))
+        }
+        .padding(16)
+        .background(LinearGradient(colors: [Color.appAccent.opacity(0.15), Color.white.opacity(0.02)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .cornerRadius(20)
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.appAccent.opacity(0.3), lineWidth: 1))
+    }
+}

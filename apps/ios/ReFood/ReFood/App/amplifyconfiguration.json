@@ -23,7 +23,14 @@
                 "Auth": {
                     "Default": {
                         "authenticationFlowType": "USER_SRP_AUTH",
-                        "socialProviders": [],
+                        "socialProviders": ["APPLE"],
+                        "OAuth": {
+                            "WebDomain": "eu-north-1xoo8ebnjt.auth.eu-north-1.amazoncognito.com",
+                            "AppClientId": "hq0iul46kutf3rc283ls56cie",
+                            "SignInRedirectURI": "refood://",
+                            "SignOutRedirectURI": "refood://",
+                            "Scopes": ["email", "openid", "profile"]
+                        },
                         "usernameAttributes": ["EMAIL"],
                         "signupAttributes": ["EMAIL"],
                         "passwordProtectionSettings": {

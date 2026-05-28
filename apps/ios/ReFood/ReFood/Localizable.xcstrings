@@ -2778,6 +2778,91 @@
         }
       }
     },
+    "profile_greeting_morning" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Good morning!"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Доброго ранку!"
+              }
+            }
+          }
+        },
+        "profile_greeting_afternoon" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Good afternoon!"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Доброго дня!"
+              }
+            }
+          }
+        },
+        "profile_greeting_evening" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Good evening!"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Доброго вечора!"
+              }
+            }
+          }
+        },
+        "profile_greeting_night" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Good night!"
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Доброї ночі!"
+              }
+            }
+          }
+        },
+        "profile_linked_subtitle" : {
+          "extractionState" : "manual",
+          "localizations" : {
+            "en" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Your account is linked. Your data is safe and won't be lost."
+              }
+            },
+            "uk" : {
+              "stringUnit" : {
+                "state" : "translated",
+                "value" : "Ваш акаунт прив'язано. Ваші дані в безпеці і не зникнуть."
+              }
+            }
+          }
+        },
     "help_email_title" : {
       "extractionState" : "manual",
       "localizations" : {

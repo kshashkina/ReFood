@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MainContainerView: View {
-    let dashboardData: DailyDashboardResponse?    
+    let dashboardData: DailyDashboardResponse?
     @State private var selectedTab: MainTab = .home
     @StateObject private var vm = MainContainerViewModel()
     @Environment(\.scenePhase) var scenePhase
@@ -16,9 +16,22 @@ struct MainContainerView: View {
     private let locationRepo = LocationRepositoryImpl()
     private let locationService = LocationService()
     private let emailService = URLEmailService()
+    
+    private let localStorage: LocalStorageProtocol
+    private let linkUseCase: LinkAppleAccountUseCase
+    private let deleteUseCase: DeleteAccountUseCase
 
-    init(dashboardData: DailyDashboardResponse?) {
+    init(
+        dashboardData: DailyDashboardResponse?,
+        localStorage: LocalStorageProtocol,
+        linkUseCase: LinkAppleAccountUseCase,
+        deleteUseCase: DeleteAccountUseCase
+    ) {
         self.dashboardData = dashboardData
+        self.localStorage = localStorage
+        self.linkUseCase = linkUseCase
+        self.deleteUseCase = deleteUseCase
+        
         let pRepo = ProductRepositoryImpl()
         self.productRepo = pRepo
         self.uploadService = ImageUploadService(repository: pRepo)
@@ -148,7 +161,12 @@ struct MainContainerView: View {
             )
             .onAppear { vm.requestLocationIfNeeded()
                 metricsRepo.trackMapCheck()}
-        case .profile: ProfileView(metricsRepository: metricsRepo, emailService: emailService)
+        case .profile: ProfileView(
+            metricsRepository: metricsRepo,
+            emailService: emailService,
+            linkAccountUseCase: linkUseCase,
+            localStorage: localStorage
+        )
         }
     }
 }
