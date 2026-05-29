@@ -21,6 +21,7 @@ extension View {
 struct MapTopBarView: View {
     let filters: [String]
     @Binding var selectedFilter: String
+    var onFilterTap: (String) -> Void
     
     var body: some View {
         LinearGradient(colors: [.black, .black.opacity(0.8), .clear], startPoint: .top, endPoint: .bottom)
@@ -37,6 +38,7 @@ struct MapTopBarView: View {
                             ForEach(filters, id: \.self) { filter in
                                 MapFilterChip(title: filter, isSelected: selectedFilter == filter) {
                                     withAnimation(.spring()) { selectedFilter = filter }
+                                    onFilterTap(filter)
                                 }
                             }
                         }.padding(.horizontal, 24)

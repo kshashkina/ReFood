@@ -66,14 +66,25 @@ struct MainContainerView: View {
             if vm.isLocationAccessModalPresented {
                 LocationAccessModalView(
                     isPresented: $vm.isLocationAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(MapEvent.locationDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(MapEvent.locationDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(101)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: vm.isCameraAccessModalPresented)
         .animation(.easeInOut(duration: 0.2), value: vm.isLocationAccessModalPresented)
+        .onChange(of: vm.isLocationAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(MapEvent.locationDeniedCloseTap)
+            }
+        }
         
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
@@ -161,6 +172,7 @@ struct MainContainerView: View {
                 locationService: locationService,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
+                analytics: analytics,
                 onRequestLocationAccess: {
                     vm.isLocationAccessModalPresented = true
                 }
@@ -171,7 +183,7 @@ struct MainContainerView: View {
                     metricsRepository: metricsRepo,
                     emailService: emailService,
                     linkAccountUseCase: linkUseCase,
-                    deleteAccountUseCase: deleteUseCase, 
+                    deleteAccountUseCase: deleteUseCase,
                     localStorage: localStorage
                 )
         }
