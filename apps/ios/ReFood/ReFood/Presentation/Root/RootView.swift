@@ -12,6 +12,7 @@ struct RootView: View {
     
     @State private var step: Step = .splash
     @State private var dashboardData: DailyDashboardResponse? = nil
+    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
 
     var body: some View {
         ZStack {
@@ -43,7 +44,7 @@ struct RootView: View {
             }
 
             if step == .onboarding {
-                OnboardingFlowView {
+                OnboardingFlowView(analytics: analytics) {
                     hasSeenOnboarding = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         step = .main
@@ -68,6 +69,15 @@ struct RootView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
+        .onAppear {
+            analytics.track(OnboardingEvent.appLaunch)
+            
+            let isFirstLaunch = !UserDefaults.standard.bool(forKey: "has_launched_before")
+            if isFirstLaunch {
+                analytics.track(OnboardingEvent.firstLaunch)
+                UserDefaults.standard.set(true, forKey: "has_launched_before")
+            }
+        }
         .onChange(of: hasSeenOnboarding) { newValue in
             if newValue == false {
                 withAnimation(.easeInOut(duration: 0.5)) {

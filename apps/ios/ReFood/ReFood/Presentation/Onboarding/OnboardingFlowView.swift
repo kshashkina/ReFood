@@ -1,27 +1,16 @@
 import SwiftUI
 
 struct OnboardingFlowView: View {
+    let analytics: AnalyticsServiceProtocol
     var onFinish: () -> Void = {}
 
     @State private var index: Int = 0
     private let green = Color(red: 144/255, green: 240/255, blue: 71/255)
 
     private let pages: [OnboardingPage] = [
-        .init(
-            title: "onboarding_page1_title",
-            subtitle: "onboarding_page1_subtitle",
-            imageName: "ONB_1"
-        ),
-        .init(
-            title: "onboarding_page2_title",
-            subtitle: "onboarding_page2_subtitle",
-            imageName: "ONB_2"
-        ),
-        .init(
-            title: "onboarding_page3_title",
-            subtitle: "onboarding_page3_subtitle",
-            imageName: "ONB_3"
-        )
+        .init(title: "onboarding_page1_title", subtitle: "onboarding_page1_subtitle", imageName: "ONB_1"),
+        .init(title: "onboarding_page2_title", subtitle: "onboarding_page2_subtitle", imageName: "ONB_2"),
+        .init(title: "onboarding_page3_title", subtitle: "onboarding_page3_subtitle", imageName: "ONB_3")
     ]
 
     var body: some View {
@@ -35,6 +24,12 @@ struct OnboardingFlowView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .onChange(of: index) { newIndex in
+                analytics.track(OnboardingEvent.screenView(step: newIndex + 1))
+            }
+            .onAppear {
+                analytics.track(OnboardingEvent.screenView(step: index + 1))
+            }
 
             VStack(spacing: 32) {
                 Spacer()
@@ -44,6 +39,7 @@ struct OnboardingFlowView: View {
                 PrimaryButton(
                     title: index < pages.count - 1 ? String(localized: "onboarding_btn_next") : String(localized: "onboarding_btn_start")
                 ) {
+                    analytics.track(OnboardingEvent.continueTap(step: index + 1))
                     if index < pages.count - 1 {
                         withAnimation(.easeInOut) { index += 1 }
                     } else {
