@@ -4,6 +4,7 @@ import SwiftData
 struct SearchBarView: View {
     @Binding var searchText: String
     var isSearchFocused: FocusState<Bool>.Binding
+    var onClearTap: () -> Void
     
     var body: some View {
         HStack {
@@ -18,6 +19,7 @@ struct SearchBarView: View {
             
             if !searchText.isEmpty {
                 Button {
+                    onClearTap()
                     withAnimation { searchText = "" }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -49,6 +51,7 @@ struct SearchBarView: View {
 
 struct SearchSegmentControlView: View {
     @Binding var showFavoritesOnly: Bool
+    var onToggle: (Bool) -> Void
     @Namespace private var animation
     
     var body: some View {
@@ -59,6 +62,7 @@ struct SearchSegmentControlView: View {
                 animation: animation
             ) {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showFavoritesOnly = false }
+                onToggle(false)
             }
 
             SegmentButton(
@@ -67,6 +71,7 @@ struct SearchSegmentControlView: View {
                 animation: animation
             ) {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showFavoritesOnly = true }
+                onToggle(true)
             }
         }
         .padding(4)
@@ -271,7 +276,7 @@ struct SearchProductRowView: View {
 
                 Button(action: {
                     model.isFavorite.toggle()
-                    onToggleFavorite() 
+                    onToggleFavorite()
                 }) {
                     Image(systemName: model.isFavorite ? "heart.fill" : "heart")
                         .font(.system(size: 22))
