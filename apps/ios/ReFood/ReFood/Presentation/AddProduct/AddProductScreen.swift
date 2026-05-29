@@ -13,13 +13,15 @@ struct AddProductScreen: View {
         barcode: String,
         existingProduct: Product? = nil,
         repository: ProductRepository,
-        uploadService: ImageUploadServicing
+        uploadService: ImageUploadServicing,
+        metricsRepository: MetricsRepositoryProtocol
     ) {
         _vm = StateObject(wrappedValue: AddProductViewModel(
             barcode: barcode,
             existingProduct: existingProduct,
             repository: repository,
-            uploadService: uploadService
+            uploadService: uploadService,
+            metricsRepository: metricsRepository
         ))
     }
     

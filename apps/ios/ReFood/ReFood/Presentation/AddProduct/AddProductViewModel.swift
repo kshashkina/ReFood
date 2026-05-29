@@ -26,15 +26,19 @@ final class AddProductViewModel: ObservableObject {
     
     private let repository: ProductRepository
     private let uploadService: ImageUploadServicing
+    private let metricsRepository: MetricsRepositoryProtocol
+    
     init(
         barcode: String,
         existingProduct: Product? = nil,
         repository: ProductRepository,
-        uploadService: ImageUploadServicing
+        uploadService: ImageUploadServicing,
+        metricsRepository: MetricsRepositoryProtocol
     ) {
         self.barcode = barcode
         self.repository = repository
         self.uploadService = uploadService
+        self.metricsRepository = metricsRepository
         
         if let p = existingProduct {
             self.isEditingMode = true
@@ -92,6 +96,7 @@ final class AddProductViewModel: ObservableObject {
                     imageId: imageId
                 )
             }
+            metricsRepository.trackProductAdded()
             isSuccess = true
         } catch {
             self.error = "Saving failed: \(error.localizedDescription)"

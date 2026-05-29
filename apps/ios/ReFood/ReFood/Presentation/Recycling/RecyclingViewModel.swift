@@ -5,11 +5,17 @@ import Combine
 final class RecyclingViewModel: ObservableObject {
     private let product: Product
     private let languageProvider: LanguageProvider
+    private let metricsRepository: MetricsRepositoryProtocol
     @Published var selectedWasteType: WasteType?
     
-    init(product: Product, languageProvider: LanguageProvider) {
+    init(
+        product: Product,
+        languageProvider: LanguageProvider,
+        metricsRepository: MetricsRepositoryProtocol
+    ) {
         self.product = product
         self.languageProvider = languageProvider
+        self.metricsRepository = metricsRepository
     }
     
     struct ComponentViewData: Identifiable {
@@ -73,5 +79,9 @@ final class RecyclingViewModel: ObservableObject {
     
     private func categorySteps(for category: RecyclingCategory) -> [String] {
         languageProvider.currentLanguageCode == "ua" ? category.prepStepsUa : category.prepStepsEn
+    }
+    
+    func incrementSortedCount() {
+        metricsRepository.incrementSortedCount()
     }
 }

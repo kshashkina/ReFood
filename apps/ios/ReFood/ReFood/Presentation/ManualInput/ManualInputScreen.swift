@@ -7,6 +7,7 @@ struct ManualInputScreen: View {
     private let uploadService: ImageUploadServicing
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
+    private let metricsRepository: MetricsRepositoryProtocol
     
     let firstProductForComparison: Product?
     let onClose: () -> Void
@@ -26,18 +27,25 @@ struct ManualInputScreen: View {
         uploadService: ImageUploadServicing,
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
+        historyRepository: HistoryRepository,
+        metricsRepository: MetricsRepositoryProtocol,
         firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,
         onResetScanner: @escaping () -> Void,
         onCompareFromDetails: @escaping (Product) -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
-        self._vm = StateObject(wrappedValue: ManualInputViewModel(repository: repository))
+        self._vm = StateObject(wrappedValue: ManualInputViewModel(
+            repository: repository,
+            historyRepository: historyRepository,
+            metricsRepository: metricsRepository
+        ))
         
         self.repository = repository
         self.uploadService = uploadService
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
+        self.metricsRepository = metricsRepository 
         
         self.firstProductForComparison = firstProductForComparison
         self.onClose = onClose
@@ -81,6 +89,7 @@ struct ManualInputScreen: View {
                         repository: repository,
                         uploadService: uploadService,
                         languageProvider: languageProvider,
+                        metricsRepository: metricsRepository, 
                         onBack: { onResetScanner() },
                         onCompare: { pA in onCompareFromDetails(pA) },
                         onFindRecyclingPoint: { filter in onFindRecyclingPoint(filter) }
@@ -101,7 +110,8 @@ struct ManualInputScreen: View {
                     AddProductScreen(
                         barcode: barcode,
                         repository: repository,
-                        uploadService: uploadService
+                        uploadService: uploadService,
+                        metricsRepository: metricsRepository
                     )
                     .toolbar(.hidden)
                 }
