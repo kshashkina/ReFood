@@ -98,7 +98,8 @@ struct ProductDetailsScreen: View {
                 barcode: vm.product.barcode,
                 existingProduct: vm.product,
                 repository: repository,
-                uploadService: uploadService
+                uploadService: uploadService,
+                metricsRepository: metricsRepository
             )
         }
     }

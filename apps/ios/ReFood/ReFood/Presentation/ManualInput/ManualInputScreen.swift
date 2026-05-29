@@ -110,7 +110,8 @@ struct ManualInputScreen: View {
                     AddProductScreen(
                         barcode: barcode,
                         repository: repository,
-                        uploadService: uploadService
+                        uploadService: uploadService,
+                        metricsRepository: metricsRepository
                     )
                     .toolbar(.hidden)
                 }

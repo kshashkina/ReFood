@@ -1,37 +1,50 @@
 import SwiftUI
-//import AmplitudeUnified
 
 struct RootView: View {
 
     private enum Step {
         case splash
         case onboarding
-        case paywall
         case main
     }
 
-    @State private var step: Step = .splash
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     
+    @State private var step: Step = .splash
     @State private var dashboardData: DailyDashboardResponse? = nil
 
     var body: some View {
         ZStack {
             if step == .main {
-                MainContainerView(dashboardData: dashboardData)
-                    .transition(.opacity)
+                let authRepo = AmplifyAuthRepository()
+                let userRepo = UserRepositoryImpl()
+                let localStorage = UserDefaultsLocalStorage()
+                let deviceProvider = KeychainDeviceIDManager()
+                
+                let dbCleaner = SwiftDataCleaner()
+                
+                let linkUseCase = LinkAppleAccountUseCase(authRepository: authRepo, userRepository: userRepo, localStorage: localStorage, deviceIDProvider: deviceProvider)
+                
+                let deleteUseCase = DeleteAccountUseCase(
+                    authRepository: authRepo,
+                    userRepository: userRepo,
+                    localStorage: localStorage,
+                    deviceIDProvider: deviceProvider,
+                    databaseCleaner: dbCleaner
+                )
+
+                MainContainerView(
+                    dashboardData: dashboardData,
+                    localStorage: localStorage,
+                    linkUseCase: linkUseCase,
+                    deleteUseCase: deleteUseCase
+                )
+                .transition(.opacity)
             }
 
             if step == .onboarding {
                 OnboardingFlowView {
-                    withAnimation(.easeInOut(duration: 0.35)) {
-                        step = .paywall
-                    }
-                }
-                .transition(.opacity)
-            }
-
-            if step == .paywall {
-                PaywallView {
+                    hasSeenOnboarding = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         step = .main
                     }
@@ -43,7 +56,11 @@ struct RootView: View {
                 SplashView(repository: DashboardRepositoryImpl()) { fetchedData in
                     self.dashboardData = fetchedData
                     withAnimation(.easeInOut(duration: 0.35)) {
-                        step = .onboarding
+                        if hasSeenOnboarding {
+                            step = .main
+                        } else {
+                            step = .onboarding
+                        }
                     }
                 }
                 .transition(.opacity)
@@ -51,5 +68,29 @@ struct RootView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
+        .onChange(of: hasSeenOnboarding) { newValue in
+            if newValue == false {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    step = .splash
+                    self.dashboardData = nil
+                }
+            }
+        }
+        .task(id: step) {
+            if step == .splash {
+                let authRepo = AmplifyAuthRepository()
+                let userRepo = UserRepositoryImpl()
+                let localStorage = UserDefaultsLocalStorage()
+                let deviceProvider = KeychainDeviceIDManager()
+                
+                let registrationUseCase = RegisterAnonymousUserUseCase(
+                    authRepository: authRepo,
+                    userRepository: userRepo,
+                    localStorage: localStorage,
+                    deviceIDProvider: deviceProvider
+                )
+                await registrationUseCase.execute()
+            }
+        }
     }
 }
