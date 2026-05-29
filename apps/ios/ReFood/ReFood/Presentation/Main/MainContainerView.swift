@@ -20,6 +20,8 @@ struct MainContainerView: View {
     private let localStorage: LocalStorageProtocol
     private let linkUseCase: LinkAppleAccountUseCase
     private let deleteUseCase: DeleteAccountUseCase
+    
+    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
 
     init(
         dashboardData: DailyDashboardResponse?,
@@ -45,7 +47,9 @@ struct MainContainerView: View {
             VStack {
                 Spacer()
                 MainTabBar(
-                    onTapScanner: { vm.onTapScan()}, selected: $selectedTab
+                    analytics: analytics,
+                    onTapScanner: { vm.onTapScan()},
+                    selected: $selectedTab
                 )
                 .padding(.bottom, 16)
             }.ignoresSafeArea(.keyboard, edges: .bottom)
@@ -132,6 +136,7 @@ struct MainContainerView: View {
                 dashboardData: dashboardData,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepo,
+                analytics: analytics,
                 onProductTap: { product in
                     vm.selectedSearchProduct = product
                 },

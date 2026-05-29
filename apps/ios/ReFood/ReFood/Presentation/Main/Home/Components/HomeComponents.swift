@@ -24,6 +24,13 @@ struct MainStatCard: View {
 
 struct InsightCard: View {
     let model: InsightUIModel
+    let onLinkTap: (() -> Void)?
+    @Environment(\.openURL) private var openURL
+    
+    init(model: InsightUIModel, onLinkTap: (() -> Void)? = nil) {
+        self.model = model
+        self.onLinkTap = onLinkTap
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -45,15 +52,29 @@ struct InsightCard: View {
             Text(model.bodyText).font(.system(size: 14, weight: model.linkURL != nil ? .medium : .regular)).foregroundColor(.white.opacity(0.85)).lineSpacing(4).lineLimit(3)
             
             if let linkString = model.linkURL, let url = URL(string: linkString) {
-                Link(destination: url) {
+                Button(action: {
+                    onLinkTap?()
+                    openURL(url)
+                }) {
                     HStack(spacing: 4) {
                         Text(String(localized: "home_read_article")).font(.system(size: 12, weight: .bold))
                         Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .bold))
-                    }.foregroundColor(model.accentColor).padding(.vertical, 6).padding(.horizontal, 12).background(model.accentColor.opacity(0.15)).clipShape(Capsule())
-                }.padding(.top, 14)
+                    }
+                    .foregroundColor(model.accentColor)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(model.accentColor.opacity(0.15))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 14)
             }
         }
-        .padding(20).frame(maxWidth: .infinity, alignment: .leading).background(LinearGradient(colors: [model.accentColor.opacity(0.12), Color.white.opacity(0.015)], startPoint: .topLeading, endPoint: .bottomTrailing)).cornerRadius(24).overlay(RoundedRectangle(cornerRadius: 24).stroke(LinearGradient(colors: [Color.white.opacity(0.15), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [model.accentColor.opacity(0.12), Color.white.opacity(0.015)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .cornerRadius(24)
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(LinearGradient(colors: [Color.white.opacity(0.15), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
     }
 }
 
