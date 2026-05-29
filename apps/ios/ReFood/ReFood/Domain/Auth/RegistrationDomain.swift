@@ -17,11 +17,16 @@ protocol UserRepositoryProtocol {
 protocol LocalStorageProtocol {
     var isRegisteredWithBackend: Bool { get set }
     var isAppleLinked: Bool { get set }
+    func clearAllData()
 }
 
 protocol DeviceIDProviderProtocol {
     func getDeviceID() -> String
     func resetDeviceID()
+}
+
+protocol DatabaseCleanerProtocol {
+    func clearAllLocalData() async
 }
 
 final class RegisterAnonymousUserUseCase {
@@ -38,9 +43,7 @@ final class RegisterAnonymousUserUseCase {
     }
     
     func execute() async {
-        guard !localStorage.isRegisteredWithBackend else {
-            return
-        }
+        guard !localStorage.isRegisteredWithBackend else { return }
         
         do {
             let identityId = try await authRepository.getIdentityId()
@@ -77,19 +80,29 @@ final class DeleteAccountUseCase {
     private let authRepository: AuthRepositoryProtocol
     private let userRepository: UserRepositoryProtocol
     private var localStorage: LocalStorageProtocol
+    private let deviceIDProvider: DeviceIDProviderProtocol
+    private let databaseCleaner: DatabaseCleanerProtocol
     
-    init(authRepository: AuthRepositoryProtocol, userRepository: UserRepositoryProtocol, localStorage: LocalStorageProtocol) {
+    init(
+        authRepository: AuthRepositoryProtocol,
+        userRepository: UserRepositoryProtocol,
+        localStorage: LocalStorageProtocol,
+        deviceIDProvider: DeviceIDProviderProtocol,
+        databaseCleaner: DatabaseCleanerProtocol
+    ) {
         self.authRepository = authRepository
         self.userRepository = userRepository
         self.localStorage = localStorage
+        self.deviceIDProvider = deviceIDProvider
+        self.databaseCleaner = databaseCleaner
     }
     
     func execute() async throws {
         let idToken = try await authRepository.fetchCurrentIdToken()
         try await userRepository.deleteUser(idToken: idToken)
         try await authRepository.signOut()
-        
-        localStorage.isAppleLinked = false
-        localStorage.isRegisteredWithBackend = false
+        deviceIDProvider.resetDeviceID()
+        localStorage.clearAllData()
+        await databaseCleaner.clearAllLocalData()
     }
 }

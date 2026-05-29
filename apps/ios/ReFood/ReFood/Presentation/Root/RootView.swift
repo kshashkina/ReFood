@@ -21,8 +21,17 @@ struct RootView: View {
                 let localStorage = UserDefaultsLocalStorage()
                 let deviceProvider = KeychainDeviceIDManager()
                 
+                let dbCleaner = SwiftDataCleaner()
+                
                 let linkUseCase = LinkAppleAccountUseCase(authRepository: authRepo, userRepository: userRepo, localStorage: localStorage, deviceIDProvider: deviceProvider)
-                let deleteUseCase = DeleteAccountUseCase(authRepository: authRepo, userRepository: userRepo, localStorage: localStorage)
+                
+                let deleteUseCase = DeleteAccountUseCase(
+                    authRepository: authRepo,
+                    userRepository: userRepo,
+                    localStorage: localStorage,
+                    deviceIDProvider: deviceProvider,
+                    databaseCleaner: dbCleaner
+                )
 
                 MainContainerView(
                     dashboardData: dashboardData,

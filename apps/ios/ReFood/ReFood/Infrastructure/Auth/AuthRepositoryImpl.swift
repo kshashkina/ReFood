@@ -41,20 +41,9 @@ final class AmplifyAuthRepository: AuthRepositoryProtocol {
     }
     
     func signOut() async throws {
-        let keychainManager = KeychainDeviceIDManager()
-        let currentDeviceID = keychainManager.getDeviceID()
-        
         let secClasses = [kSecClassGenericPassword, kSecClassInternetPassword, kSecClassCertificate, kSecClassKey, kSecClassIdentity]
         for secClass in secClasses {
             SecItemDelete([kSecClass as String: secClass] as CFDictionary)
-        }
-        if let data = currentDeviceID.data(using: .utf8) {
-            let addQuery: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrAccount as String: "com.refood.device.unique.id",
-                kSecValueData as String: data
-            ]
-            SecItemAdd(addQuery as CFDictionary, nil)
         }
     }
 }
@@ -68,5 +57,12 @@ final class UserDefaultsLocalStorage: LocalStorageProtocol {
     var isAppleLinked: Bool {
         get { UserDefaults.standard.bool(forKey: "is_apple_linked") }
         set { UserDefaults.standard.set(newValue, forKey: "is_apple_linked") }
+    }
+    
+    func clearAllData() {
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            UserDefaults.standard.synchronize()
+        }
     }
 }
