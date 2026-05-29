@@ -59,8 +59,8 @@ final class HomeViewModel: ObservableObject {
     func updateHistory(_ history: [ScannedHistoryModel]) {
         loadMetrics()
         self.recentScans = history.prefix(5).map { item in
-            let decodedProduct = try? JSONDecoder().decode(Product.self, from: item.productData)
-            
+            var decodedProduct = try? JSONDecoder().decode(Product.self, from: item.productData)
+            decodedProduct?.barcode = item.id
             return HomeProductUIModel(
                 id: item.id,
                 name: item.productName,

@@ -50,9 +50,9 @@ final class HistoryRepositoryImpl: HistoryRepository {
     func getAllHistory() async throws -> [ScannedHistoryItem] {
         var descriptor = FetchDescriptor<ScannedHistoryModel>(sortBy: [SortDescriptor(\.scanDate, order: .reverse)])
         let models = try context.fetch(descriptor)
-        
-        return models.compactMap { model in
-            guard let product = try? decoder.decode(Product.self, from: model.productData) else { return nil }
+        return models.compactMap { model -> ScannedHistoryItem? in
+            guard var product = try? decoder.decode(Product.self, from: model.productData) else { return nil }
+            product.barcode = model.id
             return ScannedHistoryItem(
                 id: model.id,
                 product: product,

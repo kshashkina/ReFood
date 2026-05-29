@@ -43,7 +43,8 @@ final class SearchViewModel: ObservableObject {
                 if !matchesSearch { return nil }
             }
             
-            let decodedProduct = try? JSONDecoder().decode(Product.self, from: item.productData)
+            var decodedProduct = try? JSONDecoder().decode(Product.self, from: item.productData)
+            decodedProduct?.barcode = item.id
             
             return SearchItemUIModel(
                 id: item.id,
