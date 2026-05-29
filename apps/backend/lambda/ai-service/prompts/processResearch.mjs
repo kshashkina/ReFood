@@ -25,12 +25,12 @@ export const PROCESS_RESEARCH_PROMPT = `
    OUTPUT FORMAT (Strict JSON):
    Return a JSON object with a single key "processed_news". The value must be an array of objects, each containing:
    {
-   "id": "pmid unique identifier for the research item (from input data)",
-   "original_title_en": "The full scientific title",
-   "original_title_ua": "The full scientific title in Ukrainian",
-   "simplified_title_en": "The translated and simplified title in English",
-   "simplified_title_ua": "The translated and simplified title in Ukrainian",
-   "takeaway_en": "1-2 sentences in English explaining the practical life lesson or 'so what?'. This is the most important part.",
-   "takeaway_ua": "1-2 sentences in Ukrainian explaining the practical life lesson or 'so what?'. This is the most important part."
+      "id": "pmid unique identifier for the research item (from input data)",
+      "original_title_en": "The full scientific title in English",
+      "original_title_ua": "The full scientific title in Ukrainian",
+      "simplified_title_en": "The translated and simplified title in English",
+      "simplified_title_ua": "The translated and simplified title in Ukrainian",
+      "takeaway_en": "1-2 sentences in English explaining the practical life lesson or 'so what?'. This is the most important part.",
+      "takeaway_ua": "1-2 sentences in Ukrainian explaining the practical life lesson or 'so what?'. This is the most important part."
    }
 `;
