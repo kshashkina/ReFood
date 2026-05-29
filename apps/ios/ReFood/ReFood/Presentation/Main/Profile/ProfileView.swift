@@ -4,18 +4,24 @@ struct ProfileView: View {
     @StateObject private var vm: ProfileViewModel
     private let metricsRepository: MetricsRepositoryProtocol
     private let emailService: EmailServiceProtocol
+    private let deleteAccountUseCase: DeleteAccountUseCase
+    private let localStorage: LocalStorageProtocol
     
     @State private var showAchievements = false
     @State private var showHelp = false
+    @State private var showSettings = false
     
     init(
         metricsRepository: MetricsRepositoryProtocol,
         emailService: EmailServiceProtocol,
         linkAccountUseCase: LinkAppleAccountUseCase,
+        deleteAccountUseCase: DeleteAccountUseCase,
         localStorage: LocalStorageProtocol
     ) {
         self.metricsRepository = metricsRepository
         self.emailService = emailService
+        self.deleteAccountUseCase = deleteAccountUseCase
+        self.localStorage = localStorage
         self._vm = StateObject(wrappedValue: ProfileViewModel(
             metricsRepository: metricsRepository,
             linkAccountUseCase: linkAccountUseCase,
@@ -61,7 +67,7 @@ struct ProfileView: View {
                         
                         VStack(spacing: 12) {
                             ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) { showAchievements = true }
-                            ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { }
+                            ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { showSettings = true }
                             ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { showHelp = true }
                         }
                         .padding(.top, 8)
@@ -85,6 +91,9 @@ struct ProfileView: View {
         }
         .fullScreenCover(isPresented: $showHelp) {
             HelpView(emailService: emailService, onBack: { showHelp = false })
+        }
+        .fullScreenCover(isPresented: $showSettings) {
+            SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, onBack: { showSettings = false })
         }
     }
 }

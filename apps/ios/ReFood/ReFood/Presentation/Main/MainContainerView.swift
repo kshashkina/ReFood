@@ -162,11 +162,12 @@ struct MainContainerView: View {
             .onAppear { vm.requestLocationIfNeeded()
                 metricsRepo.trackMapCheck()}
         case .profile: ProfileView(
-            metricsRepository: metricsRepo,
-            emailService: emailService,
-            linkAccountUseCase: linkUseCase,
-            localStorage: localStorage
-        )
+                    metricsRepository: metricsRepo,
+                    emailService: emailService,
+                    linkAccountUseCase: linkUseCase,
+                    deleteAccountUseCase: deleteUseCase, 
+                    localStorage: localStorage
+                )
         }
     }
 }
