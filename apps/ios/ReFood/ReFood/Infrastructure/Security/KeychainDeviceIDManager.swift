@@ -5,6 +5,17 @@ import UIKit
 struct KeychainDeviceIDManager: DeviceIDProviderProtocol {
     private let key = "com.refood.device.unique.id"
     
+    func hasExistingDeviceID() -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: kCFBooleanFalse!,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        let status = SecItemCopyMatching(query as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+    
     func getDeviceID() -> String {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

@@ -31,7 +31,8 @@ struct RootView: View {
                     userRepository: userRepo,
                     localStorage: localStorage,
                     deviceIDProvider: deviceProvider,
-                    databaseCleaner: dbCleaner
+                    databaseCleaner: dbCleaner,
+                    analytics: analytics
                 )
 
                 MainContainerView(
@@ -71,12 +72,6 @@ struct RootView: View {
         .background(Color.black.ignoresSafeArea())
         .onAppear {
             analytics.track(OnboardingEvent.appLaunch)
-            
-            let isFirstLaunch = !UserDefaults.standard.bool(forKey: "has_launched_before")
-            if isFirstLaunch {
-                analytics.track(OnboardingEvent.firstLaunch)
-                UserDefaults.standard.set(true, forKey: "has_launched_before")
-            }
         }
         .onChange(of: hasSeenOnboarding) { newValue in
             if newValue == false {
@@ -97,7 +92,8 @@ struct RootView: View {
                     authRepository: authRepo,
                     userRepository: userRepo,
                     localStorage: localStorage,
-                    deviceIDProvider: deviceProvider
+                    deviceIDProvider: deviceProvider,
+                    analytics: analytics
                 )
                 await registrationUseCase.execute()
             }
