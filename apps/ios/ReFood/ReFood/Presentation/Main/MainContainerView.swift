@@ -139,6 +139,7 @@ struct MainContainerView: View {
                 uploadService: uploadService,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepo,
+                analytics: analytics,
                 onBack: {
                     vm.selectedSearchProduct = nil
                 },

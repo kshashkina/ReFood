@@ -92,7 +92,8 @@ struct ManualInputScreen: View {
                         repository: repository,
                         uploadService: uploadService,
                         languageProvider: languageProvider,
-                        metricsRepository: metricsRepository, 
+                        metricsRepository: metricsRepository,
+                        analytics: analytics,
                         onBack: { onResetScanner() },
                         onCompare: { pA in onCompareFromDetails(pA) },
                         onFindRecyclingPoint: { filter in onFindRecyclingPoint(filter) }

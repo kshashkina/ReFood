@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DetailsTopBar: View {
     let onBack: () -> Void
+    let onLike: () -> Void
+    let onShare: () -> Void
     let onEdit: () -> Void
     
     var body: some View {
@@ -14,8 +16,8 @@ struct DetailsTopBar: View {
                         iconButton("chevron.left", action: onBack)
                         Spacer()
                         HStack(spacing: 8) {
-                            iconButton("heart") { }
-                            iconButton("square.and.arrow.up") { }
+                            iconButton("heart", action: onLike)
+                            iconButton("square.and.arrow.up", action: onShare)
                             iconButton("pencil", action: onEdit)
                         }
                     }

@@ -119,6 +119,7 @@ struct ScannerScreen: View {
                         uploadService: uploadService,
                         languageProvider: languageProvider,
                         metricsRepository: metricsRepository,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil

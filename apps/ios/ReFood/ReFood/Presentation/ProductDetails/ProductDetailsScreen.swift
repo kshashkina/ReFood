@@ -7,6 +7,7 @@ struct ProductDetailsScreen: View {
     private let uploadService: ImageUploadServicing
     private let languageProvider: LanguageProvider
     private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     
     let onBack: () -> Void
     var onCompare: (Product) -> Void
@@ -26,6 +27,7 @@ struct ProductDetailsScreen: View {
         uploadService: ImageUploadServicing,
         languageProvider: LanguageProvider,
         metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onCompare: @escaping (Product) -> Void = { _ in },
         onFindRecyclingPoint: @escaping (String) -> Void
@@ -34,7 +36,8 @@ struct ProductDetailsScreen: View {
         self.repository = repository
         self.uploadService = uploadService
         self.languageProvider = languageProvider
-        self.metricsRepository = metricsRepository 
+        self.metricsRepository = metricsRepository
+        self.analytics = analytics
         self.onBack = onBack
         self.onCompare = onCompare
         self.onFindRecyclingPoint = onFindRecyclingPoint
@@ -67,19 +70,44 @@ struct ProductDetailsScreen: View {
                     DetailsNutritionCard(vm: vm)
                         .padding(.horizontal, 24)
                     
-                    DetailsPackagingCard(vm: vm, onSortTapped: { showRecycling = true })
+                    DetailsPackagingCard(vm: vm, onSortTapped: {
+                        analytics.track(ProductDetailsEvent.sortTap)
+                        showRecycling = true
+                    })
                         .padding(.horizontal, 24)
                     
-                    DetailsCompareButton(onCompare: { onCompare(vm.product) })
+                    DetailsCompareButton(onCompare: {
+                        analytics.track(ProductDetailsEvent.compareTap)
+                        onCompare(vm.product)
+                    })
                         .padding(.horizontal, 24)
                         .padding(.bottom, 32)
                 }
             }
             
             DetailsTopBar(
-                onBack: onBack,
-                onEdit: { showEditScreen = true }
+                onBack: {
+                    analytics.track(ProductDetailsEvent.backTap)
+                    onBack()
+                },
+                onLike: {
+                    analytics.track(ProductDetailsEvent.likeTap(barcode: vm.product.barcode))
+                },
+                onShare: {
+                    analytics.track(ProductDetailsEvent.shareTap(barcode: vm.product.barcode))
+                },
+                onEdit: {
+                    analytics.track(ProductDetailsEvent.editTap)
+                    showEditScreen = true
+                }
             )
+        }
+        .onAppear {
+            analytics.track(ProductDetailsEvent.screenView(barcode: vm.product.barcode))
+        }
+        .onChange(of: vm.nutritionTab) { tab in
+            let mode = tab == .per100g ? "100g" : "serving"
+            analytics.track(ProductDetailsEvent.toggleTap(mode: mode))
         }
         .fullScreenCover(isPresented: $showRecycling) {
             RecyclingScreen(
