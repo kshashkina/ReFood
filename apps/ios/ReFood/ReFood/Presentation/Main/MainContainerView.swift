@@ -184,7 +184,8 @@ struct MainContainerView: View {
                     emailService: emailService,
                     linkAccountUseCase: linkUseCase,
                     deleteAccountUseCase: deleteUseCase,
-                    localStorage: localStorage
+                    localStorage: localStorage,
+                    analytics: analytics
                 )
         }
     }
