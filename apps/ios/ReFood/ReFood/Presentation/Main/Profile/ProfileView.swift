@@ -109,7 +109,7 @@ struct ProfileView: View {
             HelpView(emailService: emailService, analytics: analytics,onBack: { showHelp = false })
         }
         .fullScreenCover(isPresented: $showSettings) {
-            SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, onBack: { showSettings = false })
+            SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, analytics: analytics, onBack: { showSettings = false })
         }
     }
 }
