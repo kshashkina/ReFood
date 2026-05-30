@@ -9,17 +9,17 @@ export const handler = async (event) => {
     console.log(`Request: ${method} ${path}`);
 
     try {
-    if (method === 'OPTIONS') {
-        return optionsResponse();
-    }
+        if (method === 'OPTIONS') {
+            return optionsResponse();
+        }
 
-    if (method === 'GET' && path.includes('locations')) {
-        return await getRecyclingPoints(event);
-    }
+        if (method === 'GET' && path.includes('locations')) {
+            return await getRecyclingPoints(event);
+        }
 
-    if (method === 'GET' && path.includes('route')) {
-        return await getRoute(event);
-    }
+        if (method === 'GET' && path.includes('route')) {
+            return await getRoute(event);
+        }
 
     return response(404, {
         error: "Route not found in MapService"

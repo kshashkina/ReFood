@@ -2,7 +2,7 @@ import { getDailyTip } from '../services/dailyTipsDatabase.mjs';
 import { getLatestNewsFromDb } from '../services/newsDatabase.mjs';
 import { response } from '../helpers/response.mjs';
 
-export const getSummaryHandler = async (event) => {
+export const getSummary = async (event) => {
     const requestTimestamp = event.requestContext?.timeEpoch ? new Date(event.requestContext.timeEpoch) : new Date();
     const tipDate = `${String(requestTimestamp.getUTCDate()).padStart(2, '0')}.${String(requestTimestamp.getUTCMonth() + 1).padStart(2, '0')}`;
 

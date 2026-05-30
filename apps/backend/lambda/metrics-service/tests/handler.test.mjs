@@ -19,7 +19,7 @@ import { handler } from '../index.mjs';
 import { getMetrics, incrementScanned, incrementSorted, updateStreak, trackMapCheck, incrementAddedProducts, deleteMetrics } from '../services/userMetricsDatabase.mjs';
 import { calculateProgress, countUnlocked } from '../helpers/progressCalculator.mjs';
 
-const makeEvent = (action, userId = 'user-1') => ({ action, userId });
+const makeEvent = (action, userId = 'user-001') => ({ action, userId });
 
 describe('metrics-service handler', () => {
 
@@ -27,7 +27,6 @@ describe('metrics-service handler', () => {
         vi.clearAllMocks();
     });
 
-    // --- Validation ---
     describe('input validation', () => {
 
         it('should return error if userId is missing', async () => {
@@ -38,21 +37,20 @@ describe('metrics-service handler', () => {
         });
 
         it('should return error if action is missing', async () => {
-            const result = await handler({ userId: 'user-1' });
+            const result = await handler({ userId: 'user-001' });
 
             expect(result.success).toBe(false);
             expect(result.error).toContain('Unknown action');
         });
 
         it('should return error if action is unknown', async () => {
-            const result = await handler(makeEvent('fly_to_moon'));
+            const result = await handler(makeEvent('check_unknown'));
 
             expect(result.success).toBe(false);
-            expect(result.error).toContain('fly_to_moon');
+            expect(result.error).toContain('check_unknown');
         });
     });
 
-    // --- increment_scanned ---
     describe('increment_scanned', () => {
 
         it('should call incrementScanned and return success=true', async () => {
@@ -60,7 +58,7 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('increment_scanned'));
 
-            expect(incrementScanned).toHaveBeenCalledWith('user-1', expect.objectContaining({
+            expect(incrementScanned).toHaveBeenCalledWith('user-001', expect.objectContaining({
                 hour: expect.any(Number),
                 isWeekend: expect.any(Boolean)
             }));
@@ -68,7 +66,6 @@ describe('metrics-service handler', () => {
         });
     });
 
-    // --- increment_sorted ---
     describe('increment_sorted', () => {
 
         it('should call incrementSorted and return success=true', async () => {
@@ -76,12 +73,11 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('increment_sorted'));
 
-            expect(incrementSorted).toHaveBeenCalledWith('user-1');
+            expect(incrementSorted).toHaveBeenCalledWith('user-001');
             expect(result.success).toBe(true);
         });
     });
 
-    // --- update_streak ---
     describe('update_streak', () => {
 
         it('should call updateStreak and return success=true', async () => {
@@ -89,12 +85,11 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('update_streak'));
 
-            expect(updateStreak).toHaveBeenCalledWith('user-1');
+            expect(updateStreak).toHaveBeenCalledWith('user-001');
             expect(result.success).toBe(true);
         });
     });
 
-    // --- track_map_check ---
     describe('track_map_check', () => {
 
         it('should call trackMapCheck and return success=true', async () => {
@@ -102,7 +97,7 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('track_map_check'));
 
-            expect(trackMapCheck).toHaveBeenCalledWith('user-1', expect.objectContaining({
+            expect(trackMapCheck).toHaveBeenCalledWith('user-001', expect.objectContaining({
                 hour: expect.any(Number),
                 isWeekend: expect.any(Boolean)
             }));
@@ -110,7 +105,6 @@ describe('metrics-service handler', () => {
         });
     });
 
-    // --- increment_product ---
     describe('increment_product', () => {
 
         it('should call incrementAddedProducts and return success=true', async () => {
@@ -118,12 +112,11 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('increment_product'));
 
-            expect(incrementAddedProducts).toHaveBeenCalledWith('user-1');
+            expect(incrementAddedProducts).toHaveBeenCalledWith('user-001');
             expect(result.success).toBe(true);
         });
     });
 
-    // --- get_achievements ---
     describe('get_achievements', () => {
 
         it('should return achievements list with totalUnlocked and total', async () => {
@@ -152,7 +145,6 @@ describe('metrics-service handler', () => {
         });
     });
 
-    // --- delete_metrics ---
     describe('delete_metrics', () => {
 
         it('should call deleteMetrics and return success=true', async () => {
@@ -160,12 +152,11 @@ describe('metrics-service handler', () => {
 
             const result = await handler(makeEvent('delete_metrics'));
 
-            expect(deleteMetrics).toHaveBeenCalledWith('user-1');
+            expect(deleteMetrics).toHaveBeenCalledWith('user-001');
             expect(result.success).toBe(true);
         });
     });
 
-    // --- Error handling ---
     describe('handling errors', () => {
 
         it('should return success=false if DB throws an error', async () => {

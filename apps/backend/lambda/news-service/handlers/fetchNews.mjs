@@ -2,7 +2,7 @@ import { fetchNewsFromPubMed } from '../services/fetchPubMedApi.mjs';
 import { checkNewsExists, saveNewsToDb } from '../services/newsDatabase.mjs';
 import { processNewsWithAI } from '../services/aiService.mjs';
 
-export const fetchNewsHandler = async () => {
+export const fetchNews = async () => {
     const rawResearches = await fetchNewsFromPubMed();
     console.log(`Step 1: Found in PubMed: ${rawResearches.length}`);
 
