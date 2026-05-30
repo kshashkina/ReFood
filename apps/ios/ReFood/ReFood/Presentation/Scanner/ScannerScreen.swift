@@ -13,6 +13,7 @@ struct ScannerScreen: View {
     private let languageProvider: LanguageProvider
     private let historyRepository: HistoryRepository
     private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     let onFindRecyclingPoint: (String) -> Void
 
     enum Destination: Hashable {
@@ -30,6 +31,7 @@ struct ScannerScreen: View {
         scannerService: BarcodeScanning = BarcodeScannerService(),
         historyRepository: HistoryRepository,
         metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
         onClose: @escaping () -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
@@ -45,6 +47,7 @@ struct ScannerScreen: View {
         self.languageProvider = languageProvider
         self.historyRepository = historyRepository
         self.metricsRepository = metricsRepository
+        self.analytics = analytics
         self.onClose = onClose
         self.onFindRecyclingPoint = onFindRecyclingPoint
     }
@@ -55,16 +58,30 @@ struct ScannerScreen: View {
                 ScannerView(
                     session: vm.session,
                     onClose: {
+                        analytics.track(ScannerEvent.closeTap)
                         vm.onDisappear()
                         onClose()
                     },
                     isTorchOn: vm.isTorchEnabled,
-                    onTapTorch: { vm.toggleTorch() },
-                    onTapManualInput: { showManualInput = true },
-                    onTapScan: { vm.startScanning() }
+                    onTapTorch: {
+                        let mode = vm.isTorchEnabled ? "off" : "on"
+                        analytics.track(ScannerEvent.torchTap(mode: mode))
+                        vm.toggleTorch()
+                    },
+                    onTapManualInput: {
+                        analytics.track(ScannerEvent.manualTap)
+                        showManualInput = true
+                    },
+                    onTapScan: {
+                        analytics.track(ScannerEvent.scanTap)
+                        vm.startScanning()
+                    }
                 )
             }
-            .onAppear { vm.onAppear() }
+            .onAppear {
+                analytics.track(ScannerEvent.screenView)
+                vm.onAppear()
+            }
             .onDisappear { vm.onDisappear() }
             .toolbar(.hidden)
             .navigationDestination(for: Destination.self) { destination in
@@ -147,7 +164,7 @@ struct ScannerScreen: View {
                     aiRepository: aiRepository,
                     languageProvider: languageProvider,
                     historyRepository: historyRepository,
-                    metricsRepository: metricsRepository, 
+                    metricsRepository: metricsRepository,
                     firstProductForComparison: vm.firstProductForComparison,
                     onClose: {
                         showManualInput = false
@@ -169,7 +186,11 @@ struct ScannerScreen: View {
                 )
             }
             .sheet(isPresented: $vm.isLoadingProduct, onDismiss: {
-                if path.isEmpty && !showManualInput { vm.scanAgain() }
+                if path.isEmpty && !showManualInput {
+                    let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                    analytics.track(ScannerEvent.productLoadingSwipe(step: step))
+                    vm.scanAgain()
+                }
             }) {
                 ProductLoadingSheet(
                     isPresented: $vm.isLoadingProduct,
@@ -177,6 +198,7 @@ struct ScannerScreen: View {
                     currentStep: vm.currentLoadingStep,
                     isFailed: vm.isProductLoadingFailed,
                     onFinish: {
+                        analytics.track(ScannerEvent.productLoadingContinueTap)
                         vm.isLoadingProduct = false
                         if let fetched = vm.product { path.append(.preview(fetched)) }
                     },
@@ -189,6 +211,9 @@ struct ScannerScreen: View {
                         path.append(.addProduct(vm.lastScannedBarcode))
                     }
                 )
+                .onAppear {
+                    analytics.track(ScannerEvent.productLoadingModalView)
+                }
                 .presentationDetents([.height(560)])
             }
                 .sheet(isPresented: $vm.showNoInternet, onDismiss: {

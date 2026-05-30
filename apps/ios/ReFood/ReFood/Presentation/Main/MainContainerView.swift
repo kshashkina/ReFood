@@ -57,8 +57,14 @@ struct MainContainerView: View {
             if vm.isCameraAccessModalPresented {
                 CameraAccessModalView(
                     isPresented: $vm.isCameraAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(ScannerEvent.cameraAccessDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(ScannerEvent.cameraAccessDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(100)
             }
@@ -80,6 +86,13 @@ struct MainContainerView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: vm.isCameraAccessModalPresented)
         .animation(.easeInOut(duration: 0.2), value: vm.isLocationAccessModalPresented)
+        
+        .onChange(of: vm.isCameraAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(ScannerEvent.cameraAccessDeniedCloseTap)
+            }
+        }
+        
         .onChange(of: vm.isLocationAccessModalPresented) { isPresented in
             if !isPresented {
                 analytics.track(MapEvent.locationDeniedCloseTap)
@@ -107,6 +120,7 @@ struct MainContainerView: View {
                 languageProvider: languageProvider,
                 historyRepository: historyRepo,
                 metricsRepository: metricsRepo,
+                analytics: analytics,
                 onClose: { vm.isScannerPresented = false },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false

@@ -49,9 +49,13 @@ final class MainContainerViewModel: ObservableObject {
 
         case .notDetermined:
             Task { @MainActor in
+                analytics.track(ScannerEvent.cameraAccessModalView)
                 let granted = await cameraPermissionService.requestAccess()
                 if granted {
+                    analytics.track(ScannerEvent.cameraAccessAllow)
                     isScannerPresented = true
+                } else {
+                    analytics.track(ScannerEvent.cameraAccessDeny)
                 }
             }
 
