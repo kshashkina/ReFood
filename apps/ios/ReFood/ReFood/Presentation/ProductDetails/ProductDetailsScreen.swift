@@ -114,6 +114,7 @@ struct ProductDetailsScreen: View {
                 product: vm.product,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepository,
+                analytics: analytics,
                 onBack: { showRecycling = false },
                 onFindPointTapped: { filter in
                     showRecycling = false
