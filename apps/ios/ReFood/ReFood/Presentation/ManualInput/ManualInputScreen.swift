@@ -127,8 +127,12 @@ struct ManualInputScreen: View {
             }
             .sheet(isPresented: $vm.isLoading, onDismiss: {
                 if path.isEmpty {
-                    let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
-                    analytics.track(ScannerEvent.productLoadingSwipe(step: step))
+                    if vm.isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundSwipe)
+                    } else {
+                        let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                        analytics.track(LoadingSheetEvent.productLoadingSwipe(step: step))
+                    }
                 }
                 vm.isLoading = false
             }) {
@@ -138,22 +142,29 @@ struct ManualInputScreen: View {
                     currentStep: vm.currentStep,
                     isFailed: vm.isFailed,
                     onFinish: {
-                        analytics.track(ScannerEvent.productLoadingContinueTap)
+                        analytics.track(LoadingSheetEvent.productLoadingContinueTap)
                         vm.isLoading = false
                         if let p = vm.product {
                             path.append(.preview(p))
                         }
                     },
                     onTryAgain: {
+                        analytics.track(LoadingSheetEvent.notFoundTryAgainTap)
                         vm.isLoading = false
                     },
                     onAddProduct: {
+                        analytics.track(LoadingSheetEvent.notFoundAddTap)
                         vm.isLoading = false
                         path.append(.addProduct(vm.barcode))
                     }
                 )
                 .onAppear {
-                    analytics.track(ScannerEvent.productLoadingModalView)
+                    analytics.track(LoadingSheetEvent.productLoadingModalView)
+                }
+                .onChange(of: vm.isFailed) { isFailed in
+                    if isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundModalView)
+                    }
                 }
                 .presentationDetents([.height(560)])
             }
@@ -161,7 +172,11 @@ struct ManualInputScreen: View {
                 vm.resetAfterNoInternet()
             }) {
                 NoInternetSheet {
+                    analytics.track(NoInternetEvent.noInternetOkTap)
                     vm.showNoInternet = false
+                }
+                .onAppear {
+                    analytics.track(NoInternetEvent.noInternetModalView)
                 }
                 .presentationDetents([.height(360)])
             }

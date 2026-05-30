@@ -191,8 +191,12 @@ struct ScannerScreen: View {
             }
             .sheet(isPresented: $vm.isLoadingProduct, onDismiss: {
                 if path.isEmpty && !showManualInput {
-                    let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
-                    analytics.track(ScannerEvent.productLoadingSwipe(step: step))
+                    if vm.isProductLoadingFailed {
+                        analytics.track(LoadingSheetEvent.notFoundSwipe)
+                    } else {
+                        let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                        analytics.track(LoadingSheetEvent.productLoadingSwipe(step: step))
+                    }
                     vm.scanAgain()
                 }
             }) {
@@ -202,33 +206,45 @@ struct ScannerScreen: View {
                     currentStep: vm.currentLoadingStep,
                     isFailed: vm.isProductLoadingFailed,
                     onFinish: {
-                        analytics.track(ScannerEvent.productLoadingContinueTap)
+                        analytics.track(LoadingSheetEvent.productLoadingContinueTap)
                         vm.isLoadingProduct = false
                         if let fetched = vm.product { path.append(.preview(fetched)) }
                     },
                     onTryAgain: {
+                        analytics.track(LoadingSheetEvent.notFoundTryAgainTap)
                         vm.isLoadingProduct = false
                         vm.scanAgain()
                     },
                     onAddProduct: {
+                        analytics.track(LoadingSheetEvent.notFoundAddTap)
                         vm.isLoadingProduct = false
                         path.append(.addProduct(vm.lastScannedBarcode))
                     }
                 )
                 .onAppear {
-                    analytics.track(ScannerEvent.productLoadingModalView)
+                    analytics.track(LoadingSheetEvent.productLoadingModalView)
+                }
+                .onChange(of: vm.isProductLoadingFailed) { isFailed in
+                    if isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundModalView)
+                    }
                 }
                 .presentationDetents([.height(560)])
             }
-                .sheet(isPresented: $vm.showNoInternet, onDismiss: {
-                    if path.isEmpty && !showManualInput {
-                        vm.scanAgain()
-                    }
-                }) {
-                    NoInternetSheet {
-                        vm.showNoInternet = false
-                    }
-                    .presentationDetents([.height(360)])}
+            .sheet(isPresented: $vm.showNoInternet, onDismiss: {
+                if path.isEmpty && !showManualInput {
+                    vm.scanAgain()
+                }
+            }) {
+                NoInternetSheet {
+                    analytics.track(NoInternetEvent.noInternetOkTap)
+                    vm.showNoInternet = false
+                }
+                .onAppear {
+                    analytics.track(NoInternetEvent.noInternetModalView)
+                }
+                .presentationDetents([.height(360)])
+            }
         }
     }
 }
