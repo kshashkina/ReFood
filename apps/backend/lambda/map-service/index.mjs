@@ -26,9 +26,9 @@ export const handler = async (event) => {
     });
 
     } catch (error) {
-    console.error("Error:", error);
-    return response(500, {
-        error: "Internal server error"
-    });
+        console.error("Error:", error);
+        return response(500, {
+            error: "Internal server error"
+        });
     }
 };
