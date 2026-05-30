@@ -128,7 +128,8 @@ struct ProductDetailsScreen: View {
                 existingProduct: vm.product,
                 repository: repository,
                 uploadService: uploadService,
-                metricsRepository: metricsRepository
+                metricsRepository: metricsRepository,
+                analytics: analytics
             )
         }
     }

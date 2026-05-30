@@ -120,7 +120,8 @@ struct ManualInputScreen: View {
                         barcode: barcode,
                         repository: repository,
                         uploadService: uploadService,
-                        metricsRepository: metricsRepository
+                        metricsRepository: metricsRepository,
+                        analytics: analytics
                     )
                     .toolbar(.hidden)
                 }

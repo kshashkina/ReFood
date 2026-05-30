@@ -8,13 +8,15 @@ struct AddProductScreen: View {
     @State private var showSuccessCheckmark = false
     @State private var showCamera = false
     
+    let analytics: AnalyticsServiceProtocol
     
     init(
         barcode: String,
         existingProduct: Product? = nil,
         repository: ProductRepository,
         uploadService: ImageUploadServicing,
-        metricsRepository: MetricsRepositoryProtocol
+        metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol
     ) {
         _vm = StateObject(wrappedValue: AddProductViewModel(
             barcode: barcode,
@@ -23,8 +25,10 @@ struct AddProductScreen: View {
             uploadService: uploadService,
             metricsRepository: metricsRepository
         ))
+        self.analytics = analytics
     }
     
+    var flow: String { vm.isEditingMode ? "edit" : "add" }
     var body: some View {
         ZStack(alignment: .top) {
             Color.black.ignoresSafeArea()
@@ -34,20 +38,20 @@ struct AddProductScreen: View {
                     HeaderDescriptionView(isEditing: vm.isEditingMode)
                         .padding(.top, 70)
                     
-                    PhotoSectionView(vm: vm, showCamera: $showCamera)
+                    PhotoSectionView(vm: vm, showCamera: $showCamera, flow: flow, analytics: analytics)
                     
-                    GeneralInfoSectionView(form: $vm.form, barcode: vm.barcode, focus: $isFocused)
+                    GeneralInfoSectionView(form: $vm.form, barcode: vm.barcode, focus: $isFocused, flow: flow, analytics: analytics)
                     
                     VStack(alignment: .leading, spacing: 16) {
-                        GradeSelectionView(title: "Nutri-Score", selection: $vm.form.nutriScore)
-                        GradeSelectionView(title: "Eco-Score", selection: $vm.form.ecoScore)
+                        GradeSelectionView(title: "Nutri-Score", selection: $vm.form.nutriScore, onTap: { analytics.track(ProductChangeEvent.nutriTap(flow: flow)) })
+                        GradeSelectionView(title: "Eco-Score", selection: $vm.form.ecoScore, onTap: { analytics.track(ProductChangeEvent.ecoTap(flow: flow)) })
                     }
                     
-                    IngredientsSectionView(form: $vm.form, focus: $isFocused)
+                    IngredientsSectionView(form: $vm.form, focus: $isFocused, flow: flow, analytics: analytics)
                     
-                    PackagingSectionView(packaging: $vm.form.packaging, onAdd: vm.addPackagingField, focus: $isFocused)
+                    PackagingSectionView(packaging: $vm.form.packaging, onAdd: vm.addPackagingField, focus: $isFocused, flow: flow, analytics: analytics)
                     
-                    NutritionSectionView(nutrition: $vm.form.nutrition, focus: $isFocused)
+                    NutritionSectionView(nutrition: $vm.form.nutrition, focus: $isFocused, flow: flow, analytics: analytics)
                     
                     ImportantNoticeView(isEditingMode: vm.isEditingMode)
                     
@@ -60,7 +64,8 @@ struct AddProductScreen: View {
                         SaveButtonView(
                             vm: vm,
                             showSuccess: $showSuccessCheckmark,
-                            isFocused: $isFocused
+                            isFocused: $isFocused,
+                            onTap: { analytics.track(ProductChangeEvent.continueTap(flow: flow)) }
                         )
                     }
                     .padding(.top, 8)
@@ -74,8 +79,14 @@ struct AddProductScreen: View {
             
             TopBarView(
                 title: vm.isEditingMode ? "addProduct_title_edit" : "addProduct_title_new",
-                onDismiss: { dismiss() }
+                onDismiss: {
+                    analytics.track(ProductChangeEvent.backTap(flow: flow))
+                    dismiss()
+                }
             )
+        }
+        .onAppear {
+            analytics.track(ProductChangeEvent.screenView(flow: flow))
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraPicker(image: $vm.selectedUIImage).ignoresSafeArea()
