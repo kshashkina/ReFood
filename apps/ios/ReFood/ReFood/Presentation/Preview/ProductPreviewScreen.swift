@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductPreviewScreen: View {
     @StateObject private var vm: ProductPreviewViewModel
     
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     let onContinue: () -> Void
     let onScanAgain: () -> Void
@@ -11,6 +12,7 @@ struct ProductPreviewScreen: View {
         product: Product,
         firstProductForComparison: Product? = nil,
         languageProvider: LanguageProvider,
+        analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onContinue: @escaping () -> Void,
         onScanAgain: @escaping () -> Void
@@ -20,6 +22,7 @@ struct ProductPreviewScreen: View {
             firstProductForComparison: firstProductForComparison,
             languageProvider: languageProvider
         ))
+        self.analytics = analytics
         self.onBack = onBack
         self.onContinue = onContinue
         self.onScanAgain = onScanAgain
@@ -41,8 +44,15 @@ struct ProductPreviewScreen: View {
                     
                     PreviewActionButtons(
                         continueTitle: vm.continueButtonTitle,
-                        onContinue: onContinue,
-                        onScanAgain: onScanAgain
+                        onContinue: {
+                            let mode = vm.firstProductForComparison != nil ? "comparison" : "details"
+                            analytics.track(PreviewEvent.continueTap(mode: mode))
+                            onContinue()
+                        },
+                        onScanAgain: {
+                            analytics.track(PreviewEvent.scanAgainTap)
+                            onScanAgain()
+                        }
                     )
                     .padding(.top, 20)
                     .padding(.horizontal, 28)
@@ -51,7 +61,13 @@ struct ProductPreviewScreen: View {
                 Spacer()
             }
             
-            PreviewTopBar(onBack: onBack)
+            PreviewTopBar(onBack: {
+                analytics.track(PreviewEvent.backTap)
+                onBack()
+            })
+        }
+        .onAppear {
+            analytics.track(PreviewEvent.screenView(barcode: vm.product.barcode))
         }
     }
 }

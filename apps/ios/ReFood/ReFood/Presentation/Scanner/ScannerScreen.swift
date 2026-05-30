@@ -91,6 +91,7 @@ struct ScannerScreen: View {
                         product: product,
                         firstProductForComparison: vm.firstProductForComparison,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -166,6 +167,7 @@ struct ScannerScreen: View {
                     historyRepository: historyRepository,
                     metricsRepository: metricsRepository,
                     firstProductForComparison: vm.firstProductForComparison,
+                    analytics: analytics,
                     onClose: {
                         showManualInput = false
                         vm.scanAgain()

@@ -8,6 +8,7 @@ struct ManualInputScreen: View {
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
     private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     
     let firstProductForComparison: Product?
     let onClose: () -> Void
@@ -30,6 +31,7 @@ struct ManualInputScreen: View {
         historyRepository: HistoryRepository,
         metricsRepository: MetricsRepositoryProtocol,
         firstProductForComparison: Product? = nil,
+        analytics: AnalyticsServiceProtocol,
         onClose: @escaping () -> Void,
         onResetScanner: @escaping () -> Void,
         onCompareFromDetails: @escaping (Product) -> Void,
@@ -45,9 +47,9 @@ struct ManualInputScreen: View {
         self.uploadService = uploadService
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
-        self.metricsRepository = metricsRepository 
-        
+        self.metricsRepository = metricsRepository
         self.firstProductForComparison = firstProductForComparison
+        self.analytics = analytics
         self.onClose = onClose
         self.onResetScanner = onResetScanner
         self.onCompareFromDetails = onCompareFromDetails
@@ -71,6 +73,7 @@ struct ManualInputScreen: View {
                         product: product,
                         firstProductForComparison: firstProductForComparison,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: { onResetScanner() },
                         onContinue: {
                             if let first = firstProductForComparison {
