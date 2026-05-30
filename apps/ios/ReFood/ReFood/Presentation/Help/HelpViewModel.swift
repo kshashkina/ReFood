@@ -4,6 +4,7 @@ import Combine
 
 struct FAQItem: Identifiable {
     let id = UUID()
+    let index: Int
     let question: String
     let answer: String
 }
@@ -19,12 +20,12 @@ final class HelpViewModel: ObservableObject {
         self.emailService = emailService
         
         self.faqItems = [
-            FAQItem(question: String(localized: "help_faq_q1"), answer: String(localized: "help_faq_a1")),
-            FAQItem(question: String(localized: "help_faq_q2"), answer: String(localized: "help_faq_a2")),
-            FAQItem(question: String(localized: "help_faq_q3"), answer: String(localized: "help_faq_a3")),
-            FAQItem(question: String(localized: "help_faq_q4"), answer: String(localized: "help_faq_a4")),
-            FAQItem(question: String(localized: "help_faq_q5"), answer: String(localized: "help_faq_a5")),
-            FAQItem(question: String(localized: "help_faq_q6"), answer: String(localized: "help_faq_a6"))
+            FAQItem(index: 1, question: String(localized: "help_faq_q1"), answer: String(localized: "help_faq_a1")),
+            FAQItem(index: 2, question: String(localized: "help_faq_q2"), answer: String(localized: "help_faq_a2")),
+            FAQItem(index: 3, question: String(localized: "help_faq_q3"), answer: String(localized: "help_faq_a3")),
+            FAQItem(index: 4, question: String(localized: "help_faq_q4"), answer: String(localized: "help_faq_a4")),
+            FAQItem(index: 5, question: String(localized: "help_faq_q5"), answer: String(localized: "help_faq_a5")),
+            FAQItem(index: 6, question: String(localized: "help_faq_q6"), answer: String(localized: "help_faq_a6"))
         ]
     }
     

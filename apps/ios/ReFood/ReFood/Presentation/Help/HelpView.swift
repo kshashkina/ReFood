@@ -2,10 +2,12 @@ import SwiftUI
 
 struct HelpView: View {
     @StateObject private var vm: HelpViewModel
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     
-    init(emailService: EmailServiceProtocol, onBack: @escaping () -> Void) {
+    init(emailService: EmailServiceProtocol, analytics: AnalyticsServiceProtocol, onBack: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: HelpViewModel(emailService: emailService))
+        self.analytics = analytics
         self.onBack = onBack
     }
     
@@ -20,12 +22,16 @@ struct HelpView: View {
                             FAQItemView(
                                 item: item,
                                 isExpanded: vm.expandedItemId == item.id,
-                                onTap: { vm.toggleItem(item) }
+                                onTap: {
+                                    analytics.track(HelpEvent.faqTap(id: item.index))
+                                    vm.toggleItem(item)
+                                }
                             )
                         }
                     }
                     
                     ContactEmailButton(action: {
+                        analytics.track(HelpEvent.emailTap)
                         vm.contactSupport()
                     })
                     .padding(.top, 8)
@@ -36,8 +42,14 @@ struct HelpView: View {
                 .padding(.bottom, 40)
             }
             
-            HelpTopBar(onBack: onBack)
+            HelpTopBar(onBack: {
+                analytics.track(HelpEvent.backTap)
+                onBack()
+            })
         }
         .navigationBarHidden(true)
+        .onAppear {
+            analytics.track(HelpEvent.screenView)
+        }
     }
 }

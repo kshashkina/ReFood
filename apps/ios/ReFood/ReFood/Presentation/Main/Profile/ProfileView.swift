@@ -106,7 +106,7 @@ struct ProfileView: View {
             AchievementsView(metricsRepository: metricsRepository, analytics: analytics, onBack: { showAchievements = false })
         }
         .fullScreenCover(isPresented: $showHelp) {
-            HelpView(emailService: emailService, onBack: { showHelp = false })
+            HelpView(emailService: emailService, analytics: analytics,onBack: { showHelp = false })
         }
         .fullScreenCover(isPresented: $showSettings) {
             SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, onBack: { showSettings = false })
