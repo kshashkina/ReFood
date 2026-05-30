@@ -52,7 +52,11 @@ struct ProductComparisonScreen: View {
         }
         .sheet(isPresented: $vm.showNoInternet) {
             NoInternetSheet {
+                analytics.track(NoInternetEvent.noInternetOkTap)
                 vm.showNoInternet = false
+            }
+            .onAppear {
+                analytics.track(NoInternetEvent.noInternetModalView)
             }
             .presentationDetents([.height(360)])
         }
