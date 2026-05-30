@@ -27,6 +27,7 @@ final class AchievementsViewModel: ObservableObject {
     @Published var achievements: [AchievementUIModel] = []
     @Published var unlockedCountText: String = "0 / 8"
     @Published var totalProgressFraction: Double = 0.0
+    @Published var unlockedCount: Int = 0
     
     private let metricsRepository: MetricsRepositoryProtocol
     private let achievementDefinitions: [(id: String, icon: String)] = [
@@ -81,5 +82,6 @@ final class AchievementsViewModel: ObservableObject {
         self.achievements = tempModels
         self.unlockedCountText = "\(unlockedCounter) / \(achievementDefinitions.count)"
         self.totalProgressFraction = Double(unlockedCounter) / Double(achievementDefinitions.count)
+        self.unlockedCount = unlockedCounter
     }
 }

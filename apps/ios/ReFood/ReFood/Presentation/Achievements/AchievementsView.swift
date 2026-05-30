@@ -2,10 +2,12 @@ import SwiftUI
 
 struct AchievementsView: View {
     @StateObject private var vm: AchievementsViewModel
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     
-    init(metricsRepository: MetricsRepositoryProtocol, onBack: @escaping () -> Void) {
+    init(metricsRepository: MetricsRepositoryProtocol, analytics: AnalyticsServiceProtocol, onBack: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: AchievementsViewModel(metricsRepository: metricsRepository))
+        self.analytics = analytics
         self.onBack = onBack
     }
     
@@ -37,8 +39,15 @@ struct AchievementsView: View {
                 }
                 .padding(.horizontal, 24)
             }
-            AchievementsTopBar(onBack: onBack)
+            
+            AchievementsTopBar(onBack: {
+                analytics.track(AchievementsEvent.backTap)
+                onBack()
+            })
         }
         .navigationBarHidden(true)
+        .onAppear {
+            analytics.track(AchievementsEvent.screenView(count: vm.unlockedCount))
+        }
     }
 }

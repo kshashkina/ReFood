@@ -103,7 +103,7 @@ struct ProfileView: View {
             vm.loadMetrics()
         }
         .fullScreenCover(isPresented: $showAchievements) {
-            AchievementsView(metricsRepository: metricsRepository, onBack: { showAchievements = false })
+            AchievementsView(metricsRepository: metricsRepository, analytics: analytics, onBack: { showAchievements = false })
         }
         .fullScreenCover(isPresented: $showHelp) {
             HelpView(emailService: emailService, onBack: { showHelp = false })
