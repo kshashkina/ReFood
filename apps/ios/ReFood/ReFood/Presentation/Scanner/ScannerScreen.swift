@@ -141,6 +141,7 @@ struct ScannerScreen: View {
                         productB: pB,
                         aiRepository: aiRepository,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil

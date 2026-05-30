@@ -215,6 +215,7 @@ struct ComparisonNutritionSection: View {
 
 struct ComparisonAISection: View {
     @ObservedObject var vm: ProductComparisonViewModel
+    let analytics: AnalyticsServiceProtocol
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -251,6 +252,7 @@ struct ComparisonAISection: View {
                         .fixedSize(horizontal: false, vertical: true)
                     
                     Button(action: {
+                        analytics.track(ComparisonEvent.aiInsightRetryTap)
                         Task { await vm.fetchAIAnalysis() }
                     }) {
                         HStack(spacing: 8) {
@@ -317,6 +319,7 @@ struct ComparisonAISection: View {
                         .lineSpacing(4)
                     
                     Button(action: {
+                        analytics.track(ComparisonEvent.aiInsightTap)
                         Task { await vm.fetchAIAnalysis() }
                     }) {
                         Text("comparison_generate_analysis")

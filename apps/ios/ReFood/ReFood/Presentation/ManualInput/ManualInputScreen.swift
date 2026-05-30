@@ -110,6 +110,7 @@ struct ManualInputScreen: View {
                         productB: pB,
                         aiRepository: aiRepository,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: { onResetScanner() }
                     )
                     .toolbar(.hidden)
