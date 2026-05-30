@@ -60,11 +60,15 @@ struct ManualInputScreen: View {
         NavigationStack(path: $path) {
             ManualInputView(
                 vm: vm,
+                analytics: analytics,
                 onClose: onClose,
                 onFind: {
                     Task { await vm.findProduct() }
                 }
             )
+            .onAppear {
+                analytics.track(ManualInputEvent.screenView)
+            }
             .toolbar(.hidden)
             .navigationDestination(for: Destination.self) { destination in
                 switch destination {
@@ -121,6 +125,10 @@ struct ManualInputScreen: View {
                 }
             }
             .sheet(isPresented: $vm.isLoading, onDismiss: {
+                if path.isEmpty {
+                    let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                    analytics.track(ScannerEvent.productLoadingSwipe(step: step))
+                }
                 vm.isLoading = false
             }) {
                 ProductLoadingSheet(
@@ -129,6 +137,7 @@ struct ManualInputScreen: View {
                     currentStep: vm.currentStep,
                     isFailed: vm.isFailed,
                     onFinish: {
+                        analytics.track(ScannerEvent.productLoadingContinueTap)
                         vm.isLoading = false
                         if let p = vm.product {
                             path.append(.preview(p))
@@ -142,6 +151,9 @@ struct ManualInputScreen: View {
                         path.append(.addProduct(vm.barcode))
                     }
                 )
+                .onAppear {
+                    analytics.track(ScannerEvent.productLoadingModalView)
+                }
                 .presentationDetents([.height(560)])
             }
             .sheet(isPresented: $vm.showNoInternet, onDismiss: {
