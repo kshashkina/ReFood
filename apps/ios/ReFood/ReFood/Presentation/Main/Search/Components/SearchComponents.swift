@@ -127,47 +127,89 @@ struct SearchListHeaderView: View {
     }
 }
 
+struct SearchSkeletonRow: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.05))
+                .frame(width: 56, height: 56)
+
+            VStack(alignment: .leading, spacing: 10) {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(width: 140, height: 14)
+                
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.white.opacity(0.03))
+                    .frame(width: 80, height: 10)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(Color.white.opacity(0.02))
+        .cornerRadius(20)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+        )
+    }
+}
+
 struct SearchEmptyStateView: View {
     let showFavoritesOnly: Bool
     let isSearching: Bool
     
     var body: some View {
-        VStack(spacing: 12) {
-            let titleKey: LocalizedStringKey = if isSearching {
-                "search_empty_title_not_found"
-            } else if showFavoritesOnly {
-                "search_empty_title_no_favorites"
-            } else {
-                "search_empty_title_history"
+        ZStack(alignment: .top) {
+            VStack(spacing: 12) {
+                SearchSkeletonRow().opacity(1)
+                SearchSkeletonRow().opacity(0.8)
+                SearchSkeletonRow().opacity(0.6)
+                SearchSkeletonRow().opacity(0.4)
+                SearchSkeletonRow().opacity(0.2)
             }
-            
-            let descKey: LocalizedStringKey = if isSearching {
-                "search_empty_desc_not_found"
-            } else if showFavoritesOnly {
-                "search_empty_desc_no_favorites"
-            } else {
-                "search_empty_desc_history"
-            }
+            .allowsHitTesting(false)
+            VStack(spacing: 12) {
+                let titleKey: LocalizedStringKey = if isSearching {
+                    "search_empty_title_not_found"
+                } else if showFavoritesOnly {
+                    "search_empty_title_no_favorites"
+                } else {
+                    "search_empty_title_history"
+                }
+                
+                let descKey: LocalizedStringKey = if isSearching {
+                    "search_empty_desc_not_found"
+                } else if showFavoritesOnly {
+                    "search_empty_desc_no_favorites"
+                } else {
+                    "search_empty_desc_history"
+                }
 
-            Text(titleKey)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
-            
-            Text(descKey)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+                Text(titleKey)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text(descKey)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.white.opacity(0.6))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.vertical, 32)
+            .padding(.horizontal, 24)
+            .background(Color.black.opacity(0.2))
+            .background(.ultraThinMaterial)
+            .environment(\.colorScheme, .dark)
+            .cornerRadius(24)
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.2), radius: 30, y: 15)
+            .padding(.top, 60)
         }
-        .padding(.vertical, 32)
-        .padding(.horizontal, 24)
-        .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.03))
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                .foregroundColor(.white.opacity(0.15))
-        )
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
     }
 }
 
@@ -185,9 +227,9 @@ struct SearchHistoryListView: View {
         List {
             if uiModels.isEmpty {
                 SearchEmptyStateView(showFavoritesOnly: showFavoritesOnly, isSearching: isSearching)
-                    .padding(.top, 8)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets())
             } else {
                 ForEach(uiModels) { uiModel in
                     SearchProductRowView(
@@ -210,7 +252,7 @@ struct SearchHistoryListView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .padding(.bottom, 85)
+        .padding(.bottom, 135)
         .simultaneousGesture(
             DragGesture().onChanged { _ in
                 if isSearchFocused.wrappedValue { isSearchFocused.wrappedValue = false }
