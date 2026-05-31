@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Combine
+import SwiftUI
 
 struct SearchItemUIModel: Identifiable {
     let id: String
@@ -67,13 +68,26 @@ final class SearchViewModel: ObservableObject {
     }
     
     func toggleFavorite(for uiModel: SearchItemUIModel) {
-        let newStatus = !uiModel.originalModel.isFavorite
+        let currentStatus = uiModel.originalModel.isFavorite
         Task {
-            try? await historyRepository.updateFavoriteStatus(id: uiModel.originalModel.id, isFavorite: newStatus)
+            try? await historyRepository.updateFavoriteStatus(id: uiModel.originalModel.id, isFavorite: currentStatus)
+        }
+        
+        if showFavoritesOnly && !currentStatus {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.uiModels.removeAll { $0.id == uiModel.id }
+                }
+            }
         }
     }
     
-    func delete(uiModel: SearchItemUIModel) {
+    func delete(uiModel: SearchItemUIModel, context: ModelContext) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            self.uiModels.removeAll { $0.id == uiModel.id }
+        }
+        context.delete(uiModel.originalModel)
+        try? context.save()
         Task {
             try? await historyRepository.deleteFromHistory(id: uiModel.originalModel.id)
         }

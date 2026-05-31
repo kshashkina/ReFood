@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct SearchView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \ScannedHistoryModel.scanDate, order: .reverse) private var history: [ScannedHistoryModel]
     
     @StateObject private var vm: SearchViewModel
@@ -75,7 +76,7 @@ struct SearchView: View {
                     },
                     onDelete: { uiModel in
                         analytics.track(SearchEvent.deleteProductTap(barcode: uiModel.id))
-                        vm.delete(uiModel: uiModel)
+                        vm.delete(uiModel: uiModel, context: modelContext)
                     }
                 )
             }
@@ -90,13 +91,19 @@ struct SearchView: View {
             }
         }
         .onChange(of: history) { newHistory in
-            vm.updateUIModels(from: newHistory)
+            withAnimation(.easeInOut(duration: 0.3)) {
+                vm.updateUIModels(from: newHistory)
+            }
         }
         .onChange(of: vm.searchText) { _ in
-            vm.updateUIModels(from: history)
+            withAnimation(.easeInOut(duration: 0.3)) {
+                vm.updateUIModels(from: history)
+            }
         }
         .onChange(of: vm.showFavoritesOnly) { _ in
-            vm.updateUIModels(from: history)
+            withAnimation(.easeInOut(duration: 0.3)) {
+                vm.updateUIModels(from: history)
+            }
         }
     }
 }
