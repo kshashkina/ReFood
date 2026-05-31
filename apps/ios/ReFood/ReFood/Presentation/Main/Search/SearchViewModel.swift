@@ -86,6 +86,9 @@ final class SearchViewModel: ObservableObject {
     }
     
     func delete(uiModel: SearchItemUIModel, context: ModelContext) {
+        if uiModel.originalModel.isFavorite {
+            Task {try? await productRepository.toggleFavorite(barcode: uiModel.originalModel.id, isFavorite: false)}
+        }
         withAnimation(.easeInOut(duration: 0.3)) {
             self.uiModels.removeAll { $0.id == uiModel.id }
         }
