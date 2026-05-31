@@ -6,6 +6,7 @@ import { deleteUserData } from "./handlers/deleteUserFromDatabase.mjs";
 import { showProductsFavorites } from "./handlers/showProductsFavorites.mjs";
 import { getAchievements } from "./handlers/getAchievements.mjs";
 import { getUserId } from "./handlers/getUserId.mjs";
+import { recordUserScan } from "./handlers/recordUserScan.mjs";
 import { response, optionsResponse } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
@@ -23,8 +24,13 @@ export const handler = async (event) => {
             if (path.endsWith('/users/register')) {
                 return await registerUser(event);
             }
+
             if (path.endsWith('/users/register/link-account')) {
                 return await registerLinkAccount(event);
+            }
+
+            if (path.endsWith('/users/scans')) {
+                return await recordUserScan(event);
             }
         }
 

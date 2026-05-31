@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -63,4 +63,19 @@ export const deleteAllUserScans = async (userId) => {
     } while (lastKey);
 
     await Promise.all(deletePromises);
+};
+
+export const recordScan = async (userId, { barcode, productName, productBrand, image, productVersion }) => {
+    return await docClient.send(new PutCommand({
+        TableName: SCANS_TABLE,
+        Item: {
+            userId,
+            timestamp: new Date().toISOString(),
+            barcode,
+            productVersion: productVersion || null,
+            productName: productName || null,
+            productBrand: productBrand || null,
+            image: image || null
+        }
+    }));
 };
