@@ -49,6 +49,15 @@ const actions = {
         };
     },
 
+    get_counts: async ({ userId }) => {
+        const metrics = await getMetrics(userId);
+        return {
+            success: true,
+            scannedCount: metrics?.scannedCount ?? 0,
+            sortedCount: metrics?.sortedCount ?? 0
+        };
+    },
+
     delete_metrics: async ({ userId }) => {
         await deleteMetrics(userId);
         return { success: true };

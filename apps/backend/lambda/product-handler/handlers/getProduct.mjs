@@ -5,7 +5,7 @@ import { toProductResponse } from '../mappers/productMapper.mjs';
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
 import { getRequestIdentity } from '../helpers/auth/identity.mjs';
-import { findUserIdByAnyMethod, incrementUserScanCount } from '../services/databases/usersDatabase.mjs';
+import { findUserIdByAnyMethod } from '../services/databases/usersDatabase.mjs';
 import { recordScan } from '../services/databases/scansDatabase.mjs';
 import { invokeMetrics } from '../services/metricsService.mjs';
 
@@ -48,7 +48,6 @@ export async function getProduct(event) {
 
         if (userId) {
             await Promise.all([
-                incrementUserScanCount(userId),
                 invokeMetrics('increment_scanned', userId),
                 recordScan(userId, product)
             ]);
