@@ -2,7 +2,6 @@ import SwiftUI
 
 struct DetailsTopBar: View {
     let onBack: () -> Void
-    let onLike: () -> Void
     let onShare: () -> Void
     let onEdit: () -> Void
     
@@ -16,7 +15,6 @@ struct DetailsTopBar: View {
                         iconButton("chevron.left", action: onBack)
                         Spacer()
                         HStack(spacing: 8) {
-                            iconButton("heart", action: onLike)
                             iconButton("square.and.arrow.up", action: onShare)
                             iconButton("pencil", action: onEdit)
                         }
@@ -46,17 +44,18 @@ struct DetailsHeroImage: View {
     
     var body: some View {
         GlassCard(cornerRadius: 24, padding: 0) {
-            CachedAsyncImage(url: URL(string: imageUrl ?? ""), contentMode: .fill) {
-                ZStack {
-                    Color.white.opacity(0.05)
-                    Image(systemName: "photo")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.3))
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 24))
+            Color.clear
+                .overlay(
+                    CachedAsyncImage(url: URL(string: imageUrl ?? ""), contentMode: .fill) {
+                        ZStack {
+                            Color.white.opacity(0.05)
+                            Image(systemName: "photo")
+                                .font(.system(size: 34, weight: .semibold))
+                                .foregroundStyle(Color.white.opacity(0.3))
+                        }
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 24))
         }
         .frame(height: 194)
     }

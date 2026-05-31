@@ -90,9 +90,6 @@ struct ProductDetailsScreen: View {
                     analytics.track(ProductDetailsEvent.backTap)
                     onBack()
                 },
-                onLike: {
-                    analytics.track(ProductDetailsEvent.likeTap(barcode: vm.product.barcode))
-                },
                 onShare: {
                     analytics.track(ProductDetailsEvent.shareTap(barcode: vm.product.barcode))
                 },
