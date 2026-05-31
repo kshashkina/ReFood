@@ -15,7 +15,8 @@ struct ProductDetailsScreen: View {
     
     @State private var showRecycling = false
     @State private var showEditScreen = false
-
+    @State private var showShareSheet = false
+    
     enum NutritionTab: String, CaseIterable {
         case per100g = "details_tab_100g"
         case perServing = "details_tab_serving"
@@ -92,6 +93,7 @@ struct ProductDetailsScreen: View {
                 },
                 onShare: {
                     analytics.track(ProductDetailsEvent.shareTap(barcode: vm.product.barcode))
+                    showShareSheet = true
                 },
                 onEdit: {
                     analytics.track(ProductDetailsEvent.editTap)
@@ -128,6 +130,9 @@ struct ProductDetailsScreen: View {
                 metricsRepository: metricsRepository,
                 analytics: analytics
             )
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [vm.getShareText()])
         }
     }
 }
