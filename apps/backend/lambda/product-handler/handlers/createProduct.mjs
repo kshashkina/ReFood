@@ -1,10 +1,13 @@
-import { saveProductToDB } from '../services/productDatabase.mjs';
+import { saveProductToDB } from '../services/databases/productDatabase.mjs';
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { validateProductInput } from '../helpers/validation/validator.mjs';
 import { cleanProductData } from '../helpers/formatters/cleanProductData.mjs';
 import { response } from '../helpers/response.mjs';
 import { translateProduct, checkProduct } from '../services/aiService.mjs';
 import { finalizeImage } from '../services/s3Service.mjs';
+import { findUserIdByAnyMethod } from '../services/databases/usersDatabase.mjs';
+import { invokeMetrics } from '../services/metricsService.mjs';
+import { getRequestIdentity } from '../helpers/auth/identity.mjs';
 
 export async function createProduct(event) {
     let body;
@@ -16,16 +19,16 @@ export async function createProduct(event) {
 
     const validation = validateProductInput(body);
     if (!validation.valid) {
-        return response(400, { 
-            error: "Validation failed", 
-            details: validation.errors 
+        return response(400, {
+            error: "Validation failed",
+            details: validation.errors
         });
     }
 
     const barcode = normalizeBarcode(body.barcode);
     if (!barcode) {
-        return response(400, { 
-            error: "Invalid barcode format" 
+        return response(400, {
+            error: "Invalid barcode format"
         });
     }
 
@@ -35,10 +38,10 @@ export async function createProduct(event) {
         const aiCheck = await checkProduct(productData);
 
         if (!aiCheck.canBeSaved) {
-            return response(400, { 
-                error: "AI Validation failed", 
+            return response(400, {
+                error: "AI Validation failed",
                 details: aiCheck.errors,
-                isSafetyViolation: aiCheck.isSafetyViolation 
+                isSafetyViolation: aiCheck.isSafetyViolation
             });
         }
 
@@ -88,13 +91,17 @@ export async function createProduct(event) {
         await saveProductToDB(finalProduct);
         console.log(`Added new product from client: ${barcode}`);
 
+        const identity = getRequestIdentity(event);
+        const userId = await findUserIdByAnyMethod(identity);
+        invokeMetrics('increment_product', userId);
+
         return response(201, {
             message: "Product verified and created successfully"
         });
     } catch (error) {
         console.error("Workflow Error:", error);
-        return response(500, { 
-            error: "Failed to process product with AI services" 
+        return response(500, {
+            error: "Failed to process product with AI services"
         });
     }
 }

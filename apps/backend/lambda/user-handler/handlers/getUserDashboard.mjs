@@ -3,6 +3,7 @@ import { getRequestIdentity } from '../helpers/auth/identity.mjs';
 import { findUserIdByAnyMethod, getUserProfile } from '../services/usersDatabase.mjs';
 import { getUserScans } from '../services/scansDatabase.mjs';
 import { toScanListResponse } from '../mappers/scanMapper.mjs';
+import { invokeMetrics } from '../services/metricsService.mjs';
 
 export async function getDashboard(event) {
     try {
@@ -19,6 +20,8 @@ export async function getDashboard(event) {
             getUserProfile(userId),
             getUserScans(userId, 5)
         ]);
+
+        invokeMetrics('update_streak', userId);
 
         if (!user) {
             return response(404, {

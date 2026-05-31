@@ -1,7 +1,7 @@
 import { getRequestIdentity } from '../helpers/auth/identity.mjs';
-import { findUserIdByAnyMethod } from '../services/usersDatabase.mjs';
-import { getLatestProductFromDB } from '../services/productDatabase.mjs';
-import { getFavorite, addFavorite, removeFavorite } from '../services/productsFavoritesDatabase.mjs';
+import { findUserIdByAnyMethod } from '../services/databases/usersDatabase.mjs';
+import { getLatestProductFromDB } from '../services/databases/productDatabase.mjs';
+import { getFavorite, addFavorite, removeFavorite } from '../services/databases/productsFavoritesDatabase.mjs';
 import { normalizeBarcode } from '../helpers/validation/barcode.mjs';
 import { response } from '../helpers/response.mjs';
 

@@ -1,6 +1,7 @@
 import { response } from '../helpers/response.mjs';
 import { findUserByCognitoSub, deleteUser } from '../services/usersDatabase.mjs';
 import { deleteAllUserScans } from '../services/scansDatabase.mjs';
+import { invokeMetrics } from '../services/metricsService.mjs';
 
 export const deleteUserData = async (event) => {
     const claims = event.requestContext?.authorizer?.claims || event.requestContext?.authorizer?.jwt?.claims;
@@ -19,6 +20,7 @@ export const deleteUserData = async (event) => {
 
         await deleteAllUserScans(user.userId);
         await deleteUser(user.userId);
+        invokeMetrics('delete_metrics', user.userId);
 
         console.log(`User data deleted: ${user.userId}`);
         return response(200, { message: "All user data deleted" });
