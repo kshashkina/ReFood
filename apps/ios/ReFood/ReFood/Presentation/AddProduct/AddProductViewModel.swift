@@ -90,11 +90,9 @@ final class AddProductViewModel: ObservableObject {
                 productRequest.image_url = existingImageUrl
                 try await repository.addProduct(productRequest)
             } else {
-                try await repository.finalizeAndAdd(
-                    product: productRequest,
-                    s3Key: s3Key,
-                    imageId: imageId
-                )
+                productRequest.imageId = self.imageId
+                productRequest.s3Key = self.s3Key
+                try await repository.addProduct(productRequest)
             }
             metricsRepository.trackProductAdded()
             isSuccess = true

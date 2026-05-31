@@ -43,18 +43,7 @@ final class ProductRepositoryImpl: ProductRepository {
             try await ProductAPI.uploadToS3(urlString: url, imageData: data)
         }
 
-    func validateImage(s3Key: String, imageId: String) async throws -> S3ValidationResponse {
-            try await ProductAPI.validateImage(s3Key: s3Key, imageId: imageId)
-        }
-
-    func finalizeAndAdd(product: ProductAdd, s3Key: String, imageId: String) async throws {
-            let publicUrl = try await ProductAPI.finalizeImage(
-                s3Key: s3Key,
-                imageId: imageId,
-                barcode: product.barcode
-            )
-            var finalProduct = product
-            finalProduct.image_url = publicUrl
-            try await ProductAPI.addProduct(product: finalProduct)
-        }
+    func checkValidation(imageId: String) async throws -> S3ValidationResponse {
+        try await ProductAPI.checkImageValidationStatus(imageId: imageId)
+    }
 }
