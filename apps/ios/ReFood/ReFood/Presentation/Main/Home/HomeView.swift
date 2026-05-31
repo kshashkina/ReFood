@@ -59,6 +59,7 @@ struct HomeView: View {
         }
         .onChange(of: history) { newHistory in
             vm.updateHistory(newHistory)
+            vm.loadMetrics() 
         }
     }
     

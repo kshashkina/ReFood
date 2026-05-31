@@ -107,7 +107,7 @@ struct MainContainerView: View {
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
             if isPresented {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     selectedTab = .home
                 }
             }
