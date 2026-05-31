@@ -28,12 +28,14 @@ final class ScannerViewModel: ObservableObject {
         scanner: BarcodeScanning,
         productRepository: ProductRepository,
         historyRepository: HistoryRepository,
-        metricsRepository: MetricsRepositoryProtocol
+        metricsRepository: MetricsRepositoryProtocol,
+        firstProductForComparison: Product? = nil
     ) {
         self.scanner = scanner
         self.productRepository = productRepository
         self.historyRepository = historyRepository
         self.metricsRepository = metricsRepository
+        self.firstProductForComparison = firstProductForComparison
         bindScanner()
         scanner.configure()
     }

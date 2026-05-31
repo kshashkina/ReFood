@@ -121,7 +121,11 @@ struct MainContainerView: View {
                 historyRepository: historyRepo,
                 metricsRepository: metricsRepo,
                 analytics: analytics,
-                onClose: { vm.isScannerPresented = false },
+                firstProductForComparison: vm.productToCompare,
+                onClose: {
+                    vm.isScannerPresented = false
+                    vm.productToCompare = nil
+                },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
                     
@@ -142,6 +146,13 @@ struct MainContainerView: View {
                 analytics: analytics,
                 onBack: {
                     vm.selectedSearchProduct = nil
+                },
+                onCompare: { productToCompare in
+                    vm.selectedSearchProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.productToCompare = productToCompare
+                        vm.isScannerPresented = true
+                    }
                 },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.selectedSearchProduct = nil
