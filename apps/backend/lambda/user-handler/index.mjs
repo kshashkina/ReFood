@@ -5,6 +5,7 @@ import { getUserScanHistory } from "./handlers/getUserScanHistory.mjs";
 import { deleteUserData } from "./handlers/deleteUserFromDatabase.mjs";
 import { showProductsFavorites } from "./handlers/showProductsFavorites.mjs";
 import { getAchievements } from "./handlers/getAchievements.mjs";
+import { getUserId } from "./handlers/getUserId.mjs";
 import { response, optionsResponse } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
@@ -42,6 +43,10 @@ export const handler = async (event) => {
 
             if (path.endsWith('/users/achievements')) {
                 return await getAchievements(event);
+            }
+
+            if (path.endsWith('/users/id')) {
+                return await getUserId(event);
             }
         }
 
