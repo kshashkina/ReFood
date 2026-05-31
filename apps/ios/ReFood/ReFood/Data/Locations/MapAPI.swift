@@ -1,4 +1,8 @@
 import Foundation
+import Amplify
+import AWSCognitoAuthPlugin
+import AWSPluginsCore
+import AWSAPIPlugin
 
 enum MapAPI {
     static func fetchLocations(lat: Double, lon: Double, materials: String?, radius: Int = 5000) async throws -> Data {
@@ -57,6 +61,12 @@ enum MapAPI {
         
         var request = URLRequest(url: finalURL)
         request.httpMethod = "GET"
+        
+        if let session = try? await Amplify.Auth.fetchAuthSession(),
+           let cognitoProvider = session as? AuthCognitoTokensProvider,
+           let tokens = try? cognitoProvider.getCognitoTokens().get() {
+            request.setValue("Bearer \(tokens.idToken)", forHTTPHeaderField: "Authorization")
+        }
         
         let (data, response) = try await URLSession.shared.data(for: request)
         

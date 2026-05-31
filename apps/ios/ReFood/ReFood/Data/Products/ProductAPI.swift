@@ -1,4 +1,9 @@
 import Foundation
+import Amplify
+import AWSCognitoAuthPlugin
+import AWSPluginsCore
+import AWSAPIPlugin
+
 
 enum ProductAPI {
 
@@ -8,6 +13,11 @@ enum ProductAPI {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 20
+        if let session = try? await Amplify.Auth.fetchAuthSession(),
+           let cognitoProvider = session as? AuthCognitoTokensProvider,
+           let tokens = try? cognitoProvider.getCognitoTokens().get() {
+            request.setValue("Bearer \(tokens.idToken)", forHTTPHeaderField: "Authorization")
+        }
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -30,6 +40,12 @@ enum ProductAPI {
             request.httpMethod = "POST"
             request.timeoutInterval = 20
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            if let session = try? await Amplify.Auth.fetchAuthSession(),
+               let cognitoProvider = session as? AuthCognitoTokensProvider,
+               let tokens = try? cognitoProvider.getCognitoTokens().get() {
+                request.setValue("Bearer \(tokens.idToken)", forHTTPHeaderField: "Authorization")
+            }
 
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
