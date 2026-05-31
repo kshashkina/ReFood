@@ -6,4 +6,5 @@ public protocol ProductRepository {
     func prepareUpload() async throws -> S3UploadResponse
     func uploadImage(url: String, data: Data) async throws
     func checkValidation(imageId: String) async throws -> S3ValidationResponse
+    func toggleFavorite(barcode: String, isFavorite: Bool) async throws
 }

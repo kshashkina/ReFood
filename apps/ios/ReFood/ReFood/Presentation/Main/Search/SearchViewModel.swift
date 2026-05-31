@@ -20,6 +20,7 @@ final class SearchViewModel: ObservableObject {
     @Published var uiModels: [SearchItemUIModel] = []
     
     private let historyRepository: HistoryRepository
+    private let productRepository: ProductRepository
     
     private static let timeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
@@ -28,8 +29,9 @@ final class SearchViewModel: ObservableObject {
         return formatter
     }()
     
-    init(historyRepository: HistoryRepository) {
+    init(historyRepository: HistoryRepository, productRepository: ProductRepository) {
         self.historyRepository = historyRepository
+        self.productRepository = productRepository
     }
     
     func updateUIModels(from history: [ScannedHistoryModel]) {
@@ -71,6 +73,7 @@ final class SearchViewModel: ObservableObject {
         let currentStatus = uiModel.originalModel.isFavorite
         Task {
             try? await historyRepository.updateFavoriteStatus(id: uiModel.originalModel.id, isFavorite: currentStatus)
+            try? await productRepository.toggleFavorite(barcode: uiModel.originalModel.id, isFavorite: currentStatus)
         }
         
         if showFavoritesOnly && !currentStatus {

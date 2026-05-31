@@ -86,4 +86,13 @@ enum ProductAPI {
             throw NetworkError.invalidResponse
         }
     }
+    static func addFavorite(barcode: String) async throws {
+            let request = RESTRequest(apiName: "ReFoodAPI", path: "/product/\(barcode)/favorite")
+            _ = try await Amplify.API.post(request: request)
+        }
+
+        static func removeFavorite(barcode: String) async throws {
+            let request = RESTRequest(apiName: "ReFoodAPI", path: "/product/\(barcode)/favorite")
+            _ = try await Amplify.API.delete(request: request)
+        }
 }

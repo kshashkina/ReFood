@@ -184,6 +184,7 @@ struct MainContainerView: View {
         case .search:
             SearchView(
                 historyRepository: historyRepo,
+                productRepository: productRepo,
                 analytics: analytics,
                 onProductTap: { product in
                     vm.selectedSearchProduct = product

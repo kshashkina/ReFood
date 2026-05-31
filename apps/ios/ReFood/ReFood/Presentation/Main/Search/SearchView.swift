@@ -13,10 +13,11 @@ struct SearchView: View {
 
     init(
         historyRepository: HistoryRepository,
+        productRepository: ProductRepository,
         analytics: AnalyticsServiceProtocol,
         onProductTap: @escaping (Product) -> Void = { _ in }
     ) {
-        self._vm = StateObject(wrappedValue: SearchViewModel(historyRepository: historyRepository))
+        self._vm = StateObject(wrappedValue: SearchViewModel(historyRepository: historyRepository, productRepository: productRepository))
         self.analytics = analytics
         self.onProductTap = onProductTap
     }

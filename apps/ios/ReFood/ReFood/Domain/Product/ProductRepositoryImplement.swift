@@ -46,4 +46,12 @@ final class ProductRepositoryImpl: ProductRepository {
     func checkValidation(imageId: String) async throws -> S3ValidationResponse {
         try await ProductAPI.checkImageValidationStatus(imageId: imageId)
     }
+    
+    func toggleFavorite(barcode: String, isFavorite: Bool) async throws {
+            if isFavorite {
+                try await ProductAPI.addFavorite(barcode: barcode)
+            } else {
+                try await ProductAPI.removeFavorite(barcode: barcode)
+            }
+        }
 }
