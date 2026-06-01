@@ -197,6 +197,7 @@ struct MainContainerView: View {
                 repository: locationRepo,
                 networkMonitor: NetworkMonitor.shared,
                 locationService: locationService,
+                metricsRepository: metricsRepo,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
                 analytics: analytics,

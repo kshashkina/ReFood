@@ -9,8 +9,22 @@ struct MapView: View {
     
     let analytics: AnalyticsServiceProtocol
     
-    init(repository: LocationRepository, networkMonitor: NetworkMonitoring, locationService: LocationServiceProtocol, showLocationWarning: Bool, externalFilter: Binding<String>, analytics: AnalyticsServiceProtocol, onRequestLocationAccess: @escaping () -> Void) {
-        self._vm = StateObject(wrappedValue: MapViewModel(repository: repository, networkMonitor: networkMonitor, locationService: locationService))
+    init(
+        repository: LocationRepository,
+        networkMonitor: NetworkMonitoring,
+        locationService: LocationServiceProtocol,
+        metricsRepository: MetricsRepositoryProtocol,
+        showLocationWarning: Bool,
+        externalFilter: Binding<String>,
+        analytics: AnalyticsServiceProtocol,
+        onRequestLocationAccess: @escaping () -> Void
+    ) {
+        self._vm = StateObject(wrappedValue: MapViewModel(
+            repository: repository,
+            networkMonitor: networkMonitor,
+            locationService: locationService,
+            metricsRepository: metricsRepository
+        ))
         self._externalFilter = externalFilter
         self.showLocationWarning = showLocationWarning
         self.analytics = analytics
