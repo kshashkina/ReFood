@@ -18,6 +18,23 @@ enum ProductAPI {
         }
     }
     
+    static func recordScan(payload: ScanPayload) async throws {
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(payload)
+        let request = RESTRequest(apiName: "ReFoodAPI", path: "/users/scans", body: data)
+        
+        do {
+            _ = try await Amplify.API.post(request: request)
+        } catch let error as APIError {
+            if case let .httpStatusError(statusCode, _) = error {
+                throw NetworkError.httpStatus(code: statusCode, body: "")
+            }
+            throw NetworkError.invalidResponse
+        } catch {
+            throw NetworkError.invalidResponse
+        }
+    }
+    
     static func addProduct(product: ProductAdd) async throws {
         let encoder = JSONEncoder()
         let data = try encoder.encode(product)

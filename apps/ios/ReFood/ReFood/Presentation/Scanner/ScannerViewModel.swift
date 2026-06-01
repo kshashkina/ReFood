@@ -150,6 +150,7 @@ final class ScannerViewModel: ObservableObject {
             
             Task {
                 try? await historyRepository.saveProduct(fetchedProduct, isFavorite: false)
+                try? await productRepository.recordScan(product: fetchedProduct)
             }
             
             finishLoadingSuccess()

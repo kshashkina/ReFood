@@ -25,6 +25,23 @@ final class ProductRepositoryImpl: ProductRepository {
         }
     }
     
+    func recordScan(product: Product) async throws {
+        let payload = ScanPayload(
+            barcode: product.barcode,
+            productName: product.productName ?? "",
+            productBrand: product.brands ?? "",
+            image: product.imageUrl ?? "",
+            productVersion: Int64(Date().timeIntervalSince1970 * 1000)
+        )
+        
+        do {
+            try await ProductAPI.recordScan(payload: payload)
+        } catch {
+            print("⚠️ Failed to record scan: \(error)")
+            throw ProductError.network
+        }
+    }
+    
     func addProduct(_ product: ProductAdd) async throws {
             do {
                 try await ProductAPI.addProduct(product: product)
