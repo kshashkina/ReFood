@@ -54,6 +54,7 @@ final class ManualInputViewModel: ObservableObject {
             
             Task {
                 try? await historyRepository.saveProduct(fetchedProduct, isFavorite: false)
+                try? await repository.recordScan(product: fetchedProduct)
             }
             
             finishLoadingSuccess()

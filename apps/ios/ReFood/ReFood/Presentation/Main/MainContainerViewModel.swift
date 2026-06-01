@@ -11,6 +11,7 @@ final class MainContainerViewModel: ObservableObject {
     @Published var selectedTab: MainTab = .home
     @Published var selectedMapFilter: String = "All"
     @Published var selectedSearchProduct: Product? = nil
+    @Published var productToCompare: Product? = nil
 
     private var hasShownLocationAlert: Bool = false
     private let cameraPermissionService: CameraPermissionServicing

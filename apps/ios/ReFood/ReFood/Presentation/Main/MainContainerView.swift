@@ -107,7 +107,7 @@ struct MainContainerView: View {
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
             if isPresented {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     selectedTab = .home
                 }
             }
@@ -121,7 +121,11 @@ struct MainContainerView: View {
                 historyRepository: historyRepo,
                 metricsRepository: metricsRepo,
                 analytics: analytics,
-                onClose: { vm.isScannerPresented = false },
+                firstProductForComparison: vm.productToCompare,
+                onClose: {
+                    vm.isScannerPresented = false
+                    vm.productToCompare = nil
+                },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
                     
@@ -142,6 +146,13 @@ struct MainContainerView: View {
                 analytics: analytics,
                 onBack: {
                     vm.selectedSearchProduct = nil
+                },
+                onCompare: { productToCompare in
+                    vm.selectedSearchProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.productToCompare = productToCompare
+                        vm.isScannerPresented = true
+                    }
                 },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.selectedSearchProduct = nil
@@ -173,6 +184,7 @@ struct MainContainerView: View {
         case .search:
             SearchView(
                 historyRepository: historyRepo,
+                productRepository: productRepo,
                 analytics: analytics,
                 onProductTap: { product in
                     vm.selectedSearchProduct = product
@@ -185,6 +197,7 @@ struct MainContainerView: View {
                 repository: locationRepo,
                 networkMonitor: NetworkMonitor.shared,
                 locationService: locationService,
+                metricsRepository: metricsRepo,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
                 analytics: analytics,

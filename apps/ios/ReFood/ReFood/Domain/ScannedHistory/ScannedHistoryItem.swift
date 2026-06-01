@@ -8,6 +8,14 @@ struct ScannedHistoryItem: Identifiable, Hashable {
     var isFavorite: Bool
 }
 
+struct ScanPayload: Encodable {
+    let barcode: String
+    let productName: String
+    let productBrand: String
+    let image: String
+    let productVersion: Int64
+}
+
 
 @Model
 final class ScannedHistoryModel {

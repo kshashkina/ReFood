@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Combine
+import SwiftUI
 
 struct SearchItemUIModel: Identifiable {
     let id: String
@@ -19,6 +20,7 @@ final class SearchViewModel: ObservableObject {
     @Published var uiModels: [SearchItemUIModel] = []
     
     private let historyRepository: HistoryRepository
+    private let productRepository: ProductRepository
     
     private static let timeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
@@ -27,8 +29,9 @@ final class SearchViewModel: ObservableObject {
         return formatter
     }()
     
-    init(historyRepository: HistoryRepository) {
+    init(historyRepository: HistoryRepository, productRepository: ProductRepository) {
         self.historyRepository = historyRepository
+        self.productRepository = productRepository
     }
     
     func updateUIModels(from history: [ScannedHistoryModel]) {
@@ -67,13 +70,30 @@ final class SearchViewModel: ObservableObject {
     }
     
     func toggleFavorite(for uiModel: SearchItemUIModel) {
-        let newStatus = !uiModel.originalModel.isFavorite
+        let currentStatus = uiModel.originalModel.isFavorite
         Task {
-            try? await historyRepository.updateFavoriteStatus(id: uiModel.originalModel.id, isFavorite: newStatus)
+            try? await historyRepository.updateFavoriteStatus(id: uiModel.originalModel.id, isFavorite: currentStatus)
+            try? await productRepository.toggleFavorite(barcode: uiModel.originalModel.id, isFavorite: currentStatus)
+        }
+        
+        if showFavoritesOnly && !currentStatus {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.uiModels.removeAll { $0.id == uiModel.id }
+                }
+            }
         }
     }
     
-    func delete(uiModel: SearchItemUIModel) {
+    func delete(uiModel: SearchItemUIModel, context: ModelContext) {
+        if uiModel.originalModel.isFavorite {
+            Task {try? await productRepository.toggleFavorite(barcode: uiModel.originalModel.id, isFavorite: false)}
+        }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            self.uiModels.removeAll { $0.id == uiModel.id }
+        }
+        context.delete(uiModel.originalModel)
+        try? context.save()
         Task {
             try? await historyRepository.deleteFromHistory(id: uiModel.originalModel.id)
         }

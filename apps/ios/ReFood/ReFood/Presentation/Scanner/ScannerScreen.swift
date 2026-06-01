@@ -32,6 +32,7 @@ struct ScannerScreen: View {
         historyRepository: HistoryRepository,
         metricsRepository: MetricsRepositoryProtocol,
         analytics: AnalyticsServiceProtocol,
+        firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
@@ -39,7 +40,8 @@ struct ScannerScreen: View {
             scanner: scannerService,
             productRepository: repository,
             historyRepository: historyRepository,
-            metricsRepository: metricsRepository
+            metricsRepository: metricsRepository,
+            firstProductForComparison: firstProductForComparison
         ))
         self.repository = repository
         self.uploadService = uploadService

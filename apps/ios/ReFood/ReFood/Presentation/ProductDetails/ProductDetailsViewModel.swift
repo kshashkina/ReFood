@@ -96,4 +96,9 @@ final class ProductDetailsViewModel: ObservableObject {
         let s = String(format: "%.1f", v)
         return s.hasSuffix(".0") ? String(s.dropLast(2)) : s
     }
+    
+    func getShareText() -> String {
+        let formatString = String(localized: "share_product_message")
+        return String(format: formatString, displayName, product.barcode)
+    }
 }

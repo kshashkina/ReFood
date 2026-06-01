@@ -81,7 +81,4 @@ final class RecyclingViewModel: ObservableObject {
         languageProvider.currentLanguageCode == "ua" ? category.prepStepsUa : category.prepStepsEn
     }
     
-    func incrementSortedCount() {
-        metricsRepository.incrementSortedCount()
-    }
 }

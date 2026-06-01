@@ -57,7 +57,6 @@ struct RecyclingScreen: View {
                     RecyclingFindPointButton(isDisabled: isButtonDisabled) {
                         guard let selected = vm.selectedWasteType else { return }
                         analytics.track(RecyclingEvent.findTap(type: selected.titleKey))
-                        vm.incrementSortedCount()
                         onFindPointTapped(selected.filterKey)
                     }
                 }

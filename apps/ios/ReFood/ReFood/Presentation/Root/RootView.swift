@@ -23,8 +23,17 @@ struct RootView: View {
                 let deviceProvider = KeychainDeviceIDManager()
                 
                 let dbCleaner = SwiftDataCleaner()
+                let historyRepo = HistoryRepositoryImpl()
+                let productRepo = ProductRepositoryImpl()
+                let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
                 
-                let linkUseCase = LinkAppleAccountUseCase(authRepository: authRepo, userRepository: userRepo, localStorage: localStorage, deviceIDProvider: deviceProvider)
+                let linkUseCase = LinkAppleAccountUseCase(
+                    authRepository: authRepo,
+                    userRepository: userRepo,
+                    localStorage: localStorage,
+                    deviceIDProvider: deviceProvider,
+                    syncUseCase: syncUseCase
+                )
                 
                 let deleteUseCase = DeleteAccountUseCase(
                     authRepository: authRepo,
@@ -96,6 +105,13 @@ struct RootView: View {
                     analytics: analytics
                 )
                 await registrationUseCase.execute()
+                
+                if localStorage.isAppleLinked {
+                    let historyRepo = HistoryRepositoryImpl()
+                    let productRepo = ProductRepositoryImpl()
+                    let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
+                    await syncUseCase.execute()
+                }
             }
         }
     }

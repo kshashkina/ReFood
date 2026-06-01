@@ -14,7 +14,6 @@ final class AmplitudeAnalyticsService: AnalyticsServiceProtocol {
     
     func track(_ event: AnalyticsEventProtocol) {
         amplitude.track(eventType: event.name, eventProperties: event.properties)
-        print("[Amplitude] Відправлено: \(event.name) | Параметри: \(event.properties ?? [:])")
     }
     
     func setUserId(_ userId: String) {

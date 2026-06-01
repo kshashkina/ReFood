@@ -1,4 +1,6 @@
 import Foundation
+import Amplify
+import AWSAPIPlugin
 
 enum MapAPI {
     static func fetchLocations(lat: Double, lon: Double, materials: String?, radius: Int = 5000) async throws -> Data {
@@ -40,30 +42,20 @@ enum MapAPI {
     }
     
     static func fetchRoute(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double, mode: String = "walk") async throws -> Data {
-        let url = APIConfig.baseURL.appendingPathComponent("map").appendingPathComponent("route")
-        
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        components?.queryItems = [
-            URLQueryItem(name: "fromLat", value: "\(fromLat)"),
-            URLQueryItem(name: "fromLon", value: "\(fromLon)"),
-            URLQueryItem(name: "toLat", value: "\(toLat)"),
-            URLQueryItem(name: "toLon", value: "\(toLon)"),
-            URLQueryItem(name: "mode", value: mode)
+        let queryParams: [String: String] = [
+            "fromLat": "\(fromLat)",
+            "fromLon": "\(fromLon)",
+            "toLat": "\(toLat)",
+            "toLon": "\(toLon)",
+            "mode": mode
         ]
         
-        guard let finalURL = components?.url else {
+        let request = RESTRequest(apiName: "ReFoodAPI", path: "/map/route", queryParameters: queryParams)
+        
+        do {
+            return try await Amplify.API.get(request: request)
+        } catch {
             throw NetworkError.invalidResponse
         }
-        
-        var request = URLRequest(url: finalURL)
-        request.httpMethod = "GET"
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw NetworkError.invalidResponse
-        }
-        
-        return data
     }
 }

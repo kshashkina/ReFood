@@ -6,6 +6,8 @@ public struct ProductAdd: Encodable {
     public var brands: String
     public var quantity: String
     public var image_url: String?
+    public var imageId: String?
+    public var s3Key: String?
     public var ingredients_text: String?
     public var categories_tags: String?
     public var allergens_tags: String?
@@ -17,9 +19,10 @@ public struct ProductAdd: Encodable {
 
     enum CodingKeys: String, CodingKey {
         case barcode, nutriments, packaging
-        case productName = "product_name" 
+        case productName = "product_name"
         case brands, quantity
         case image_url = "image_url"
+        case imageId, s3Key
         case ingredients_text = "ingredients_text"
         case categories_tags = "categories_tags"
         case allergens_tags = "allergens_tags"
