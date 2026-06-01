@@ -11,6 +11,7 @@ protocol MetricsRepositoryProtocol {
     func trackProductAdded()
     func isAchievementUnlocked(id: String) -> Bool
     func getAchievementProgress(id: String) -> (current: Int, goal: Int)
+    func getAchievementUnlockDate(id: String) -> Date?
 }
 
 final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
@@ -25,6 +26,21 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
     private let weekendMapKey = "weekend_has_mapped"
     private let ecoWeekendUnlockedKey = "achievement_eco_weekend"
 
+    private func saveUnlockDate(for id: String) {
+        let key = "unlock_date_\(id)"
+        if UserDefaults.standard.object(forKey: key) == nil {
+            UserDefaults.standard.set(Date(), forKey: key)
+        }
+    }
+    
+    func getAchievementUnlockDate(id: String) -> Date? {
+        let key = "unlock_date_\(id)"
+        if isAchievementUnlocked(id: id) && UserDefaults.standard.object(forKey: key) == nil {
+            saveUnlockDate(for: id)
+        }
+        return UserDefaults.standard.object(forKey: key) as? Date
+    }
+
     func getScannedCount() -> Int {
         UserDefaults.standard.integer(forKey: scannedKey)
     }
@@ -35,10 +51,14 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
     
     func incrementScannedCount() {
         let current = getScannedCount()
-        UserDefaults.standard.set(current + 1, forKey: scannedKey)
+        let newCount = current + 1
+        UserDefaults.standard.set(newCount, forKey: scannedKey)
+        if newCount >= 1 { saveUnlockDate(for: "first_step") }
+        if newCount >= 10 { saveUnlockDate(for: "active_user") }
         let hour = Calendar.current.component(.hour, from: Date())
         if hour < 9 {
             UserDefaults.standard.set(true, forKey: earlyBirdKey)
+            saveUnlockDate(for: "early_bird")
         }
         if Calendar.current.isDateInWeekend(Date()) {
             UserDefaults.standard.set(true, forKey: weekendScanKey)
@@ -75,6 +95,9 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
             defaults.set(1, forKey: streakKey)
         }
         defaults.set(now, forKey: lastOpenedKey)
+        let newStreak = getStreakCount()
+        if newStreak >= 7 { saveUnlockDate(for: "week_streak") }
+        if newStreak >= 30 { saveUnlockDate(for: "eco_addict") }
     }
         
     func trackMapCheck() {
@@ -83,6 +106,7 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
         
         if hour >= 20 || isWeekend {
             UserDefaults.standard.set(true, forKey: ninjaSortingKey)
+            saveUnlockDate(for: "ninja_sorting")
         }
         if isWeekend {
             UserDefaults.standard.set(true, forKey: weekendMapKey)
@@ -92,7 +116,9 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
     
     func trackProductAdded() {
         let current = UserDefaults.standard.integer(forKey: addedProductsKey)
-        UserDefaults.standard.set(current + 1, forKey: addedProductsKey)
+        let newCount = current + 1
+        UserDefaults.standard.set(newCount, forKey: addedProductsKey)
+        if newCount >= 5 { saveUnlockDate(for: "master_informer") }
     }
     
     private func checkEcoWeekendAchievement() {
@@ -100,6 +126,7 @@ final class UserDefaultsMetricsRepository: MetricsRepositoryProtocol {
         let hasMapped = UserDefaults.standard.bool(forKey: weekendMapKey)
         if hasScanned && hasMapped {
             UserDefaults.standard.set(true, forKey: ecoWeekendUnlockedKey)
+            saveUnlockDate(for: "eco_weekend")
         }
     }
         

@@ -5,6 +5,7 @@ struct HomeView: View {
     @Query(sort: \ScannedHistoryModel.scanDate, order: .reverse) private var history: [ScannedHistoryModel]
     @StateObject private var vm: HomeViewModel
     
+    let analytics: AnalyticsServiceProtocol
     var onProductTap: (Product) -> Void
     var onSeeAllTap: () -> Void
     
@@ -12,9 +13,11 @@ struct HomeView: View {
         dashboardData: DailyDashboardResponse?,
         languageProvider: LanguageProvider,
         metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
         onProductTap: @escaping (Product) -> Void = { _ in },
         onSeeAllTap: @escaping () -> Void = {}
     ) {
+        self.analytics = analytics
         self.onProductTap = onProductTap
         self.onSeeAllTap = onSeeAllTap
         self._vm = StateObject(wrappedValue: HomeViewModel(metricsRepository: metricsRepository, dashboardData: dashboardData, languageProvider: languageProvider))
@@ -50,11 +53,13 @@ struct HomeView: View {
             .ignoresSafeArea()
         }
         .onAppear {
+            analytics.track(HomeEvent.screenView)
             vm.loadMetrics()
             vm.updateHistory(history)
         }
         .onChange(of: history) { newHistory in
             vm.updateHistory(newHistory)
+            vm.loadMetrics() 
         }
     }
     
@@ -68,15 +73,25 @@ struct HomeView: View {
     private var insightsSection: some View {
         VStack(spacing: 16) {
             if let tipModel = vm.tipUIModel { InsightCard(model: tipModel) }
-            if let newsModel = vm.newsUIModel { InsightCard(model: newsModel) }
+            if let newsModel = vm.newsUIModel {
+                InsightCard(model: newsModel, onLinkTap: {
+                    analytics.track(HomeEvent.articleTap)
+                })
+            }
         }.padding(.horizontal, 24).padding(.bottom, 32)
     }
     
     private var recentScansSection: some View {
         RecentScansSection(
             uiModels: vm.recentScans,
-            onProductTap: onProductTap,
-            onSeeAllTap: onSeeAllTap
+            onProductTap: { product in
+                analytics.track(HomeEvent.productTap(barcode: product.id))
+                onProductTap(product)
+            },
+            onSeeAllTap: {
+                analytics.track(HomeEvent.seeAllTap)
+                onSeeAllTap()
+            }
         ).padding(.horizontal, 24)
     }
 }

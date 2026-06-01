@@ -12,6 +12,7 @@ struct RootView: View {
     
     @State private var step: Step = .splash
     @State private var dashboardData: DailyDashboardResponse? = nil
+    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
 
     var body: some View {
         ZStack {
@@ -22,15 +23,25 @@ struct RootView: View {
                 let deviceProvider = KeychainDeviceIDManager()
                 
                 let dbCleaner = SwiftDataCleaner()
+                let historyRepo = HistoryRepositoryImpl()
+                let productRepo = ProductRepositoryImpl()
+                let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
                 
-                let linkUseCase = LinkAppleAccountUseCase(authRepository: authRepo, userRepository: userRepo, localStorage: localStorage, deviceIDProvider: deviceProvider)
+                let linkUseCase = LinkAppleAccountUseCase(
+                    authRepository: authRepo,
+                    userRepository: userRepo,
+                    localStorage: localStorage,
+                    deviceIDProvider: deviceProvider,
+                    syncUseCase: syncUseCase
+                )
                 
                 let deleteUseCase = DeleteAccountUseCase(
                     authRepository: authRepo,
                     userRepository: userRepo,
                     localStorage: localStorage,
                     deviceIDProvider: deviceProvider,
-                    databaseCleaner: dbCleaner
+                    databaseCleaner: dbCleaner,
+                    analytics: analytics
                 )
 
                 MainContainerView(
@@ -43,7 +54,7 @@ struct RootView: View {
             }
 
             if step == .onboarding {
-                OnboardingFlowView {
+                OnboardingFlowView(analytics: analytics) {
                     hasSeenOnboarding = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         step = .main
@@ -68,6 +79,9 @@ struct RootView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
+        .onAppear {
+            analytics.track(OnboardingEvent.appLaunch)
+        }
         .onChange(of: hasSeenOnboarding) { newValue in
             if newValue == false {
                 withAnimation(.easeInOut(duration: 0.5)) {
@@ -87,9 +101,17 @@ struct RootView: View {
                     authRepository: authRepo,
                     userRepository: userRepo,
                     localStorage: localStorage,
-                    deviceIDProvider: deviceProvider
+                    deviceIDProvider: deviceProvider,
+                    analytics: analytics
                 )
                 await registrationUseCase.execute()
+                
+                if localStorage.isAppleLinked {
+                    let historyRepo = HistoryRepositoryImpl()
+                    let productRepo = ProductRepositoryImpl()
+                    let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
+                    await syncUseCase.execute()
+                }
             }
         }
     }

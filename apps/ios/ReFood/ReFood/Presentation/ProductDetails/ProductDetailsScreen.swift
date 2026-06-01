@@ -7,6 +7,7 @@ struct ProductDetailsScreen: View {
     private let uploadService: ImageUploadServicing
     private let languageProvider: LanguageProvider
     private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     
     let onBack: () -> Void
     var onCompare: (Product) -> Void
@@ -14,7 +15,8 @@ struct ProductDetailsScreen: View {
     
     @State private var showRecycling = false
     @State private var showEditScreen = false
-
+    @State private var showShareSheet = false
+    
     enum NutritionTab: String, CaseIterable {
         case per100g = "details_tab_100g"
         case perServing = "details_tab_serving"
@@ -26,6 +28,7 @@ struct ProductDetailsScreen: View {
         uploadService: ImageUploadServicing,
         languageProvider: LanguageProvider,
         metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onCompare: @escaping (Product) -> Void = { _ in },
         onFindRecyclingPoint: @escaping (String) -> Void
@@ -34,7 +37,8 @@ struct ProductDetailsScreen: View {
         self.repository = repository
         self.uploadService = uploadService
         self.languageProvider = languageProvider
-        self.metricsRepository = metricsRepository 
+        self.metricsRepository = metricsRepository
+        self.analytics = analytics
         self.onBack = onBack
         self.onCompare = onCompare
         self.onFindRecyclingPoint = onFindRecyclingPoint
@@ -67,25 +71,49 @@ struct ProductDetailsScreen: View {
                     DetailsNutritionCard(vm: vm)
                         .padding(.horizontal, 24)
                     
-                    DetailsPackagingCard(vm: vm, onSortTapped: { showRecycling = true })
+                    DetailsPackagingCard(vm: vm, onSortTapped: {
+                        analytics.track(ProductDetailsEvent.sortTap)
+                        showRecycling = true
+                    })
                         .padding(.horizontal, 24)
                     
-                    DetailsCompareButton(onCompare: { onCompare(vm.product) })
+                    DetailsCompareButton(onCompare: {
+                        analytics.track(ProductDetailsEvent.compareTap)
+                        onCompare(vm.product)
+                    })
                         .padding(.horizontal, 24)
                         .padding(.bottom, 32)
                 }
             }
             
             DetailsTopBar(
-                onBack: onBack,
-                onEdit: { showEditScreen = true }
+                onBack: {
+                    analytics.track(ProductDetailsEvent.backTap)
+                    onBack()
+                },
+                onShare: {
+                    analytics.track(ProductDetailsEvent.shareTap(barcode: vm.product.barcode))
+                    showShareSheet = true
+                },
+                onEdit: {
+                    analytics.track(ProductDetailsEvent.editTap)
+                    showEditScreen = true
+                }
             )
+        }
+        .onAppear {
+            analytics.track(ProductDetailsEvent.screenView(barcode: vm.product.barcode))
+        }
+        .onChange(of: vm.nutritionTab) { tab in
+            let mode = tab == .per100g ? "100g" : "serving"
+            analytics.track(ProductDetailsEvent.toggleTap(mode: mode))
         }
         .fullScreenCover(isPresented: $showRecycling) {
             RecyclingScreen(
                 product: vm.product,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepository,
+                analytics: analytics,
                 onBack: { showRecycling = false },
                 onFindPointTapped: { filter in
                     showRecycling = false
@@ -99,8 +127,12 @@ struct ProductDetailsScreen: View {
                 existingProduct: vm.product,
                 repository: repository,
                 uploadService: uploadService,
-                metricsRepository: metricsRepository
+                metricsRepository: metricsRepository,
+                analytics: analytics
             )
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [vm.getShareText()])
         }
     }
 }

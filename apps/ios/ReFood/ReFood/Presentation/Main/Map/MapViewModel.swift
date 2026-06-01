@@ -55,11 +55,18 @@ final class MapViewModel: ObservableObject {
     private let repository: LocationRepository
     private let networkMonitor: NetworkMonitoring
     private let locationService: LocationServiceProtocol
+    private let metricsRepository: MetricsRepositoryProtocol
 
-    init(repository: LocationRepository, networkMonitor: NetworkMonitoring, locationService: LocationServiceProtocol) {
+    init(
+        repository: LocationRepository,
+        networkMonitor: NetworkMonitoring,
+        locationService: LocationServiceProtocol,
+        metricsRepository: MetricsRepositoryProtocol
+    ) {
         self.repository = repository
         self.networkMonitor = networkMonitor
         self.locationService = locationService
+        self.metricsRepository = metricsRepository
     }
     
     func onAppear() {
@@ -166,6 +173,7 @@ final class MapViewModel: ObservableObject {
                     self.selectedPoint = nil
                     self.isBuildingRoute = false
                     self.loadingRouteMode = nil
+                    self.incrementSortedCount()
                     focusOnRoute(fetchedRoute)
                 }
             } catch {
@@ -272,5 +280,9 @@ final class MapViewModel: ObservableObject {
         let fallback = material.replacingOccurrences(of: "_", with: " ").capitalized
         let localized = NSLocalizedString(key, comment: "")
         return localized == key ? fallback : localized
+    }
+    
+    func incrementSortedCount() {
+        metricsRepository.incrementSortedCount()
     }
 }

@@ -4,6 +4,7 @@ struct ManualInputTextField: View {
     @Binding var text: String
     var focus: FocusState<Bool>.Binding
     var onFilter: (String) -> Void
+    var onDoneTap: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -16,6 +17,7 @@ struct ManualInputTextField: View {
                 
                 if focus.wrappedValue {
                     Button("common_done") {
+                        onDoneTap()
                         withAnimation(.spring()) {
                             focus.wrappedValue = false
                         }

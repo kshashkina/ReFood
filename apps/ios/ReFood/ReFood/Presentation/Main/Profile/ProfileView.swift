@@ -6,6 +6,7 @@ struct ProfileView: View {
     private let emailService: EmailServiceProtocol
     private let deleteAccountUseCase: DeleteAccountUseCase
     private let localStorage: LocalStorageProtocol
+    let analytics: AnalyticsServiceProtocol
     
     @State private var showAchievements = false
     @State private var showHelp = false
@@ -16,12 +17,14 @@ struct ProfileView: View {
         emailService: EmailServiceProtocol,
         linkAccountUseCase: LinkAppleAccountUseCase,
         deleteAccountUseCase: DeleteAccountUseCase,
-        localStorage: LocalStorageProtocol
+        localStorage: LocalStorageProtocol,
+        analytics: AnalyticsServiceProtocol
     ) {
         self.metricsRepository = metricsRepository
         self.emailService = emailService
         self.deleteAccountUseCase = deleteAccountUseCase
         self.localStorage = localStorage
+        self.analytics = analytics
         self._vm = StateObject(wrappedValue: ProfileViewModel(
             metricsRepository: metricsRepository,
             linkAccountUseCase: linkAccountUseCase,
@@ -42,6 +45,7 @@ struct ProfileView: View {
                         
                         if !vm.isLinked {
                             ProfileAuthCard(action: {
+                                analytics.track(ProfileEvent.signInTap)
                                 vm.linkAppleAccount()
                             })
                             .opacity(vm.isLoading ? 0.5 : 1.0)
@@ -66,9 +70,18 @@ struct ProfileView: View {
                         }
                         
                         VStack(spacing: 12) {
-                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) { showAchievements = true }
-                            ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) { showSettings = true }
-                            ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) { showHelp = true }
+                            ProfileRowButton(icon: "rosette", title: String(localized: "profile_menu_achievements"), iconTint: .appAccent) {
+                                analytics.track(ProfileEvent.achievementsTap)
+                                showAchievements = true
+                            }
+                            ProfileRowButton(icon: "gearshape", title: String(localized: "profile_menu_settings")) {
+                                analytics.track(ProfileEvent.settingsTap)
+                                showSettings = true
+                            }
+                            ProfileRowButton(icon: "questionmark.circle", title: String(localized: "profile_menu_help")) {
+                                analytics.track(ProfileEvent.helpTap)
+                                showHelp = true
+                            }
                         }
                         .padding(.top, 8)
                         .padding(.bottom, 160)
@@ -84,16 +97,19 @@ struct ProfileView: View {
             }
         }
         .onAppear {
+            let state = vm.isLinked ? "in" : "out"
+            analytics.track(ProfileEvent.screenView(state: state))
+            
             vm.loadMetrics()
         }
         .fullScreenCover(isPresented: $showAchievements) {
-            AchievementsView(metricsRepository: metricsRepository, onBack: { showAchievements = false })
+            AchievementsView(metricsRepository: metricsRepository, analytics: analytics, onBack: { showAchievements = false })
         }
         .fullScreenCover(isPresented: $showHelp) {
-            HelpView(emailService: emailService, onBack: { showHelp = false })
+            HelpView(emailService: emailService, analytics: analytics,onBack: { showHelp = false })
         }
         .fullScreenCover(isPresented: $showSettings) {
-            SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, onBack: { showSettings = false })
+            SettingsView(deleteAccountUseCase: deleteAccountUseCase, localStorage: localStorage, analytics: analytics, onBack: { showSettings = false })
         }
     }
 }

@@ -2,12 +2,15 @@ import SwiftUI
 
 struct RecyclingScreen: View {
     @StateObject private var vm: RecyclingViewModel
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     let onFindPointTapped: (String) -> Void
+    
     init(
         product: Product,
         languageProvider: LanguageProvider,
         metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onFindPointTapped: @escaping (String) -> Void
     ) {
@@ -16,6 +19,7 @@ struct RecyclingScreen: View {
             languageProvider: languageProvider,
             metricsRepository: metricsRepository
         ))
+        self.analytics = analytics
         self.onBack = onBack
         self.onFindPointTapped = onFindPointTapped
     }
@@ -42,14 +46,17 @@ struct RecyclingScreen: View {
                     RecyclingWasteTypesSection(
                         wasteTypes: vm.standardWasteTypes,
                         selectedType: vm.selectedWasteType,
-                        onSelect: { vm.selectedWasteType = $0 }
+                        onSelect: {
+                            analytics.track(RecyclingEvent.selectTap(type: $0.titleKey))
+                            vm.selectedWasteType = $0
+                        }
                     )
                     
                     let isButtonDisabled = vm.selectedWasteType == nil
                     
                     RecyclingFindPointButton(isDisabled: isButtonDisabled) {
                         guard let selected = vm.selectedWasteType else { return }
-                        vm.incrementSortedCount()
+                        analytics.track(RecyclingEvent.findTap(type: selected.titleKey))
                         onFindPointTapped(selected.filterKey)
                     }
                 }
@@ -58,7 +65,13 @@ struct RecyclingScreen: View {
                 .padding(.bottom, 40)
             }
             
-            RecyclingTopBar(onBack: onBack)
+            RecyclingTopBar(onBack: {
+                analytics.track(RecyclingEvent.backTap)
+                onBack()
+            })
+        }
+        .onAppear {
+            analytics.track(RecyclingEvent.screenView)
         }
     }
 }

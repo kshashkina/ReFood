@@ -17,18 +17,20 @@ public final class ImageUploadService: ImageUploadServicing {
         }
         
         let uploadInfo = try await repository.prepareUpload()
+        
         try await repository.uploadImage(url: uploadInfo.uploadUrl, data: data)
-        let validation = try await repository.validateImage(s3Key: uploadInfo.s3Key, imageId: uploadInfo.imageId)
-        
-        let localizedError: String?
-        let languageCode = Locale.current.language.languageCode?.identifier
-        
-        if languageCode == "uk" {
-            localizedError = validation.error_ua
-        } else {
-            localizedError = validation.error_en
+        while true {
+            let validation = try await repository.checkValidation(imageId: uploadInfo.imageId)
+            
+            if validation.status == "APPROVED" {
+                return (uploadInfo.s3Key, uploadInfo.imageId, true, nil)
+            } else if validation.status == "REJECTED" {
+                let languageCode = Locale.current.language.languageCode?.identifier
+                let localizedError = languageCode == "uk" ? validation.error_ua : validation.error_en
+                return (uploadInfo.s3Key, uploadInfo.imageId, false, localizedError)
+            }
+            
+            try await Task.sleep(nanoseconds: 2_000_000_000)
         }
-        
-        return (uploadInfo.s3Key, uploadInfo.imageId, validation.isValid, localizedError)
     }
 }

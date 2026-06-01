@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MainTabBar: View {
+    let analytics: AnalyticsServiceProtocol
     let onTapScanner: () -> Void
     @Binding var selected: MainTab
 
@@ -33,6 +34,7 @@ struct MainTabBar: View {
 
     private func tabButton(_ tab: MainTab, titleKey: LocalizedStringKey, system: String) -> some View {
         Button {
+            analytics.track(NavigationEvent.tabTap(destination: tab.stringValue, source: selected))
             selected = tab
         } label: {
             VStack(spacing: 4) {
@@ -50,6 +52,7 @@ struct MainTabBar: View {
 
     private var scannerButton: some View {
         Button {
+            analytics.track(NavigationEvent.tabTap(destination: "scanner", source: selected))
             onTapScanner()
         } label: {
             ZStack {

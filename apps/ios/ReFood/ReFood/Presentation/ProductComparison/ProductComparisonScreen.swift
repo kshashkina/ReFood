@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProductComparisonScreen: View {
     @StateObject private var vm: ProductComparisonViewModel
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     
     init(
@@ -9,6 +10,7 @@ struct ProductComparisonScreen: View {
         productB: Product,
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
+        analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void
     ) {
         self._vm = StateObject(wrappedValue: ProductComparisonViewModel(
@@ -17,6 +19,7 @@ struct ProductComparisonScreen: View {
             aiRepository: aiRepository,
             languageProvider: languageProvider
         ))
+        self.analytics = analytics
         self.onBack = onBack
     }
     
@@ -33,17 +36,27 @@ struct ProductComparisonScreen: View {
                     
                     ComparisonNutritionSection(vm: vm)
                     
-                    ComparisonAISection(vm: vm)
+                    ComparisonAISection(vm: vm, analytics: analytics)
                         .padding(.bottom, 32)
                 }
                 .padding(.horizontal, 24)
             }
             
-            ComparisonTopBar(onBack: onBack)
+            ComparisonTopBar(onBack: {
+                analytics.track(ComparisonEvent.backTap)
+                onBack()
+            })
+        }
+        .onAppear {
+            analytics.track(ComparisonEvent.screenView)
         }
         .sheet(isPresented: $vm.showNoInternet) {
             NoInternetSheet {
+                analytics.track(NoInternetEvent.noInternetOkTap)
                 vm.showNoInternet = false
+            }
+            .onAppear {
+                analytics.track(NoInternetEvent.noInternetModalView)
             }
             .presentationDetents([.height(360)])
         }

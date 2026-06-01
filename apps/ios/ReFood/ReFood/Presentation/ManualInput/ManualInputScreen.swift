@@ -8,6 +8,7 @@ struct ManualInputScreen: View {
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
     private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     
     let firstProductForComparison: Product?
     let onClose: () -> Void
@@ -30,6 +31,7 @@ struct ManualInputScreen: View {
         historyRepository: HistoryRepository,
         metricsRepository: MetricsRepositoryProtocol,
         firstProductForComparison: Product? = nil,
+        analytics: AnalyticsServiceProtocol,
         onClose: @escaping () -> Void,
         onResetScanner: @escaping () -> Void,
         onCompareFromDetails: @escaping (Product) -> Void,
@@ -45,9 +47,9 @@ struct ManualInputScreen: View {
         self.uploadService = uploadService
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
-        self.metricsRepository = metricsRepository 
-        
+        self.metricsRepository = metricsRepository
         self.firstProductForComparison = firstProductForComparison
+        self.analytics = analytics
         self.onClose = onClose
         self.onResetScanner = onResetScanner
         self.onCompareFromDetails = onCompareFromDetails
@@ -58,11 +60,15 @@ struct ManualInputScreen: View {
         NavigationStack(path: $path) {
             ManualInputView(
                 vm: vm,
+                analytics: analytics,
                 onClose: onClose,
                 onFind: {
                     Task { await vm.findProduct() }
                 }
             )
+            .onAppear {
+                analytics.track(ManualInputEvent.screenView)
+            }
             .toolbar(.hidden)
             .navigationDestination(for: Destination.self) { destination in
                 switch destination {
@@ -71,6 +77,7 @@ struct ManualInputScreen: View {
                         product: product,
                         firstProductForComparison: firstProductForComparison,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: { onResetScanner() },
                         onContinue: {
                             if let first = firstProductForComparison {
@@ -89,7 +96,8 @@ struct ManualInputScreen: View {
                         repository: repository,
                         uploadService: uploadService,
                         languageProvider: languageProvider,
-                        metricsRepository: metricsRepository, 
+                        metricsRepository: metricsRepository,
+                        analytics: analytics,
                         onBack: { onResetScanner() },
                         onCompare: { pA in onCompareFromDetails(pA) },
                         onFindRecyclingPoint: { filter in onFindRecyclingPoint(filter) }
@@ -102,6 +110,7 @@ struct ManualInputScreen: View {
                         productB: pB,
                         aiRepository: aiRepository,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: { onResetScanner() }
                     )
                     .toolbar(.hidden)
@@ -111,12 +120,21 @@ struct ManualInputScreen: View {
                         barcode: barcode,
                         repository: repository,
                         uploadService: uploadService,
-                        metricsRepository: metricsRepository
+                        metricsRepository: metricsRepository,
+                        analytics: analytics
                     )
                     .toolbar(.hidden)
                 }
             }
             .sheet(isPresented: $vm.isLoading, onDismiss: {
+                if path.isEmpty {
+                    if vm.isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundSwipe)
+                    } else {
+                        let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                        analytics.track(LoadingSheetEvent.productLoadingSwipe(step: step))
+                    }
+                }
                 vm.isLoading = false
             }) {
                 ProductLoadingSheet(
@@ -125,26 +143,41 @@ struct ManualInputScreen: View {
                     currentStep: vm.currentStep,
                     isFailed: vm.isFailed,
                     onFinish: {
+                        analytics.track(LoadingSheetEvent.productLoadingContinueTap)
                         vm.isLoading = false
                         if let p = vm.product {
                             path.append(.preview(p))
                         }
                     },
                     onTryAgain: {
+                        analytics.track(LoadingSheetEvent.notFoundTryAgainTap)
                         vm.isLoading = false
                     },
                     onAddProduct: {
+                        analytics.track(LoadingSheetEvent.notFoundAddTap)
                         vm.isLoading = false
                         path.append(.addProduct(vm.barcode))
                     }
                 )
+                .onAppear {
+                    analytics.track(LoadingSheetEvent.productLoadingModalView)
+                }
+                .onChange(of: vm.isFailed) { isFailed in
+                    if isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundModalView)
+                    }
+                }
                 .presentationDetents([.height(560)])
             }
             .sheet(isPresented: $vm.showNoInternet, onDismiss: {
                 vm.resetAfterNoInternet()
             }) {
                 NoInternetSheet {
+                    analytics.track(NoInternetEvent.noInternetOkTap)
                     vm.showNoInternet = false
+                }
+                .onAppear {
+                    analytics.track(NoInternetEvent.noInternetModalView)
                 }
                 .presentationDetents([.height(360)])
             }

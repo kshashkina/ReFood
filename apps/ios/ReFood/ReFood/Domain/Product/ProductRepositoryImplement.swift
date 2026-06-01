@@ -25,6 +25,23 @@ final class ProductRepositoryImpl: ProductRepository {
         }
     }
     
+    func recordScan(product: Product) async throws {
+        let payload = ScanPayload(
+            barcode: product.barcode,
+            productName: product.productName ?? "",
+            productBrand: product.brands ?? "",
+            image: product.imageUrl ?? "",
+            productVersion: Int64(Date().timeIntervalSince1970 * 1000)
+        )
+        
+        do {
+            try await ProductAPI.recordScan(payload: payload)
+        } catch {
+            print("⚠️ Failed to record scan: \(error)")
+            throw ProductError.network
+        }
+    }
+    
     func addProduct(_ product: ProductAdd) async throws {
             do {
                 try await ProductAPI.addProduct(product: product)
@@ -43,18 +60,15 @@ final class ProductRepositoryImpl: ProductRepository {
             try await ProductAPI.uploadToS3(urlString: url, imageData: data)
         }
 
-    func validateImage(s3Key: String, imageId: String) async throws -> S3ValidationResponse {
-            try await ProductAPI.validateImage(s3Key: s3Key, imageId: imageId)
-        }
-
-    func finalizeAndAdd(product: ProductAdd, s3Key: String, imageId: String) async throws {
-            let publicUrl = try await ProductAPI.finalizeImage(
-                s3Key: s3Key,
-                imageId: imageId,
-                barcode: product.barcode
-            )
-            var finalProduct = product
-            finalProduct.image_url = publicUrl
-            try await ProductAPI.addProduct(product: finalProduct)
+    func checkValidation(imageId: String) async throws -> S3ValidationResponse {
+        try await ProductAPI.checkImageValidationStatus(imageId: imageId)
+    }
+    
+    func toggleFavorite(barcode: String, isFavorite: Bool) async throws {
+            if isFavorite {
+                try await ProductAPI.addFavorite(barcode: barcode)
+            } else {
+                try await ProductAPI.removeFavorite(barcode: barcode)
+            }
         }
 }

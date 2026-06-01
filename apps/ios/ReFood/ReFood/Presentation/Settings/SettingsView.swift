@@ -3,16 +3,18 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var vm: SettingsViewModel
     @State private var showDeleteAlert = false
+    let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     
     private let termsURL = "https://refood-docs-v1.s3.eu-north-1.amazonaws.com/public/terms-of-service.html"
     private let privacyURL = "https://refood-docs-v1.s3.eu-north-1.amazonaws.com/public/privacy-policy.html"
     
-    init(deleteAccountUseCase: DeleteAccountUseCase, localStorage: LocalStorageProtocol, onBack: @escaping () -> Void) {
+    init(deleteAccountUseCase: DeleteAccountUseCase, localStorage: LocalStorageProtocol, analytics: AnalyticsServiceProtocol, onBack: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: SettingsViewModel(
             deleteAccountUseCase: deleteAccountUseCase,
             localStorage: localStorage
         ))
+        self.analytics = analytics
         self.onBack = onBack
     }
     
@@ -25,18 +27,22 @@ struct SettingsView: View {
                     
                     SettingsSectionView(title: String(localized: "settings_section_permissions")) {
                         SettingsRowButton(icon: "camera", title: String(localized: "settings_permission_camera")) {
+                            analytics.track(SettingsEvent.cameraTap)
                             vm.openSystemSettings()
                         }
                         SettingsRowButton(icon: "location", title: String(localized: "settings_permission_location")) {
+                            analytics.track(SettingsEvent.locationTap)
                             vm.openSystemSettings()
                         }
                     }
                     
                     SettingsSectionView(title: String(localized: "settings_section_legal")) {
                         SettingsRowButton(icon: "doc.text", title: String(localized: "settings_legal_terms")) {
+                            analytics.track(SettingsEvent.termsTap)
                             vm.openURL(termsURL)
                         }
                         SettingsRowButton(icon: "shield", title: String(localized: "settings_legal_privacy")) {
+                            analytics.track(SettingsEvent.privacyTap)
                             vm.openURL(privacyURL)
                         }
                     }
@@ -50,6 +56,7 @@ struct SettingsView: View {
                                 bgTint: Color.red.opacity(0.1),
                                 borderTint: Color.red.opacity(0.3)
                             ) {
+                                analytics.track(SettingsEvent.deleteAccountTap)
                                 showDeleteAlert = true
                             }
                         }
@@ -66,16 +73,31 @@ struct SettingsView: View {
                 .padding(.top, 110)
             }
             
-            SettingsHeaderView(title: String(localized: "settings_title"), onBack: onBack)
+            SettingsHeaderView(title: String(localized: "settings_title"), onBack: {
+                analytics.track(SettingsEvent.backTap)
+                onBack()
+            })
             
             if vm.isLoading {
                 Color.black.opacity(0.5).ignoresSafeArea()
                 ProgressView().scaleEffect(1.5).tint(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onAppear {
+            let state = vm.isLinked ? "in" : "out"
+            analytics.track(SettingsEvent.screenView(state: state))
+        }
+        .onChange(of: showDeleteAlert) { isPresented in
+            if isPresented {
+                analytics.track(SettingsEvent.deleteAccountModalView)
+            }
+        }
         .alert(String(localized: "settings_delete_account"), isPresented: $showDeleteAlert) {
-            Button(String(localized: "alert_cancel"), role: .cancel) { }
+            Button(String(localized: "alert_cancel"), role: .cancel) {
+                analytics.track(SettingsEvent.deleteAccountCancelTap)
+            }
             Button(String(localized: "alert_delete"), role: .destructive) {
+                analytics.track(SettingsEvent.deleteAccountConfirmTap)
                 vm.deleteAccount()
             }
         } message: {

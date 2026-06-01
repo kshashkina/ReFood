@@ -4,6 +4,9 @@ struct PhotoSectionView: View {
     @ObservedObject var vm: AddProductViewModel
     @Binding var showCamera: Bool
     
+    let flow: String
+    let analytics: AnalyticsServiceProtocol
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -15,7 +18,10 @@ struct PhotoSectionView: View {
             Text(vm.isEditingMode ? "addProduct_step1_desc_edit" : "addProduct_step1_desc_new")
                 .font(.system(size: 14)).foregroundColor(.white.opacity(0.6))
             
-            Button { showCamera = true } label: {
+            Button {
+                analytics.track(ProductChangeEvent.photoTap(flow: flow))
+                showCamera = true
+            } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.05)).frame(height: 160)
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(vm.imageError != nil ? Color.red.opacity(0.5) : (vm.isImageValid ? Color.appAccent.opacity(0.5) : Color.white.opacity(0.1)), lineWidth: 2))
@@ -72,29 +78,32 @@ struct NutritionSectionView: View {
     @Binding var nutrition: NutritionFormFields
     var focus: FocusState<Bool>.Binding
     
+    let flow: String
+    let analytics: AnalyticsServiceProtocol
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("addProduct_nutrition_title").font(.system(size: 14, weight: .bold)).foregroundColor(Color.appAccent).padding(.leading, 4)
             GlassCard(cornerRadius: 20, padding: 20) {
                 VStack(spacing: 20) {
                     HStack(spacing: 16) {
-                        AddProductInputField(label: "addProduct_label_kcal", text: $nutrition.kcal, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus)
-                        AddProductInputField(label: "addProduct_label_proteins", text: $nutrition.proteins, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus)
+                        AddProductInputField(label: "addProduct_label_kcal", text: $nutrition.kcal, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.kcalTap(flow: flow)) })
+                        AddProductInputField(label: "addProduct_label_proteins", text: $nutrition.proteins, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.proteinsTap(flow: flow)) })
                     }
                     HStack(spacing: 16) {
-                        AddProductInputField(label: "addProduct_label_fats", text: $nutrition.fats, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus)
-                        AddProductInputField(label: "addProduct_label_carbs", text: $nutrition.carbs, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus)
+                        AddProductInputField(label: "addProduct_label_fats", text: $nutrition.fats, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.fatsTap(flow: flow)) })
+                        AddProductInputField(label: "addProduct_label_carbs", text: $nutrition.carbs, placeholder: "0", keyboard: .decimalPad, isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.carbsTap(flow: flow)) })
                     }
                     Divider().background(Color.white.opacity(0.1))
                     HStack(spacing: 16) {
-                        AddProductInputField(label: "addProduct_label_sat_fat", text: $nutrition.saturatedFat, placeholder: "0", keyboard: .decimalPad, focus: focus)
-                        AddProductInputField(label: "addProduct_label_sugars", text: $nutrition.sugars, placeholder: "0", keyboard: .decimalPad, focus: focus)
+                        AddProductInputField(label: "addProduct_label_sat_fat", text: $nutrition.saturatedFat, placeholder: "0", keyboard: .decimalPad, focus: focus, onTap: { analytics.track(ProductChangeEvent.satFatTap(flow: flow)) })
+                        AddProductInputField(label: "addProduct_label_sugars", text: $nutrition.sugars, placeholder: "0", keyboard: .decimalPad, focus: focus, onTap: { analytics.track(ProductChangeEvent.sugarsTap(flow: flow)) })
                     }
                     HStack(spacing: 16) {
-                        AddProductInputField(label: "addProduct_label_added_sugars", text: $nutrition.addedSugars, placeholder: "0", keyboard: .decimalPad, focus: focus)
-                        AddProductInputField(label: "addProduct_label_salt", text: $nutrition.salt, placeholder: "0", keyboard: .decimalPad, focus: focus)
+                        AddProductInputField(label: "addProduct_label_added_sugars", text: $nutrition.addedSugars, placeholder: "0", keyboard: .decimalPad, focus: focus, onTap: { analytics.track(ProductChangeEvent.addedSugarsTap(flow: flow)) })
+                        AddProductInputField(label: "addProduct_label_salt", text: $nutrition.salt, placeholder: "0", keyboard: .decimalPad, focus: focus, onTap: { analytics.track(ProductChangeEvent.saltTap(flow: flow)) })
                     }
-                    AddProductInputField(label: "addProduct_label_caffeine", text: $nutrition.caffeine, placeholder: "0", keyboard: .decimalPad, focus: focus)
+                    AddProductInputField(label: "addProduct_label_caffeine", text: $nutrition.caffeine, placeholder: "0", keyboard: .decimalPad, focus: focus, onTap: { analytics.track(ProductChangeEvent.caffeineTap(flow: flow)) })
                 }
             }
         }
@@ -106,6 +115,9 @@ struct GeneralInfoSectionView: View {
     let barcode: String
     var focus: FocusState<Bool>.Binding
     
+    let flow: String
+    let analytics: AnalyticsServiceProtocol
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -116,10 +128,10 @@ struct GeneralInfoSectionView: View {
             
             GlassCard(cornerRadius: 20, padding: 20) {
                 VStack(spacing: 16) {
-                    AddProductInputField(label: "addProduct_label_name", text: $form.name, placeholder: "addProduct_placeholder_name", isRequired: true, focus: focus)
-                    AddProductInputField(label: "addProduct_label_brand", text: $form.brand, placeholder: "addProduct_placeholder_brand", isRequired: true, focus: focus)
-                    AddProductInputField(label: "addProduct_label_quantity", text: $form.quantity, placeholder: "addProduct_placeholder_quantity", focus: focus)
-                    AddProductInputField(label: "addProduct_label_categories", text: $form.categories, placeholder: "addProduct_placeholder_categories", focus: focus)
+                    AddProductInputField(label: "addProduct_label_name", text: $form.name, placeholder: "addProduct_placeholder_name", isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.nameTap(flow: flow)) })
+                    AddProductInputField(label: "addProduct_label_brand", text: $form.brand, placeholder: "addProduct_placeholder_brand", isRequired: true, focus: focus, onTap: { analytics.track(ProductChangeEvent.brandTap(flow: flow)) })
+                    AddProductInputField(label: "addProduct_label_quantity", text: $form.quantity, placeholder: "addProduct_placeholder_quantity", focus: focus, onTap: { analytics.track(ProductChangeEvent.quantityTap(flow: flow)) })
+                    AddProductInputField(label: "addProduct_label_categories", text: $form.categories, placeholder: "addProduct_placeholder_categories", focus: focus, onTap: { analytics.track(ProductChangeEvent.categoryTap(flow: flow)) })
                     
                     HStack {
                         Image(systemName: "barcode.viewfinder")
@@ -137,6 +149,9 @@ struct PackagingSectionView: View {
     let onAdd: () -> Void
     var focus: FocusState<Bool>.Binding
     
+    let flow: String
+    let analytics: AnalyticsServiceProtocol
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -145,7 +160,10 @@ struct PackagingSectionView: View {
                     Text("addProduct_packaging_desc").font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
                 }
                 Spacer()
-                Button(action: onAdd) {
+                Button(action: {
+                    analytics.track(ProductChangeEvent.packagingAddTap(flow: flow))
+                    onAdd()
+                }) {
                     Image(systemName: "plus.circle.fill").foregroundColor(Color.appAccent).font(.system(size: 20))
                 }
             }.padding(.horizontal, 4)
@@ -155,10 +173,19 @@ struct PackagingSectionView: View {
                     GlassCard(cornerRadius: 16, padding: 12) {
                         VStack(spacing: 10) {
                             HStack(spacing: 10) {
-                                TextField(LocalizedStringKey("addProduct_label_shape"), text: $packaging[index].shape).focused(focus).inputStyle(accent: Color.appAccent)
-                                TextField(LocalizedStringKey("addProduct_label_material"), text: $packaging[index].material).focused(focus).inputStyle(accent: Color.appAccent)
+                                TextField(LocalizedStringKey("addProduct_label_shape"), text: $packaging[index].shape)
+                                    .focused(focus)
+                                    .inputStyle(accent: Color.appAccent)
+                                    .simultaneousGesture(TapGesture().onEnded { analytics.track(ProductChangeEvent.packagingShapeTap(flow: flow)) })
+                                TextField(LocalizedStringKey("addProduct_label_material"), text: $packaging[index].material)
+                                    .focused(focus)
+                                    .inputStyle(accent: Color.appAccent)
+                                    .simultaneousGesture(TapGesture().onEnded { analytics.track(ProductChangeEvent.packagingMaterialTap(flow: flow)) })
                             }
-                            TextField(LocalizedStringKey("addProduct_label_recycling_code"), text: $packaging[index].recycling).focused(focus).inputStyle(accent: Color.appAccent)
+                            TextField(LocalizedStringKey("addProduct_label_recycling_code"), text: $packaging[index].recycling)
+                                .focused(focus)
+                                .inputStyle(accent: Color.appAccent)
+                                .simultaneousGesture(TapGesture().onEnded { analytics.track(ProductChangeEvent.packagingCodeTap(flow: flow)) })
                         }
                     }
                 }
@@ -170,6 +197,9 @@ struct PackagingSectionView: View {
 struct IngredientsSectionView: View {
     @Binding var form: ProductFormModel
     var focus: FocusState<Bool>.Binding
+    
+    let flow: String
+    let analytics: AnalyticsServiceProtocol
     
     var body: some View {
         GlassCard(cornerRadius: 20, padding: 20) {
@@ -194,13 +224,15 @@ struct IngredientsSectionView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
                         )
+                        .simultaneousGesture(TapGesture().onEnded { analytics.track(ProductChangeEvent.ingredientsTap(flow: flow)) })
                 }
                 
                 AddProductInputField(
                     label: "addProduct_label_allergens",
                     text: $form.allergens,
                     placeholder: "addProduct_placeholder_allergens",
-                    focus: focus
+                    focus: focus,
+                    onTap: { analytics.track(ProductChangeEvent.allergensTap(flow: flow)) }
                 )
             }
         }

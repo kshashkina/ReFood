@@ -20,6 +20,8 @@ struct MainContainerView: View {
     private let localStorage: LocalStorageProtocol
     private let linkUseCase: LinkAppleAccountUseCase
     private let deleteUseCase: DeleteAccountUseCase
+    
+    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
 
     init(
         dashboardData: DailyDashboardResponse?,
@@ -45,7 +47,9 @@ struct MainContainerView: View {
             VStack {
                 Spacer()
                 MainTabBar(
-                    onTapScanner: { vm.onTapScan()}, selected: $selectedTab
+                    analytics: analytics,
+                    onTapScanner: { vm.onTapScan()},
+                    selected: $selectedTab
                 )
                 .padding(.bottom, 16)
             }.ignoresSafeArea(.keyboard, edges: .bottom)
@@ -53,8 +57,14 @@ struct MainContainerView: View {
             if vm.isCameraAccessModalPresented {
                 CameraAccessModalView(
                     isPresented: $vm.isCameraAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(ScannerEvent.cameraAccessDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(ScannerEvent.cameraAccessDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(100)
             }
@@ -62,14 +72,32 @@ struct MainContainerView: View {
             if vm.isLocationAccessModalPresented {
                 LocationAccessModalView(
                     isPresented: $vm.isLocationAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(MapEvent.locationDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(MapEvent.locationDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(101)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: vm.isCameraAccessModalPresented)
         .animation(.easeInOut(duration: 0.2), value: vm.isLocationAccessModalPresented)
+        
+        .onChange(of: vm.isCameraAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(ScannerEvent.cameraAccessDeniedCloseTap)
+            }
+        }
+        
+        .onChange(of: vm.isLocationAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(MapEvent.locationDeniedCloseTap)
+            }
+        }
         
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
@@ -79,7 +107,7 @@ struct MainContainerView: View {
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
             if isPresented {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     selectedTab = .home
                 }
             }
@@ -92,7 +120,12 @@ struct MainContainerView: View {
                 languageProvider: languageProvider,
                 historyRepository: historyRepo,
                 metricsRepository: metricsRepo,
-                onClose: { vm.isScannerPresented = false },
+                analytics: analytics,
+                firstProductForComparison: vm.productToCompare,
+                onClose: {
+                    vm.isScannerPresented = false
+                    vm.productToCompare = nil
+                },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
                     
@@ -110,8 +143,16 @@ struct MainContainerView: View {
                 uploadService: uploadService,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepo,
+                analytics: analytics,
                 onBack: {
                     vm.selectedSearchProduct = nil
+                },
+                onCompare: { productToCompare in
+                    vm.selectedSearchProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.productToCompare = productToCompare
+                        vm.isScannerPresented = true
+                    }
                 },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.selectedSearchProduct = nil
@@ -132,6 +173,7 @@ struct MainContainerView: View {
                 dashboardData: dashboardData,
                 languageProvider: languageProvider,
                 metricsRepository: metricsRepo,
+                analytics: analytics,
                 onProductTap: { product in
                     vm.selectedSearchProduct = product
                 },
@@ -142,6 +184,8 @@ struct MainContainerView: View {
         case .search:
             SearchView(
                 historyRepository: historyRepo,
+                productRepository: productRepo,
+                analytics: analytics,
                 onProductTap: { product in
                     vm.selectedSearchProduct = product
                 }
@@ -153,8 +197,10 @@ struct MainContainerView: View {
                 repository: locationRepo,
                 networkMonitor: NetworkMonitor.shared,
                 locationService: locationService,
+                metricsRepository: metricsRepo,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
+                analytics: analytics,
                 onRequestLocationAccess: {
                     vm.isLocationAccessModalPresented = true
                 }
@@ -165,8 +211,9 @@ struct MainContainerView: View {
                     metricsRepository: metricsRepo,
                     emailService: emailService,
                     linkAccountUseCase: linkUseCase,
-                    deleteAccountUseCase: deleteUseCase, 
-                    localStorage: localStorage
+                    deleteAccountUseCase: deleteUseCase,
+                    localStorage: localStorage,
+                    analytics: analytics
                 )
         }
     }
