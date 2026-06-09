@@ -9,6 +9,8 @@ export function pointMapper(data, requestedMaterials) {
         const options = props.recycling_options || {};
 
         const acceptedMaterials = Object.keys(options).filter(key => options[key] === true);
+        if (acceptedMaterials.length === 0) return null;
+
         const matchesMaterial = isAll || requestedMaterials.some(material =>
             acceptedMaterials.some(accepted => accepted.toLowerCase().includes(material.toLowerCase()))
         );
