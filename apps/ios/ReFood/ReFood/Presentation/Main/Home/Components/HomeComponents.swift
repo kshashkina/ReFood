@@ -41,11 +41,44 @@ struct InsightCard: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
-                        Text(model.credibilityText).font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.4)).textCase(.uppercase).lineLimit(1)
-                        Text("•").font(.system(size: 11)).foregroundColor(.white.opacity(0.2))
-                        Text(model.date).font(.system(size: 11, weight: .semibold)).foregroundColor(.white.opacity(0.3))
+                        Text(model.credibilityText)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white.opacity(0.4))
+                            .textCase(.uppercase)
+                            .lineLimit(1)
+                        
+                        Text("•")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.2))
+                        
+                        Text(model.date)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.3))
                     }
-                    Text(model.mainTitle).font(.system(size: 16, weight: .bold)).foregroundColor(.white).lineLimit(1)
+                    
+                    Text(model.mainTitle)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    
+                    if model.linkURL != nil {
+                        Text(String(localized: "home_ai_overview"))
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(model.accentColor)
+                            .lineLimit(1)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 9)
+                            .background(model.accentColor.opacity(0.15))
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(
+                                        model.accentColor.opacity(0.25),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .padding(.top, 1)
+                    }
                 }
             }.padding(.bottom, 12)
             

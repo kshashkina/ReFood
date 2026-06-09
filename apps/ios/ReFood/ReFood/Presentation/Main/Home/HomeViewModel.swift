@@ -79,7 +79,7 @@ final class HomeViewModel: ObservableObject {
     
     private static func createNewsUIModel(from news: DailyNews?, lang: String) -> InsightUIModel? {
         guard let news = news else { return nil }
-        let title = (lang == "ua") ? (news.simplifiedTitleUa ?? "Новина") : (news.simplifiedTitleEn ?? "News")
+        let title = (lang == "ua") ? (news.simplifiedTitleUa ?? String(localized: "home_news_fallback")) : (news.simplifiedTitleEn ?? String(localized: "home_news_fallback"))
         return InsightUIModel(emoji: "📰", accentColor: .appAccent, credibilityText: news.resource, mainTitle: String(localized: "home_news_title"), bodyText: title, date: formatDashboardDate(news.date, lang: lang), linkURL: news.link)
     }
     
