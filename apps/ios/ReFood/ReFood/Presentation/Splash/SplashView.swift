@@ -10,9 +10,6 @@ struct SplashView: View {
     @State private var textScale: CGFloat = 0.86
     @State private var textOpacity: Double = 0.0
 
-    private let glowCenterX: CGFloat = 7 + 384/2
-    private let glowCenterY: CGFloat = 122 + 384/2
-
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -22,7 +19,6 @@ struct SplashView: View {
                 .frame(width: 384, height: 384)
                 .blur(radius: 70)
                 .opacity(0.8)
-                .position(x: glowCenterX, y: glowCenterY)
 
             VStack(spacing: 20) {
                 LogoCard()
@@ -37,7 +33,6 @@ struct SplashView: View {
                     .scaleEffect(textScale)
                     .opacity(textOpacity)
             }
-            .position(x: glowCenterX, y: glowCenterY)
         }
         .onAppear {
             startAnimations()
