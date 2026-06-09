@@ -3,7 +3,7 @@ export const PROCESS_RESEARCH_PROMPT = `
 
    INPUT DATA:
    - scientific_articles: { "items": [{ "title": "...", "authors": "...", "abstract": "..." }] }
-   - language: "en" or "ua"
+   - language: "_en" and "_ua" 
 
    CRITICAL RULES:
    1. **NO JARGON**: You must replace every complex medical or statistical term with simple, everyday language.
@@ -23,6 +23,7 @@ export const PROCESS_RESEARCH_PROMPT = `
       - If the science is uncertain (e.g., "preliminary results"), say so clearly.
 
    OUTPUT FORMAT (Strict JSON):
+   You must generate the entire output response in english and ukrainian languages only, _en prefix for english and _ua prefix for ukrainian.
    Return a JSON object with a single key "processed_news". The value must be an array of objects, each containing:
    {
       "id": "pmid unique identifier for the research item (from input data)",
