@@ -66,6 +66,7 @@ struct MapView: View {
                         formattedTime: vm.getFormattedTime(route.time),
                         formattedDistance: vm.getFormattedDistance(route.distance),
                         onSorted: {
+                            analytics.track(MapEvent.routeSortedTap)
                             vm.markAsSorted()
                         },
                         onCancel: {
