@@ -46,38 +46,6 @@ struct RecyclingProductHeader: View {
     }
 }
 
-struct RecyclingWasteTypesSection: View {
-    let wasteTypes: [RecyclingViewModel.WasteType]
-    let selectedType: RecyclingViewModel.WasteType?
-    let onSelect: (RecyclingViewModel.WasteType) -> Void
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("recycling_waste_types")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                Text("recycling_select_type_prompt")
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            
-            VStack(spacing: 12) {
-                ForEach(wasteTypes) { type in
-                    RecyclingWasteTypeRow(
-                        emoji: type.emoji,
-                        titleKey: type.titleKey,
-                        isSelected: selectedType?.id == type.id
-                    )
-                    .onTapGesture { onSelect(type) }
-                }
-            }
-        }
-        .recyclingCardStyle()
-    }
-}
-
 struct RecyclingWasteTypeRow: View {
     let emoji: String
     let titleKey: String

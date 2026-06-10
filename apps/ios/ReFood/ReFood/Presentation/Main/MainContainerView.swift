@@ -112,6 +112,12 @@ struct MainContainerView: View {
                 }
             }
         }
+        .onChange(of: selectedTab) { newValue in
+            if newValue != .map {
+                mapFilter = "filter_all"
+            }
+        }
+            
         .fullScreenCover(isPresented: $vm.isScannerPresented) {
             ScannerScreen(
                 repository: productRepo,

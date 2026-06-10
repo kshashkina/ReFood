@@ -6,7 +6,6 @@ final class RecyclingViewModel: ObservableObject {
     private let product: Product
     private let languageProvider: LanguageProvider
     private let metricsRepository: MetricsRepository
-    @Published var selectedWasteType: WasteType?
     
     init(
         product: Product,
@@ -24,13 +23,6 @@ final class RecyclingViewModel: ObservableObject {
         let materialTitle: String
         let categoryTitle: String
         let preparationSteps: [String]
-    }
-    
-    struct WasteType: Identifiable {
-        let id = UUID()
-        let emoji: String
-        let titleKey: String
-        let filterKey: String
     }
     
     var productName: String {
@@ -64,14 +56,25 @@ final class RecyclingViewModel: ObservableObject {
         }
     }
     
-    let standardWasteTypes: [WasteType] = [
-        WasteType(emoji: "📄", titleKey: "recycling_type_paper", filterKey: "filter_paper"),
-        WasteType(emoji: "♻️", titleKey: "recycling_type_plastic", filterKey: "filter_plastic"),
-        WasteType(emoji: "🫙", titleKey: "recycling_type_glass", filterKey: "filter_glass"),
-        WasteType(emoji: "🔩", titleKey: "recycling_type_metal", filterKey: "filter_metal"),
-        WasteType(emoji: "🌱", titleKey: "recycling_type_organic", filterKey: "filter_all"),
-        WasteType(emoji: "🗑️", titleKey: "recycling_type_mixed", filterKey: "filter_all")
-    ]
+    var combinedMaterialsFilter: String {
+        guard let packaging = product.packagingEn else {
+            return "all"
+        }
+        
+        let materials = packaging.compactMap { item -> String? in
+            guard let material = item.material?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+                  !material.isEmpty else { return nil }
+            return material
+        }
+        var seen = Set<String>()
+        let uniqueMaterials = materials.filter { seen.insert($0).inserted }
+        
+        if uniqueMaterials.isEmpty {
+            return "all"
+        }
+        let result = uniqueMaterials.joined(separator: ",")
+        return result
+    }
     
     private func categoryTitle(for category: RecyclingCategory) -> String {
         languageProvider.currentLanguageCode == "ua" ? category.titleUa : category.titleEn
