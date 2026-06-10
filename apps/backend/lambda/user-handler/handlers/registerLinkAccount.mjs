@@ -28,7 +28,14 @@ export const registerLinkAccount = async (event) => {
         const existingAppleUser = await findUserByCognitoSub(cognitoSub);
 
         if (existingAppleUser) {
+            const anonymousUser = await findUserByDevice(deviceId);
+
             await updateUserDevice(existingAppleUser.userId, deviceId);
+
+            if (anonymousUser && anonymousUser.userId !== existingAppleUser.userId) {
+                await deleteUser(anonymousUser.userId);
+            }
+
             return response(200, { message: "Welcome back" });
         }
 
