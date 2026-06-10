@@ -6,6 +6,7 @@ protocol AuthRepositoryProtocol {
     func signInWithApple() async throws -> String
     func fetchCurrentIdToken() async throws -> String
     func signOut() async throws
+    func repairExpiredSessionIfNeeded() async
 }
 
 protocol UserRepositoryProtocol {

@@ -25,10 +25,14 @@ final class AmplifyAuthRepository: AuthRepositoryProtocol {
     
     func signInWithApple() async throws -> String {
         let window = await getWindow()
-        do {
-            _ = try await Amplify.Auth.signInWithWebUI(for: .apple, presentationAnchor: window)
-        } catch {
+        let session = try? await Amplify.Auth.fetchAuthSession()
+        if session?.isSignedIn == true {
+            _ = await Amplify.Auth.signOut(options: .init(globalSignOut: false))
         }
+        _ = try await Amplify.Auth.signInWithWebUI(
+            for: .apple,
+            presentationAnchor: window
+        )
         return try await fetchCurrentIdToken()
     }
     
@@ -41,9 +45,23 @@ final class AmplifyAuthRepository: AuthRepositoryProtocol {
     }
     
     func signOut() async throws {
-        let secClasses = [kSecClassGenericPassword, kSecClassInternetPassword, kSecClassCertificate, kSecClassKey, kSecClassIdentity]
-        for secClass in secClasses {
-            SecItemDelete([kSecClass as String: secClass] as CFDictionary)
+        let result = await Amplify.Auth.signOut(options: .init(globalSignOut: false))
+    }
+    
+    func repairExpiredSessionIfNeeded() async {
+        do {
+            let session = try await Amplify.Auth.fetchAuthSession()
+            guard let credentialsProvider = session as? AuthAWSCredentialsProvider else {
+                return
+            }
+            do {
+                _ = try credentialsProvider.getAWSCredentials().get()
+            } catch {
+
+                _ = await Amplify.Auth.signOut(options: .init(globalSignOut: false))
+            }
+        } catch {
+            _ = await Amplify.Auth.signOut(options: .init(globalSignOut: false))
         }
     }
 }

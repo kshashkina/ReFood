@@ -91,27 +91,35 @@ struct RootView: View {
             }
         }
         .task(id: step) {
-            if step == .splash {
-                let authRepo = AmplifyAuthRepository()
-                let userRepo = UserRepositoryImpl()
-                let localStorage = UserDefaultsLocalStorage()
-                let deviceProvider = KeychainDeviceIDManager()
-                
-                let registrationUseCase = RegisterAnonymousUserUseCase(
-                    authRepository: authRepo,
-                    userRepository: userRepo,
-                    localStorage: localStorage,
-                    deviceIDProvider: deviceProvider,
-                    analytics: analytics
+            guard step == .splash else { return }
+
+            let authRepo = AmplifyAuthRepository()
+            let userRepo = UserRepositoryImpl()
+            let localStorage = UserDefaultsLocalStorage()
+            let deviceProvider = KeychainDeviceIDManager()
+
+            await authRepo.repairExpiredSessionIfNeeded()
+
+            let registrationUseCase = RegisterAnonymousUserUseCase(
+                authRepository: authRepo,
+                userRepository: userRepo,
+                localStorage: localStorage,
+                deviceIDProvider: deviceProvider,
+                analytics: analytics
+            )
+
+            await registrationUseCase.execute()
+            
+            let isReinstall = deviceProvider.hasExistingDeviceID()
+            if localStorage.isAppleLinked || isReinstall {
+                let historyRepo = HistoryRepositoryImpl()
+                let productRepo = ProductRepositoryImpl()
+                let syncUseCase = SyncUserDataUseCase(
+                    historyRepository: historyRepo,
+                    productRepository: productRepo
                 )
-                await registrationUseCase.execute()
-                
-                if localStorage.isAppleLinked {
-                    let historyRepo = HistoryRepositoryImpl()
-                    let productRepo = ProductRepositoryImpl()
-                    let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
-                    await syncUseCase.execute()
-                }
+
+                await syncUseCase.execute()
             }
         }
     }
