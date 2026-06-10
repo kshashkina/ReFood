@@ -5,6 +5,7 @@ enum SettingsEvent: AnalyticsEventProtocol {
     case backTap
     case cameraTap
     case locationTap
+    case languageTap
     case termsTap
     case privacyTap
     case deleteAccountTap
@@ -18,6 +19,7 @@ enum SettingsEvent: AnalyticsEventProtocol {
         case .backTap: return "settings_back_tap"
         case .cameraTap: return "settings_camera_tap"
         case .locationTap: return "settings_location_tap"
+        case .languageTap: return "settings_language_tap"
         case .termsTap: return "settings_terms_tap"
         case .privacyTap: return "settings_privacy_tap"
         case .deleteAccountTap: return "settings_delete_account_tap"
