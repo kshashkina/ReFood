@@ -38,7 +38,6 @@ export async function getRoute(event) {
 
         const identity = getRequestIdentity(event);
         const userId = await findUserIdByAnyMethod(identity);
-        invokeMetrics('increment_sorted', userId);
         invokeMetrics('track_map_check', userId);
 
         return response(200, route);

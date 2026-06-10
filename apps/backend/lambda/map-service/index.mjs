@@ -1,5 +1,6 @@
 import { getRecyclingPoints } from './handlers/getRecyclingPoints.mjs';
 import { getRoute } from './handlers/getRoute.mjs';
+import { trackSorted } from './handlers/trackSorted.mjs';
 import { optionsResponse, response } from './helpers/response.mjs';
 
 export const handler = async (event) => {
@@ -21,9 +22,13 @@ export const handler = async (event) => {
             return await getRoute(event);
         }
 
-    return response(404, {
-        error: "Route not found in MapService"
-    });
+        if (method === 'POST' && (path.includes('sort-metrics'))) {
+            return await trackSorted(event);
+        }
+
+        return response(404, {
+            error: "Route not found in MapService"
+        });
 
     } catch (error) {
         console.error("Error:", error);
