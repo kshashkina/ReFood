@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SplashView: View {
     let repository: DashboardRepository
+    let showPreparingLoader: Bool
     var onFinish: (DailyDashboardResponse?) -> Void
     
     @State private var logoScale: CGFloat = 0.86
@@ -32,7 +33,14 @@ struct SplashView: View {
                     .opacity(0.95)
                     .scaleEffect(textScale)
                     .opacity(textOpacity)
+                
+                if showPreparingLoader {
+                    PreparingDataLoader()
+                        .padding(.top, 18)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
+            .padding(.horizontal, 28)
         }
         .onAppear {
             startAnimations()
@@ -41,6 +49,7 @@ struct SplashView: View {
                 async let fetchTask = try? repository.getDailyDashboard()
                 try? await Task.sleep(nanoseconds: 2_200_000_000)
                 let dashboardData = await fetchTask
+                
                 await MainActor.run {
                     onFinish(dashboardData)
                 }
@@ -66,6 +75,47 @@ struct SplashView: View {
         withAnimation(.easeInOut(duration: 2.0)) {
             textScale = 1.0
             textOpacity = 1.0
+        }
+    }
+}
+
+private struct PreparingDataLoader: View {
+    @State private var activeIndex = 0
+    @State private var timer: Timer?
+
+    private let green = Color(red: 144/255, green: 240/255, blue: 71/255)
+
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(green)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(activeIndex == index ? 1.4 : 0.7)
+                        .opacity(activeIndex == index ? 1.0 : 0.35)
+                        .animation(.easeInOut(duration: 0.25), value: activeIndex)
+                }
+            }
+
+            VStack(spacing: 4) {
+                Text("welcome_back_title")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.92))
+
+                Text("welcome_back_subtitle")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.55))
+            }
+        }
+        .onAppear {
+            timer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { _ in
+                activeIndex = (activeIndex + 1) % 3
+            }
+        }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
         }
     }
 }

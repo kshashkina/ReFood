@@ -12,6 +12,9 @@ struct RootView: View {
     
     @State private var step: Step = .splash
     @State private var dashboardData: DailyDashboardResponse? = nil
+    @State private var isPreparingApp: Bool = false
+    @State private var showPreparingLoader: Bool = false
+    
     private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
 
     var body: some View {
@@ -25,7 +28,10 @@ struct RootView: View {
                 let dbCleaner = SwiftDataCleaner()
                 let historyRepo = HistoryRepositoryImpl()
                 let productRepo = ProductRepositoryImpl()
-                let syncUseCase = SyncUserDataUseCase(historyRepository: historyRepo, productRepository: productRepo)
+                let syncUseCase = SyncUserDataUseCase(
+                    historyRepository: historyRepo,
+                    productRepository: productRepo
+                )
                 
                 let linkUseCase = LinkAppleAccountUseCase(
                     authRepository: authRepo,
@@ -64,14 +70,12 @@ struct RootView: View {
             }
 
             if step == .splash {
-                SplashView(repository: DashboardRepositoryImpl()) { fetchedData in
-                    self.dashboardData = fetchedData
-                    withAnimation(.easeInOut(duration: 0.35)) {
-                        if hasSeenOnboarding {
-                            step = .main
-                        } else {
-                            step = .onboarding
-                        }
+                SplashView(
+                    repository: DashboardRepositoryImpl(),
+                    showPreparingLoader: showPreparingLoader
+                ) { fetchedData in
+                    Task {
+                        await prepareAppAndContinue(with: fetchedData)
                     }
                 }
                 .transition(.opacity)
@@ -87,39 +91,62 @@ struct RootView: View {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     step = .splash
                     self.dashboardData = nil
+                    self.showPreparingLoader = false
                 }
             }
         }
-        .task(id: step) {
-            guard step == .splash else { return }
-
-            let authRepo = AmplifyAuthRepository()
-            let userRepo = UserRepositoryImpl()
-            let localStorage = UserDefaultsLocalStorage()
-            let deviceProvider = KeychainDeviceIDManager()
-
-            await authRepo.repairExpiredSessionIfNeeded()
-
-            let registrationUseCase = RegisterAnonymousUserUseCase(
-                authRepository: authRepo,
-                userRepository: userRepo,
-                localStorage: localStorage,
-                deviceIDProvider: deviceProvider,
-                analytics: analytics
-            )
-
-            await registrationUseCase.execute()
+    }
+    
+    @MainActor
+    private func prepareAppAndContinue(with fetchedData: DailyDashboardResponse?) async {
+        guard !isPreparingApp else { return }
+        isPreparingApp = true
+        
+        self.dashboardData = fetchedData
+        
+        let authRepo = AmplifyAuthRepository()
+        let userRepo = UserRepositoryImpl()
+        let localStorage = UserDefaultsLocalStorage()
+        let deviceProvider = KeychainDeviceIDManager()
+        
+        await authRepo.repairExpiredSessionIfNeeded()
+        
+        let registrationUseCase = RegisterAnonymousUserUseCase(
+            authRepository: authRepo,
+            userRepository: userRepo,
+            localStorage: localStorage,
+            deviceIDProvider: deviceProvider,
+            analytics: analytics
+        )
+        
+        let registrationResult = await registrationUseCase.execute()
+        
+        if registrationResult == .reinstall {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showPreparingLoader = true
+            }
             
-            let isReinstall = deviceProvider.hasExistingDeviceID()
-            if localStorage.isAppleLinked || isReinstall {
-                let historyRepo = HistoryRepositoryImpl()
-                let productRepo = ProductRepositoryImpl()
-                let syncUseCase = SyncUserDataUseCase(
-                    historyRepository: historyRepo,
-                    productRepository: productRepo
-                )
-
-                await syncUseCase.execute()
+            let historyRepo = HistoryRepositoryImpl()
+            let productRepo = ProductRepositoryImpl()
+            let syncUseCase = SyncUserDataUseCase(
+                historyRepository: historyRepo,
+                productRepository: productRepo
+            )
+            
+            await syncUseCase.execute()
+            
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showPreparingLoader = false
+            }
+        }
+        
+        isPreparingApp = false
+        
+        withAnimation(.easeInOut(duration: 0.35)) {
+            if hasSeenOnboarding {
+                step = .main
+            } else {
+                step = .onboarding
             }
         }
     }
