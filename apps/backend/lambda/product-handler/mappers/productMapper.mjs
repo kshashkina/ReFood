@@ -4,7 +4,7 @@ import { parseToGrams } from '../helpers/nutriments/parseToGrams.mjs';
 
 export function offProductToProduct(barcode, offProduct) {
     const now = Date.now();
-    
+
     const quantityInGrams = parseToGrams(offProduct.product_quantity || offProduct.quantity);
     const servingInGrams = parseToGrams(offProduct.serving_size || offProduct.serving_quantity);
 
@@ -35,6 +35,7 @@ export function offProductToProduct(barcode, offProduct) {
             recycling: cleanValue(pkg.recycling)
         })) || [],
         image_url: cleanValue(offProduct.image_url),
+        image_url_small: cleanValue(offProduct.image_front_small_url) || null,
         source: "openfoodfacts",
         off_id: cleanValue(offProduct._id),
         updated_at: now
@@ -62,6 +63,7 @@ export function toProductResponse(product) {
         serving_size: product.serving_size,
         serving_quantity: product.serving_quantity,
         image_url: product.image_url,
+        image_url_small: product.image_url_small,
         analysis_ua: product.analysis_ua,
         analysis_en: product.analysis_en,
         source: product.source,
