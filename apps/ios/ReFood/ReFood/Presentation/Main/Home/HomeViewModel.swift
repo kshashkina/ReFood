@@ -28,7 +28,7 @@ final class HomeViewModel: ObservableObject {
     @Published var tipUIModel: InsightUIModel?
     @Published var newsUIModel: InsightUIModel?
     @Published var recentScans: [HomeProductUIModel] = []
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     
     private static let relativeDateTimeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
@@ -38,7 +38,7 @@ final class HomeViewModel: ObservableObject {
     }()
     
     init(
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         dashboardData: DailyDashboardResponse?,
         languageProvider: LanguageProvider
     ) {

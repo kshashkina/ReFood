@@ -9,7 +9,7 @@ struct RecyclingScreen: View {
     init(
         product: Product,
         languageProvider: LanguageProvider,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onFindPointTapped: @escaping (String) -> Void

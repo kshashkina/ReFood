@@ -7,7 +7,7 @@ struct ManualInputScreen: View {
     private let uploadService: ImageUploadServicing
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     let analytics: AnalyticsServiceProtocol
     
     let firstProductForComparison: Product?
@@ -29,7 +29,7 @@ struct ManualInputScreen: View {
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
         historyRepository: HistoryRepository,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         firstProductForComparison: Product? = nil,
         analytics: AnalyticsServiceProtocol,
         onClose: @escaping () -> Void,

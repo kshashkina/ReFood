@@ -12,7 +12,7 @@ struct ScannerScreen: View {
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
     private let historyRepository: HistoryRepository
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     let analytics: AnalyticsServiceProtocol
     let onFindRecyclingPoint: (String) -> Void
 
@@ -30,7 +30,7 @@ struct ScannerScreen: View {
         languageProvider: LanguageProvider,
         scannerService: BarcodeScanning = BarcodeScannerService(),
         historyRepository: HistoryRepository,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol,
         firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var vm: ProfileViewModel
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     private let emailService: EmailServiceProtocol
     private let deleteAccountUseCase: DeleteAccountUseCase
     private let localStorage: LocalStorageProtocol
@@ -13,7 +13,7 @@ struct ProfileView: View {
     @State private var showSettings = false
     
     init(
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         emailService: EmailServiceProtocol,
         linkAccountUseCase: LinkAppleAccountUseCase,
         deleteAccountUseCase: DeleteAccountUseCase,

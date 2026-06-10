@@ -5,13 +5,13 @@ import Combine
 final class RecyclingViewModel: ObservableObject {
     private let product: Product
     private let languageProvider: LanguageProvider
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     @Published var selectedWasteType: WasteType?
     
     init(
         product: Product,
         languageProvider: LanguageProvider,
-        metricsRepository: MetricsRepositoryProtocol
+        metricsRepository: MetricsRepository
     ) {
         self.product = product
         self.languageProvider = languageProvider

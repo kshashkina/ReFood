@@ -8,7 +8,7 @@ struct MainContainerView: View {
     @State private var mapFilter: String = "filter_all"
 
     private let languageProvider = SystemLanguageProvider()
-    private let metricsRepo = UserDefaultsMetricsRepository()
+    private let metricsRepo = MetricRepositoryImpl()
     private let historyRepo = HistoryRepositoryImpl()
     private let productRepo: ProductRepositoryImpl
     private let uploadService: ImageUploadService

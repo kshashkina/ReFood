@@ -13,7 +13,7 @@ struct MapView: View {
         repository: LocationRepository,
         networkMonitor: NetworkMonitoring,
         locationService: LocationServiceProtocol,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         showLocationWarning: Bool,
         externalFilter: Binding<String>,
         analytics: AnalyticsServiceProtocol,

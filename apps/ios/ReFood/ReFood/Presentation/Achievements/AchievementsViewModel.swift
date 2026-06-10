@@ -29,7 +29,7 @@ final class AchievementsViewModel: ObservableObject {
     @Published var totalProgressFraction: Double = 0.0
     @Published var unlockedCount: Int = 0
     
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     private let achievementDefinitions: [(id: String, icon: String)] = [
         ("first_step", "shoeprints.fill"),
         ("active_user", "person.text.rectangle.fill"),
@@ -48,7 +48,7 @@ final class AchievementsViewModel: ObservableObject {
         return formatter
     }()
     
-    init(metricsRepository: MetricsRepositoryProtocol) {
+    init(metricsRepository: MetricsRepository) {
         self.metricsRepository = metricsRepository
         self.loadAchievements()
     }
