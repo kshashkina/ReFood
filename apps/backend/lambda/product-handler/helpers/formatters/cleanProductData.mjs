@@ -20,7 +20,8 @@ export function cleanProductData(data) {
         quantity: cleanValue(data.quantity),
         serving_size: cleanValue(data.serving_size),
         serving_quantity: cleanValue(data.serving_quantity),
-        packaging: cleanPackaging(data.packaging)
+        packaging: cleanPackaging(data.packaging),
+        image_url: data.image_url
     };
 }
 

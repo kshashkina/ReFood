@@ -59,7 +59,7 @@ export async function createProduct(event) {
             Object.entries(productData).filter(([key]) => !translatedKeys.has(key) && !fieldsToDrop.has(key))
         );
 
-        let imageUrl = null;
+        let imageUrl = productData.image_url || null;
         const { imageId, s3Key } = body;
 
         if (imageId && s3Key) {
