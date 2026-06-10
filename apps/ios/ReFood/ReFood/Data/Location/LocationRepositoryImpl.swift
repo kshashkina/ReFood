@@ -34,4 +34,13 @@ final class LocationRepositoryImpl: LocationRepository {
                 throw NetworkError.invalidResponse
             }
         }
+    
+    func recordSortMetric() async throws {
+        do {
+            try await MapAPI.recordSortMetric()
+        } catch {
+            throw NetworkError.invalidResponse
+        }
+    }
+    
 }

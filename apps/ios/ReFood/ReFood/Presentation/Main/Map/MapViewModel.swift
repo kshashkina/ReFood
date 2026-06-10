@@ -173,7 +173,6 @@ final class MapViewModel: ObservableObject {
                     self.selectedPoint = nil
                     self.isBuildingRoute = false
                     self.loadingRouteMode = nil
-                    self.incrementSortedCount()
                     focusOnRoute(fetchedRoute)
                 }
             } catch {
@@ -284,5 +283,13 @@ final class MapViewModel: ObservableObject {
     
     func incrementSortedCount() {
         metricsRepository.incrementSortedCount()
+    }
+    
+    func markAsSorted() {
+        incrementSortedCount()
+        
+        Task {
+            try? await repository.recordSortMetric()
+        }
     }
 }

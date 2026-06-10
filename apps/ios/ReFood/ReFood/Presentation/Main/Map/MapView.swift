@@ -64,11 +64,15 @@ struct MapView: View {
                     RouteInfoBanner(
                         route: route,
                         formattedTime: vm.getFormattedTime(route.time),
-                        formattedDistance: vm.getFormattedDistance(route.distance)
-                    ) {
-                        analytics.track(MapEvent.routeCloseTap)
-                        vm.clearRoute()
-                    }
+                        formattedDistance: vm.getFormattedDistance(route.distance),
+                        onSorted: {
+                            vm.markAsSorted()
+                        },
+                        onCancel: {
+                            analytics.track(MapEvent.routeCloseTap)
+                            vm.clearRoute()
+                        }
+                    )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }

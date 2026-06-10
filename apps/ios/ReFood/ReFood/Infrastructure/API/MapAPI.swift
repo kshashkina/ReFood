@@ -58,4 +58,13 @@ enum MapAPI {
             throw NetworkError.invalidResponse
         }
     }
+    
+    static func recordSortMetric() async throws {
+        let request = RESTRequest(apiName: "ReFoodAPI", path: "/map/sort-metrics")
+        do {
+            _ = try await Amplify.API.post(request: request)
+        } catch {
+            throw NetworkError.invalidResponse
+        }
+    }
 }
