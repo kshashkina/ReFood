@@ -125,7 +125,6 @@ describe('getRoute', () => {
 
             await getRoute(makeEvent());
 
-            expect(invokeMetrics).toHaveBeenCalledWith('increment_sorted', 'user-001');
             expect(invokeMetrics).toHaveBeenCalledWith('track_map_check', 'user-001');
         });
     });

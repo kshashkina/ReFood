@@ -12,6 +12,9 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.7",
+    "@aws-sdk/client-dynamodb": "^3.1066.0",
+    "@aws-sdk/client-lambda": "^3.1066.0",
+    "@aws-sdk/lib-dynamodb": "^3.1066.0"
   }
 }
