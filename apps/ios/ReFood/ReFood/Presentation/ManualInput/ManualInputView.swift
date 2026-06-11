@@ -4,6 +4,7 @@ public struct ManualInputView: View {
     @ObservedObject var vm: ManualInputViewModel
     @FocusState private var isFocused: Bool
     
+    let analytics: AnalyticsServiceProtocol
     let onClose: () -> Void
     let onFind: () -> Void
 
@@ -13,7 +14,10 @@ public struct ManualInputView: View {
 
             VStack(spacing: 0) {
                 HStack {
-                    CircleBackButton { onClose() }
+                    CircleBackButton {
+                        analytics.track(ManualInputEvent.backTap)
+                        onClose()
+                    }
                     Spacer()
                 }
                 .padding(.horizontal, 24)
@@ -24,14 +28,22 @@ public struct ManualInputView: View {
                         ManualInputTitleGroup()
                         ManualInputFeatureCard()
                         
-                        ManualInputTextField(text: $vm.barcode, focus: $isFocused) { newValue in
-                            vm.updateBarcode(with: newValue)
-                        }
+                        ManualInputTextField(
+                            text: $vm.barcode,
+                            focus: $isFocused,
+                            onFilter: { newValue in
+                                vm.updateBarcode(with: newValue)
+                            },
+                            onDoneTap: {
+                                analytics.track(ManualInputEvent.doneTap)
+                            }
+                        )
                         
                         BarcodeTipView()
                         
                         Button {
                             isFocused = false
+                            analytics.track(ManualInputEvent.continueTap)
                             onFind()
                         } label: {
                             Text("manualInput_button_find")
@@ -53,6 +65,11 @@ public struct ManualInputView: View {
         .onChange(of: vm.isLoading) { loading in
             if !loading {
                 isFocused = true
+            }
+        }
+        .onChange(of: isFocused) { focused in
+            if focused {
+                analytics.track(ManualInputEvent.formTap)
             }
         }
     }

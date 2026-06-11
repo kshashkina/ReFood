@@ -7,10 +7,27 @@ struct MapView: View {
     let showLocationWarning: Bool
     let onRequestLocationAccess: () -> Void
     
-    init(repository: LocationRepository, networkMonitor: NetworkMonitoring, locationService: LocationServiceProtocol, showLocationWarning: Bool, externalFilter: Binding<String>, onRequestLocationAccess: @escaping () -> Void) {
-        self._vm = StateObject(wrappedValue: MapViewModel(repository: repository, networkMonitor: networkMonitor, locationService: locationService))
+    let analytics: AnalyticsServiceProtocol
+    
+    init(
+        repository: LocationRepository,
+        networkMonitor: NetworkMonitoring,
+        locationService: LocationServiceProtocol,
+        metricsRepository: MetricsRepositoryProtocol,
+        showLocationWarning: Bool,
+        externalFilter: Binding<String>,
+        analytics: AnalyticsServiceProtocol,
+        onRequestLocationAccess: @escaping () -> Void
+    ) {
+        self._vm = StateObject(wrappedValue: MapViewModel(
+            repository: repository,
+            networkMonitor: networkMonitor,
+            locationService: locationService,
+            metricsRepository: metricsRepository
+        ))
         self._externalFilter = externalFilter
         self.showLocationWarning = showLocationWarning
+        self.analytics = analytics
         self.onRequestLocationAccess = onRequestLocationAccess
     }
     
@@ -19,13 +36,22 @@ struct MapView: View {
             mapLayer
             
             VStack(spacing: 0) {
-                MapTopBarView(filters: vm.filters, selectedFilter: $vm.selectedFilter)
+                MapTopBarView(
+                    filters: vm.filters,
+                    selectedFilter: $vm.selectedFilter,
+                    onFilterTap: { filter in
+                        analytics.track(MapEvent.filterTap(filter: filter))
+                    }
+                )
                 
                 if vm.isFetching {
                     MapLoaderView().transition(.move(edge: .top).combined(with: .opacity))
                 } else if vm.showSearchButton {
-                    MapSearchAreaButton { vm.performSearchInArea() }
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                    MapSearchAreaButton {
+                        analytics.track(MapEvent.searchTap)
+                        vm.performSearchInArea()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 } else if vm.showNoPointsToast {
                     MapNoPointsToast().transition(.move(edge: .top).combined(with: .opacity))
                 } else if vm.showNoRouteToast {
@@ -39,7 +65,10 @@ struct MapView: View {
                         route: route,
                         formattedTime: vm.getFormattedTime(route.time),
                         formattedDistance: vm.getFormattedDistance(route.distance)
-                    ) { vm.clearRoute() }
+                    ) {
+                        analytics.track(MapEvent.routeCloseTap)
+                        vm.clearRoute()
+                    }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -47,6 +76,7 @@ struct MapView: View {
             floatingButtonsLayer
         }
         .onAppear {
+            analytics.track(MapEvent.screenView)
             vm.selectedFilter = externalFilter
             vm.onAppear()
         }
@@ -63,19 +93,36 @@ struct MapView: View {
                 vm.showLocationSettings = false
             }
         }
-        .sheet(item: $vm.selectedPoint) { point in
+        .sheet(item: $vm.selectedPoint, onDismiss: {
+            if vm.routedPoint == nil {
+                analytics.track(MapEvent.pointCloseTap)
+            }
+        }) { point in
             MapPointDetailsSheet(
                 point: point,
                 displayName: vm.getDisplayName(for: point),
                 loadingMode: vm.loadingRouteMode,
                 formatMaterial: { vm.formatMaterialName($0) },
-                onGetRoute: { mode in vm.buildRoute(to: point, mode: mode) } 
+                onGetRoute: { mode in
+                    analytics.track(MapEvent.pointRouteTap(type: mode.rawValue))
+                    vm.buildRoute(to: point, mode: mode)
+                }
             )
             .presentationDetents([.fraction(MapConstants.UI.sheetDetentFraction), .large])
             .presentationDragIndicator(.visible)
+            .onAppear {
+                analytics.track(MapEvent.pointModalView)
+            }
         }
         .sheet(isPresented: $vm.showNoInternet) {
-            NoInternetSheet { vm.showNoInternet = false }.presentationDetents([.height(360)])
+            NoInternetSheet {
+                analytics.track(NoInternetEvent.noInternetOkTap)
+                vm.showNoInternet = false
+            }
+            .onAppear {
+                analytics.track(NoInternetEvent.noInternetModalView)
+            }
+            .presentationDetents([.height(360)])
         }
     }
     
@@ -96,6 +143,7 @@ struct MapView: View {
                         .animation(.easeInOut, value: vm.isPointFaded(point))
                         .onTapGesture {
                             if vm.routedPoint == nil {
+                                analytics.track(MapEvent.pointTap)
                                 vm.selectedPoint = point
                             }
                         }
@@ -115,7 +163,11 @@ struct MapView: View {
             if showLocationWarning {
                 MapLocationRequestButton(action: onRequestLocationAccess)
             } else {
-                MapTrackingButton(mode: vm.trackingMode) { vm.toggleTracking() }
+                MapTrackingButton(mode: vm.trackingMode) {
+                    let flow = (vm.trackingMode == .location) ? "follow" : "center"
+                    analytics.track(MapEvent.centerTap(flow: flow))
+                    vm.toggleTracking()
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)

@@ -1,10 +1,43 @@
 import SwiftUI
 
 struct MainContainerView: View {
+    let dashboardData: DailyDashboardResponse?
     @State private var selectedTab: MainTab = .home
     @StateObject private var vm = MainContainerViewModel()
     @Environment(\.scenePhase) var scenePhase
     @State private var mapFilter: String = "filter_all"
+
+    private let languageProvider = SystemLanguageProvider()
+    private let metricsRepo = UserDefaultsMetricsRepository()
+    private let historyRepo = HistoryRepositoryImpl()
+    private let productRepo: ProductRepositoryImpl
+    private let uploadService: ImageUploadService
+    private let aiRepo = AIComparisonRepositoryImpl()
+    private let locationRepo = LocationRepositoryImpl()
+    private let locationService = LocationService()
+    private let emailService = URLEmailService()
+    
+    private let localStorage: LocalStorageProtocol
+    private let linkUseCase: LinkAppleAccountUseCase
+    private let deleteUseCase: DeleteAccountUseCase
+    
+    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
+
+    init(
+        dashboardData: DailyDashboardResponse?,
+        localStorage: LocalStorageProtocol,
+        linkUseCase: LinkAppleAccountUseCase,
+        deleteUseCase: DeleteAccountUseCase
+    ) {
+        self.dashboardData = dashboardData
+        self.localStorage = localStorage
+        self.linkUseCase = linkUseCase
+        self.deleteUseCase = deleteUseCase
+        
+        let pRepo = ProductRepositoryImpl()
+        self.productRepo = pRepo
+        self.uploadService = ImageUploadService(repository: pRepo)
+    }
 
     var body: some View {
         ZStack {
@@ -14,16 +47,24 @@ struct MainContainerView: View {
             VStack {
                 Spacer()
                 MainTabBar(
-                    onTapScanner: { vm.onTapScan()}, selected: $selectedTab
+                    analytics: analytics,
+                    onTapScanner: { vm.onTapScan()},
+                    selected: $selectedTab
                 )
                 .padding(.bottom, 16)
-            }
+            }.ignoresSafeArea(.keyboard, edges: .bottom)
 
             if vm.isCameraAccessModalPresented {
                 CameraAccessModalView(
                     isPresented: $vm.isCameraAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(ScannerEvent.cameraAccessDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(ScannerEvent.cameraAccessDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(100)
             }
@@ -31,8 +72,14 @@ struct MainContainerView: View {
             if vm.isLocationAccessModalPresented {
                 LocationAccessModalView(
                     isPresented: $vm.isLocationAccessModalPresented,
-                    onOpenSettings: { vm.openAppSettings() }
+                    onOpenSettings: {
+                        analytics.track(MapEvent.locationDeniedSettingsTap)
+                        vm.openAppSettings()
+                    }
                 )
+                .onAppear {
+                    analytics.track(MapEvent.locationDeniedModalView)
+                }
                 .transition(.opacity)
                 .zIndex(101)
             }
@@ -40,29 +87,75 @@ struct MainContainerView: View {
         .animation(.easeInOut(duration: 0.2), value: vm.isCameraAccessModalPresented)
         .animation(.easeInOut(duration: 0.2), value: vm.isLocationAccessModalPresented)
         
+        .onChange(of: vm.isCameraAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(ScannerEvent.cameraAccessDeniedCloseTap)
+            }
+        }
+        
+        .onChange(of: vm.isLocationAccessModalPresented) { isPresented in
+            if !isPresented {
+                analytics.track(MapEvent.locationDeniedCloseTap)
+            }
+        }
+        
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
                 vm.refreshStatuses()
+                metricsRepo.updateStreak()
             }
         }
         .onChange(of: vm.isScannerPresented) { isPresented in
-                    if isPresented {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            selectedTab = .home
-                        }
-                    }
+            if isPresented {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    selectedTab = .home
+                }
+            }
         }
         .fullScreenCover(isPresented: $vm.isScannerPresented) {
-            let repository = ProductRepositoryImpl()
             ScannerScreen(
-                repository: repository,
-                uploadService: ImageUploadService(repository: repository),
-                aiRepository: AIComparisonRepositoryImpl(),
-                languageProvider: SystemLanguageProvider(),
-                onClose: { vm.isScannerPresented = false },
+                repository: productRepo,
+                uploadService: uploadService,
+                aiRepository: aiRepo,
+                languageProvider: languageProvider,
+                historyRepository: historyRepo,
+                metricsRepository: metricsRepo,
+                analytics: analytics,
+                firstProductForComparison: vm.productToCompare,
+                onClose: {
+                    vm.isScannerPresented = false
+                    vm.productToCompare = nil
+                },
                 onFindRecyclingPoint: { selectedFilter in
                     vm.isScannerPresented = false
                     
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.mapFilter = selectedFilter
+                        self.selectedTab = .map
+                    }
+                }
+            )
+        }
+        .fullScreenCover(item: $vm.selectedSearchProduct) { product in
+            ProductDetailsScreen(
+                product: product,
+                repository: productRepo,
+                uploadService: uploadService,
+                languageProvider: languageProvider,
+                metricsRepository: metricsRepo,
+                analytics: analytics,
+                onBack: {
+                    vm.selectedSearchProduct = nil
+                },
+                onCompare: { productToCompare in
+                    vm.selectedSearchProduct = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        vm.productToCompare = productToCompare
+                        vm.isScannerPresented = true
+                    }
+                },
+                onFindRecyclingPoint: { selectedFilter in
+                    vm.selectedSearchProduct = nil
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self.mapFilter = selectedFilter
                         self.selectedTab = .map
@@ -75,23 +168,53 @@ struct MainContainerView: View {
     @ViewBuilder
     private var content: some View {
         switch selectedTab {
-        case .home: HomeView()
-        case .search: SearchView()
+        case .home:
+            HomeView(
+                dashboardData: dashboardData,
+                languageProvider: languageProvider,
+                metricsRepository: metricsRepo,
+                analytics: analytics,
+                onProductTap: { product in
+                    vm.selectedSearchProduct = product
+                },
+                onSeeAllTap: {
+                    selectedTab = .search
+                }
+            )
+        case .search:
+            SearchView(
+                historyRepository: historyRepo,
+                productRepository: productRepo,
+                analytics: analytics,
+                onProductTap: { product in
+                    vm.selectedSearchProduct = product
+                }
+            )
         case .map:
             let showWarning = vm.locationPermissionStatus == .denied || vm.locationPermissionStatus == .restricted
 
             MapView(
-                repository: LocationRepositoryImpl(),
+                repository: locationRepo,
                 networkMonitor: NetworkMonitor.shared,
-                locationService: LocationService(),
+                locationService: locationService,
+                metricsRepository: metricsRepo,
                 showLocationWarning: showWarning,
                 externalFilter: $mapFilter,
+                analytics: analytics,
                 onRequestLocationAccess: {
                     vm.isLocationAccessModalPresented = true
                 }
             )
-            .onAppear { vm.requestLocationIfNeeded() }
-        case .profile: ProfileView()
+            .onAppear { vm.requestLocationIfNeeded()
+                metricsRepo.trackMapCheck()}
+        case .profile: ProfileView(
+                    metricsRepository: metricsRepo,
+                    emailService: emailService,
+                    linkAccountUseCase: linkUseCase,
+                    deleteAccountUseCase: deleteUseCase,
+                    localStorage: localStorage,
+                    analytics: analytics
+                )
         }
     }
 }

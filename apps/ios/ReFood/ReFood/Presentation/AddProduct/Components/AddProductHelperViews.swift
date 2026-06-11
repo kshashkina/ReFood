@@ -7,6 +7,8 @@ struct AddProductInputField: View {
     var keyboard: UIKeyboardType = .default
     var isRequired: Bool = false
     var focus: FocusState<Bool>.Binding
+    var onTap: (() -> Void)? = nil
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(label))
@@ -16,6 +18,7 @@ struct AddProductInputField: View {
                 .keyboardType(keyboard)
                 .focused(focus)
                 .inputStyle(accent: Color.appAccent)
+                .simultaneousGesture(TapGesture().onEnded { onTap?() })
         }
     }
 }
@@ -24,6 +27,7 @@ struct GradeSelectionView: View {
     let title: String
     @Binding var selection: String
     let grades = ["A", "B", "C", "D", "E"]
+    var onTap: (() -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -32,7 +36,10 @@ struct GradeSelectionView: View {
                 ForEach(grades, id: \.self) { grade in
                     let isSelected = selection == grade
                     let color = Color.grade(grade)
-                    Button { selection = isSelected ? "" : grade } label: {
+                    Button {
+                        onTap?()
+                        selection = isSelected ? "" : grade
+                    } label: {
                         Text(grade).font(.system(size: 20, weight: .bold)).foregroundColor(isSelected ? color : .white.opacity(0.4))
                             .frame(maxWidth: .infinity).frame(height: 52)
                             .background(isSelected ? color.opacity(0.13) : Color.white.opacity(0.05))
@@ -128,11 +135,13 @@ struct SaveButtonView: View {
     @ObservedObject var vm: AddProductViewModel
     @Binding var showSuccess: Bool
     var isFocused: FocusState<Bool>.Binding
+    var onTap: (() -> Void)? = nil
         
     var body: some View {
         Button {
             isFocused.wrappedValue = false
             if !showSuccess {
+                onTap?()
                 Task { await vm.saveProduct() }
             }
         } label: {

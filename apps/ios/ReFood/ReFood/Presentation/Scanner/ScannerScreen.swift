@@ -11,6 +11,9 @@ struct ScannerScreen: View {
     private let uploadService: ImageUploadServicing
     private let aiRepository: AIComparisonRepository
     private let languageProvider: LanguageProvider
+    private let historyRepository: HistoryRepository
+    private let metricsRepository: MetricsRepositoryProtocol
+    let analytics: AnalyticsServiceProtocol
     let onFindRecyclingPoint: (String) -> Void
 
     enum Destination: Hashable {
@@ -26,20 +29,30 @@ struct ScannerScreen: View {
         aiRepository: AIComparisonRepository,
         languageProvider: LanguageProvider,
         scannerService: BarcodeScanning = BarcodeScannerService(),
+        historyRepository: HistoryRepository,
+        metricsRepository: MetricsRepositoryProtocol,
+        analytics: AnalyticsServiceProtocol,
+        firstProductForComparison: Product? = nil,
         onClose: @escaping () -> Void,
         onFindRecyclingPoint: @escaping (String) -> Void
     ) {
         self._vm = StateObject(wrappedValue: ScannerViewModel(
             scanner: scannerService,
-            productRepository: repository
+            productRepository: repository,
+            historyRepository: historyRepository,
+            metricsRepository: metricsRepository,
+            firstProductForComparison: firstProductForComparison
         ))
         self.repository = repository
         self.uploadService = uploadService
         self.aiRepository = aiRepository
         self.languageProvider = languageProvider
+        self.historyRepository = historyRepository
+        self.metricsRepository = metricsRepository
+        self.analytics = analytics
         self.onClose = onClose
         self.onFindRecyclingPoint = onFindRecyclingPoint
-        }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -47,16 +60,30 @@ struct ScannerScreen: View {
                 ScannerView(
                     session: vm.session,
                     onClose: {
+                        analytics.track(ScannerEvent.closeTap)
                         vm.onDisappear()
                         onClose()
                     },
                     isTorchOn: vm.isTorchEnabled,
-                    onTapTorch: { vm.toggleTorch() },
-                    onTapManualInput: { showManualInput = true },
-                    onTapScan: { vm.startScanning() }
+                    onTapTorch: {
+                        let mode = vm.isTorchEnabled ? "off" : "on"
+                        analytics.track(ScannerEvent.torchTap(mode: mode))
+                        vm.toggleTorch()
+                    },
+                    onTapManualInput: {
+                        analytics.track(ScannerEvent.manualTap)
+                        showManualInput = true
+                    },
+                    onTapScan: {
+                        analytics.track(ScannerEvent.scanTap)
+                        vm.startScanning()
+                    }
                 )
             }
-            .onAppear { vm.onAppear() }
+            .onAppear {
+                analytics.track(ScannerEvent.screenView)
+                vm.onAppear()
+            }
             .onDisappear { vm.onDisappear() }
             .toolbar(.hidden)
             .navigationDestination(for: Destination.self) { destination in
@@ -66,6 +93,7 @@ struct ScannerScreen: View {
                         product: product,
                         firstProductForComparison: vm.firstProductForComparison,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -92,6 +120,8 @@ struct ScannerScreen: View {
                         repository: repository,
                         uploadService: uploadService,
                         languageProvider: languageProvider,
+                        metricsRepository: metricsRepository,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -113,6 +143,7 @@ struct ScannerScreen: View {
                         productB: pB,
                         aiRepository: aiRepository,
                         languageProvider: languageProvider,
+                        analytics: analytics,
                         onBack: {
                             path.removeAll()
                             vm.firstProductForComparison = nil
@@ -125,7 +156,9 @@ struct ScannerScreen: View {
                     AddProductScreen(
                         barcode: barcode,
                         repository: repository,
-                        uploadService: uploadService
+                        uploadService: uploadService,
+                        metricsRepository: metricsRepository,
+                        analytics: analytics
                     )
                     .toolbar(.hidden)
                 }
@@ -136,7 +169,10 @@ struct ScannerScreen: View {
                     uploadService: uploadService,
                     aiRepository: aiRepository,
                     languageProvider: languageProvider,
+                    historyRepository: historyRepository,
+                    metricsRepository: metricsRepository,
                     firstProductForComparison: vm.firstProductForComparison,
+                    analytics: analytics,
                     onClose: {
                         showManualInput = false
                         vm.scanAgain()
@@ -157,7 +193,15 @@ struct ScannerScreen: View {
                 )
             }
             .sheet(isPresented: $vm.isLoadingProduct, onDismiss: {
-                if path.isEmpty && !showManualInput { vm.scanAgain() }
+                if path.isEmpty && !showManualInput {
+                    if vm.isProductLoadingFailed {
+                        analytics.track(LoadingSheetEvent.notFoundSwipe)
+                    } else {
+                        let step = vm.loadingProgress >= 1.0 ? "ready" : "loading"
+                        analytics.track(LoadingSheetEvent.productLoadingSwipe(step: step))
+                    }
+                    vm.scanAgain()
+                }
             }) {
                 ProductLoadingSheet(
                     isPresented: $vm.isLoadingProduct,
@@ -165,29 +209,45 @@ struct ScannerScreen: View {
                     currentStep: vm.currentLoadingStep,
                     isFailed: vm.isProductLoadingFailed,
                     onFinish: {
+                        analytics.track(LoadingSheetEvent.productLoadingContinueTap)
                         vm.isLoadingProduct = false
                         if let fetched = vm.product { path.append(.preview(fetched)) }
                     },
                     onTryAgain: {
+                        analytics.track(LoadingSheetEvent.notFoundTryAgainTap)
                         vm.isLoadingProduct = false
                         vm.scanAgain()
                     },
                     onAddProduct: {
+                        analytics.track(LoadingSheetEvent.notFoundAddTap)
                         vm.isLoadingProduct = false
                         path.append(.addProduct(vm.lastScannedBarcode))
                     }
                 )
+                .onAppear {
+                    analytics.track(LoadingSheetEvent.productLoadingModalView)
+                }
+                .onChange(of: vm.isProductLoadingFailed) { isFailed in
+                    if isFailed {
+                        analytics.track(LoadingSheetEvent.notFoundModalView)
+                    }
+                }
                 .presentationDetents([.height(560)])
             }
-                .sheet(isPresented: $vm.showNoInternet, onDismiss: {
-                    if path.isEmpty && !showManualInput {
-                        vm.scanAgain()
-                    }
-                }) {
-                    NoInternetSheet {
-                        vm.showNoInternet = false
-                    }
-                    .presentationDetents([.height(360)])}
+            .sheet(isPresented: $vm.showNoInternet, onDismiss: {
+                if path.isEmpty && !showManualInput {
+                    vm.scanAgain()
+                }
+            }) {
+                NoInternetSheet {
+                    analytics.track(NoInternetEvent.noInternetOkTap)
+                    vm.showNoInternet = false
+                }
+                .onAppear {
+                    analytics.track(NoInternetEvent.noInternetModalView)
+                }
+                .presentationDetents([.height(360)])
+            }
         }
     }
 }

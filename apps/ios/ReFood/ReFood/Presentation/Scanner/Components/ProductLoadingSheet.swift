@@ -121,7 +121,31 @@ struct ProductLoadingSheet: View {
 
     private var failureView: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 10) {
+            Spacer(minLength: 5)
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.red.opacity(0.15), Color.clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .blur(radius: 30)
+                
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.04))
+                        .frame(width: 46, height: 46)
+                    
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 18, weight: .ultraLight))
+                        .foregroundColor(.red.opacity(0.8))
+                }
+            }
+            
+            VStack(spacing: 8) {
                 Text(LocalizedStringKey("sheet_fail_title"))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
@@ -131,9 +155,13 @@ struct ProductLoadingSheet: View {
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 10)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            
+            Spacer(minLength: 5)
         }
         .padding(.horizontal, 24)
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 
     private var actionButtons: some View {

@@ -10,17 +10,23 @@ final class MainContainerViewModel: ObservableObject {
     @Published var locationPermissionStatus: LocationPermissionStatus = .notDetermined
     @Published var selectedTab: MainTab = .home
     @Published var selectedMapFilter: String = "All"
+    @Published var selectedSearchProduct: Product? = nil
+    @Published var productToCompare: Product? = nil
 
     private var hasShownLocationAlert: Bool = false
     private let cameraPermissionService: CameraPermissionServicing
     private let locationPermissionService: LocationPermissionServicing
+    
+    private let analytics: AnalyticsServiceProtocol
 
     init(
         cameraPermissionService: CameraPermissionServicing = CameraPermissionService(),
-        locationPermissionService: LocationPermissionServicing = LocationPermissionService()
+        locationPermissionService: LocationPermissionServicing = LocationPermissionService(),
+        analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
     ) {
         self.cameraPermissionService = cameraPermissionService
         self.locationPermissionService = locationPermissionService
+        self.analytics = analytics
         refreshStatuses()
     }
 
@@ -44,9 +50,13 @@ final class MainContainerViewModel: ObservableObject {
 
         case .notDetermined:
             Task { @MainActor in
+                analytics.track(ScannerEvent.cameraAccessModalView)
                 let granted = await cameraPermissionService.requestAccess()
                 if granted {
+                    analytics.track(ScannerEvent.cameraAccessAllow)
                     isScannerPresented = true
+                } else {
+                    analytics.track(ScannerEvent.cameraAccessDeny)
                 }
             }
 
@@ -64,9 +74,14 @@ final class MainContainerViewModel: ObservableObject {
             break
         case .notDetermined:
             Task { @MainActor in
+                analytics.track(MapEvent.locationModalView)
                 let granted = await locationPermissionService.requestAccess()
+                if granted {
+                    analytics.track(MapEvent.locationAccessAllow)
+                } else {
+                    analytics.track(MapEvent.locationAccessDeny)
+                }
                 refreshStatuses()
-                
                 if !granted && !hasShownLocationAlert {
                     isLocationAccessModalPresented = true
                     hasShownLocationAlert = true
