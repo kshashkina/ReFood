@@ -1,11 +1,11 @@
-import { fetchNewsHandler } from "./handlers/fetchNewsHandler.mjs";
-import { getSummaryHandler } from "./handlers/getDailyDashboardHandler.mjs";
-import { response } from "./helpers/response.mjs";
+import { fetchNews } from "./handlers/fetchNews.mjs";
+import { getSummary } from "./handlers/getDailyDashboard.mjs";
+import { response, optionsResponse } from "./helpers/response.mjs";
 
 export const handler = async (event) => {
     if (event['detail-type'] === 'Scheduled Event' || event.source === 'aws.events') {
         console.log("Triggered by EventBridge: starting background fetch");
-        return await fetchNewsHandler();
+        return await fetchNews();
     }
 
     const method = event.httpMethod || event.requestContext?.http?.method;
@@ -20,7 +20,7 @@ export const handler = async (event) => {
         }
 
         if (method === 'GET' && pathParts.includes('daily-dashboard')) {
-            return await getSummaryHandler(event);
+            return await getSummary(event);
         }
 
         return response(404, {

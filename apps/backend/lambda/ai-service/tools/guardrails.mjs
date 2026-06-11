@@ -10,7 +10,7 @@ const injectionPatterns = [
     /act\s+as/i,
     /please\s+pretend\s+to\s+be/i,
     /тепер\s+ти/i,
-    /ді(й)?с(уй|ни)\s+як/i,
+    /дій(с|сн|суй)?\s+як/i,
     /уяви,\s+що\s+ти/i,
     /стань\s+на\s+момент/i,
 

@@ -8,7 +8,9 @@ export const checkUserPhoto = async (input, mimeType = 'image/jpeg') => {
 
     if (typeof input === 'string' && input.startsWith('http')) {
         const response = await fetch(input);
+
         if (!response.ok) throw new Error(`Failed to fetch image from S3: ${response.statusText}`);
+
         const arrayBuffer = await response.arrayBuffer();
         imageBuffer = Buffer.from(arrayBuffer);
         mimeType = response.headers.get('content-type') || mimeType;

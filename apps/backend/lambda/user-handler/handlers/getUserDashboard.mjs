@@ -1,9 +1,9 @@
 import { response } from '../helpers/response.mjs';
 import { getRequestIdentity } from '../helpers/auth/identity.mjs';
-import { findUserIdByAnyMethod, getUserProfile } from '../services/usersDatabase.mjs';
+import { findUserIdByAnyMethod } from '../services/usersDatabase.mjs';
 import { getUserScans } from '../services/scansDatabase.mjs';
 import { toScanListResponse } from '../mappers/scanMapper.mjs';
-import { invokeMetrics } from '../services/metricsService.mjs';
+import { invokeMetrics, invokeMetricsSync } from '../services/metricsService.mjs';
 
 export async function getDashboard(event) {
     try {
@@ -16,23 +16,23 @@ export async function getDashboard(event) {
             });
         }
 
-        const [user, recentScans] = await Promise.all([
-            getUserProfile(userId),
+        invokeMetrics('update_streak', userId);
+
+        const [counts, recentScans] = await Promise.all([
+            invokeMetricsSync('get_counts', userId),
             getUserScans(userId, 5)
         ]);
 
-        invokeMetrics('update_streak', userId);
-
-        if (!user) {
+        if (!counts || !recentScans) {
             return response(404, {
-                error: "User profile not found"
+                error: "User data not found"
             });
         }
 
         return response(200, {
             profile: {
-                scansCount: user.scansCount || 0,
-                isPremium: user.isPremium || false
+                scannedCount: counts?.scannedCount ?? 0,
+                sortedCount: counts?.sortedCount ?? 0
             },
             recentScans: toScanListResponse(recentScans)
         });

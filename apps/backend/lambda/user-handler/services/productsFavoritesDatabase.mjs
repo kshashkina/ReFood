@@ -20,3 +20,31 @@ export const getUserFavorites = async (userId, limit = 20, lastKey = undefined) 
         lastKey: result.LastEvaluatedKey || null
     };
 };
+
+export const deleteAllUserFavorites = async (userId) => {
+    let lastKey;
+    const deletePromises = [];
+
+    do {
+        const result = await docClient.send(new QueryCommand({
+            TableName: FAVORITES_TABLE,
+            KeyConditionExpression: "userId = :uid",
+            ExpressionAttributeValues: { ":uid": userId },
+            ExclusiveStartKey: lastKey,
+            ProjectionExpression: "userId, barcode"
+        }));
+
+        for (const item of result.Items || []) {
+            deletePromises.push(
+                docClient.send(new DeleteCommand({
+                    TableName: FAVORITES_TABLE,
+                    Key: { userId: item.userId, barcode: item.barcode }
+                }))
+            );
+        }
+
+        lastKey = result.LastEvaluatedKey;
+    } while (lastKey);
+
+    await Promise.all(deletePromises);
+};

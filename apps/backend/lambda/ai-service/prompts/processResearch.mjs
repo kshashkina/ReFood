@@ -3,7 +3,7 @@ export const PROCESS_RESEARCH_PROMPT = `
 
    INPUT DATA:
    - scientific_articles: { "items": [{ "title": "...", "authors": "...", "abstract": "..." }] }
-   - language: "en" or "ua"
+   - language: "_en" and "_ua" 
 
    CRITICAL RULES:
    1. **NO JARGON**: You must replace every complex medical or statistical term with simple, everyday language.
@@ -23,14 +23,15 @@ export const PROCESS_RESEARCH_PROMPT = `
       - If the science is uncertain (e.g., "preliminary results"), say so clearly.
 
    OUTPUT FORMAT (Strict JSON):
+   You must generate the entire output response in english and ukrainian languages only, _en prefix for english and _ua prefix for ukrainian.
    Return a JSON object with a single key "processed_news". The value must be an array of objects, each containing:
    {
-   "id": "pmid unique identifier for the research item (from input data)",
-   "original_title_en": "The full scientific title",
-   "original_title_ua": "The full scientific title in Ukrainian",
-   "simplified_title_en": "The translated and simplified title in English",
-   "simplified_title_ua": "The translated and simplified title in Ukrainian",
-   "takeaway_en": "1-2 sentences in English explaining the practical life lesson or 'so what?'. This is the most important part.",
-   "takeaway_ua": "1-2 sentences in Ukrainian explaining the practical life lesson or 'so what?'. This is the most important part."
+      "id": "pmid unique identifier for the research item (from input data)",
+      "original_title_en": "The full scientific title in English",
+      "original_title_ua": "The full scientific title in Ukrainian",
+      "simplified_title_en": "The translated and simplified title in English",
+      "simplified_title_ua": "The translated and simplified title in Ukrainian",
+      "takeaway_en": "1-2 sentences in English explaining the practical life lesson or 'so what?'. This is the most important part.",
+      "takeaway_ua": "1-2 sentences in Ukrainian explaining the practical life lesson or 'so what?'. This is the most important part."
    }
 `;
