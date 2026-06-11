@@ -5,6 +5,7 @@ import SwiftData
 struct ReFoodApp: App {
     init() {
         AmplifyConfigurator.configure()
+        SentryConfigurator.configure()
     }
     
     var body: some Scene {
