@@ -3,40 +3,58 @@ import SwiftUI
 struct MainContainerView: View {
     let dashboardData: DailyDashboardResponse?
     @State private var selectedTab: MainTab = .home
-    @StateObject private var vm = MainContainerViewModel()
+    @StateObject private var vm: MainContainerViewModel
     @Environment(\.scenePhase) var scenePhase
     @State private var mapFilter: String = "filter_all"
 
-    private let languageProvider = SystemLanguageProvider()
-    private let metricsRepo = MetricRepositoryImpl()
-    private let historyRepo = HistoryRepositoryImpl()
+    private let languageProvider: SystemLanguageProvider
+    private let metricsRepo: MetricRepositoryImpl
+    private let historyRepo: HistoryRepositoryImpl
     private let productRepo: ProductRepositoryImpl
     private let uploadService: ImageUploadService
-    private let aiRepo = AIComparisonRepositoryImpl()
-    private let locationRepo = LocationRepositoryImpl()
-    private let locationService = LocationService()
-    private let emailService = URLEmailService()
+    private let aiRepo: AIComparisonRepositoryImpl
+    private let locationRepo: LocationRepositoryImpl
+    private let locationService: LocationService
+    private let emailService: URLEmailService
     
     private let localStorage: LocalStorageProtocol
     private let linkUseCase: LinkAppleAccountUseCase
     private let deleteUseCase: DeleteAccountUseCase
     
-    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
+    private let analytics: AnalyticsServiceProtocol
 
     init(
         dashboardData: DailyDashboardResponse?,
+        viewModel: MainContainerViewModel,
+        languageProvider: SystemLanguageProvider,
+        metricsRepo: MetricRepositoryImpl,
+        historyRepo: HistoryRepositoryImpl,
+        productRepo: ProductRepositoryImpl,
+        uploadService: ImageUploadService,
+        aiRepo: AIComparisonRepositoryImpl,
+        locationRepo: LocationRepositoryImpl,
+        locationService: LocationService,
+        emailService: URLEmailService,
         localStorage: LocalStorageProtocol,
         linkUseCase: LinkAppleAccountUseCase,
-        deleteUseCase: DeleteAccountUseCase
+        deleteUseCase: DeleteAccountUseCase,
+        analytics: AnalyticsServiceProtocol
     ) {
         self.dashboardData = dashboardData
+        self._vm = StateObject(wrappedValue: viewModel)
+        self.languageProvider = languageProvider
+        self.metricsRepo = metricsRepo
+        self.historyRepo = historyRepo
+        self.productRepo = productRepo
+        self.uploadService = uploadService
+        self.aiRepo = aiRepo
+        self.locationRepo = locationRepo
+        self.locationService = locationService
+        self.emailService = emailService
         self.localStorage = localStorage
         self.linkUseCase = linkUseCase
         self.deleteUseCase = deleteUseCase
-        
-        let pRepo = ProductRepositoryImpl()
-        self.productRepo = pRepo
-        self.uploadService = ImageUploadService(repository: pRepo)
+        self.analytics = analytics
     }
 
     var body: some View {
@@ -211,8 +229,10 @@ struct MainContainerView: View {
                     vm.isLocationAccessModalPresented = true
                 }
             )
-            .onAppear { vm.requestLocationIfNeeded()
-                metricsRepo.trackMapCheck()}
+            .onAppear {
+                vm.requestLocationIfNeeded()
+                metricsRepo.trackMapCheck()
+            }
         case .profile: ProfileView(
                     metricsRepository: metricsRepo,
                     emailService: emailService,

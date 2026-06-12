@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RootView: View {
+    @ObservedObject var container: AppDIContainer
 
     private enum Step {
         case splash
@@ -15,52 +16,37 @@ struct RootView: View {
     @State private var isPreparingApp: Bool = false
     @State private var showPreparingLoader: Bool = false
     
-    private let analytics: AnalyticsServiceProtocol = AmplitudeAnalyticsService.shared
-
     var body: some View {
         ZStack {
             if step == .main {
-                let authRepo = AmplifyAuthRepository()
-                let userRepo = UserRepositoryImpl()
-                let localStorage = UserDefaultsLocalStorage()
-                let deviceProvider = KeychainDeviceIDManager()
-                
-                let dbCleaner = SwiftDataCleaner()
-                let historyRepo = HistoryRepositoryImpl()
-                let productRepo = ProductRepositoryImpl()
-                let syncUseCase = SyncUserDataUseCase(
-                    historyRepository: historyRepo,
-                    productRepository: productRepo
-                )
-                
-                let linkUseCase = LinkAppleAccountUseCase(
-                    authRepository: authRepo,
-                    userRepository: userRepo,
-                    localStorage: localStorage,
-                    deviceIDProvider: deviceProvider,
-                    syncUseCase: syncUseCase
-                )
-                
-                let deleteUseCase = DeleteAccountUseCase(
-                    authRepository: authRepo,
-                    userRepository: userRepo,
-                    localStorage: localStorage,
-                    deviceIDProvider: deviceProvider,
-                    databaseCleaner: dbCleaner,
-                    analytics: analytics
+                let mainViewModel = MainContainerViewModel(
+                    cameraPermissionService: container.cameraPermissionService,
+                    locationPermissionService: container.locationPermissionService,
+                    analytics: container.analytics
                 )
 
                 MainContainerView(
                     dashboardData: dashboardData,
-                    localStorage: localStorage,
-                    linkUseCase: linkUseCase,
-                    deleteUseCase: deleteUseCase
+                    viewModel: mainViewModel,
+                    languageProvider: container.languageProvider,
+                    metricsRepo: container.metricsRepo,
+                    historyRepo: container.historyRepo,
+                    productRepo: container.productRepo,
+                    uploadService: container.uploadService,
+                    aiRepo: container.aiRepo,
+                    locationRepo: container.locationRepo,
+                    locationService: container.locationService,
+                    emailService: container.emailService,
+                    localStorage: container.localStorage,
+                    linkUseCase: container.linkUseCase,
+                    deleteUseCase: container.deleteUseCase,
+                    analytics: container.analytics
                 )
                 .transition(.opacity)
             }
 
             if step == .onboarding {
-                OnboardingFlowView(analytics: analytics) {
+                OnboardingFlowView(analytics: container.analytics) {
                     hasSeenOnboarding = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         step = .main
@@ -71,7 +57,7 @@ struct RootView: View {
 
             if step == .splash {
                 SplashView(
-                    repository: DashboardRepositoryImpl(),
+                    repository: container.dashboardRepo,
                     showPreparingLoader: showPreparingLoader
                 ) { fetchedData in
                     Task {
@@ -84,7 +70,7 @@ struct RootView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .onAppear {
-            analytics.track(OnboardingEvent.appLaunch)
+            container.analytics.track(OnboardingEvent.appLaunch)
         }
         .onChange(of: hasSeenOnboarding) { newValue in
             if newValue == false {
@@ -104,36 +90,16 @@ struct RootView: View {
         
         self.dashboardData = fetchedData
         
-        let authRepo = AmplifyAuthRepository()
-        let userRepo = UserRepositoryImpl()
-        let localStorage = UserDefaultsLocalStorage()
-        let deviceProvider = KeychainDeviceIDManager()
+        await container.authRepo.repairExpiredSessionIfNeeded()
         
-        await authRepo.repairExpiredSessionIfNeeded()
-        
-        let registrationUseCase = RegisterAnonymousUserUseCase(
-            authRepository: authRepo,
-            userRepository: userRepo,
-            localStorage: localStorage,
-            deviceIDProvider: deviceProvider,
-            analytics: analytics
-        )
-        
-        let registrationResult = await registrationUseCase.execute()
+        let registrationResult = await container.registerUseCase.execute()
         
         if registrationResult == .reinstall {
             withAnimation(.easeInOut(duration: 0.25)) {
                 showPreparingLoader = true
             }
             
-            let historyRepo = HistoryRepositoryImpl()
-            let productRepo = ProductRepositoryImpl()
-            let syncUseCase = SyncUserDataUseCase(
-                historyRepository: historyRepo,
-                productRepository: productRepo
-            )
-            
-            await syncUseCase.execute()
+            await container.syncUseCase.execute()
             
             withAnimation(.easeInOut(duration: 0.2)) {
                 showPreparingLoader = false
