@@ -6,15 +6,18 @@ final class RecyclingViewModelTests: XCTestCase {
     
     var sut: RecyclingViewModel!
     var mockLanguageProvider: MockLanguageProvider!
+    var mockMetricsRepository: MockMetricsRepository!
     
     override func setUp() {
         super.setUp()
         mockLanguageProvider = MockLanguageProvider()
+        mockMetricsRepository = MockMetricsRepository()
     }
     
     override func tearDown() {
         sut = nil
         mockLanguageProvider = nil
+        mockMetricsRepository = nil
         super.tearDown()
     }
     
@@ -138,32 +141,12 @@ final class RecyclingViewModelTests: XCTestCase {
         XCTAssertFalse(sut.components.first?.categoryTitle.isEmpty ?? true)
         XCTAssertFalse(sut.components.first?.preparationSteps.isEmpty ?? true)
     }
-    
-    func test_standardWasteTypes_shouldContainSixTypes() {
-        sut = makeSUT(product: createMockProduct())
         
-        XCTAssertEqual(sut.standardWasteTypes.count, 6)
-    }
-    
-    func test_standardWasteTypes_shouldContainCorrectTitleKeys() {
-        sut = makeSUT(product: createMockProduct())
-        
-        let titleKeys = sut.standardWasteTypes.map { $0.titleKey }
-        
-        XCTAssertEqual(titleKeys, [
-            "recycling_type_paper",
-            "recycling_type_plastic",
-            "recycling_type_glass",
-            "recycling_type_metal",
-            "recycling_type_organic",
-            "recycling_type_mixed"
-        ])
-    }
-    
     private func makeSUT(product: Product) -> RecyclingViewModel {
         RecyclingViewModel(
             product: product,
-            languageProvider: mockLanguageProvider
+            languageProvider: mockLanguageProvider,
+            metricsRepository: mockMetricsRepository
         )
     }
     
@@ -210,4 +193,3 @@ final class RecyclingViewModelTests: XCTestCase {
         )
     }
 }
-

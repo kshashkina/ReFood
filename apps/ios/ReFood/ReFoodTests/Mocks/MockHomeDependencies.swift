@@ -1,7 +1,7 @@
 import Foundation
 @testable import ReFood
 
-final class MockMetricsRepository: MetricsRepositoryProtocol {
+final class MockMetricsRepository: MetricsRepository {
     var scannedCount = 0
     var sortedCount = 0
     var streakCount = 1
@@ -9,6 +9,7 @@ final class MockMetricsRepository: MetricsRepositoryProtocol {
     
     var achievementProgress: [String: (current: Int, goal: Int)] = [:]
     var unlockedAchievements: Set<String> = []
+    var unlockDates: [String: Date] = [:]
     
     var incrementScannedCountCalled = false
     var incrementSortedCountCalled = false
@@ -57,5 +58,9 @@ final class MockMetricsRepository: MetricsRepositoryProtocol {
     
     func getAchievementProgress(id: String) -> (current: Int, goal: Int) {
         achievementProgress[id] ?? (0, 1)
+    }
+    
+    func getAchievementUnlockDate(id: String) -> Date? {
+        unlockDates[id]
     }
 }

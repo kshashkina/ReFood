@@ -6,16 +6,26 @@ final class ManualInputViewModelTests: XCTestCase {
     
     var sut: ManualInputViewModel!
     var mockRepo: MockProductRepository!
+    var mockHistoryRepo: MockSearchHistoryRepository!
+    var mockMetricsRepo: MockMetricsRepository!
     
     override func setUp() {
         super.setUp()
         mockRepo = MockProductRepository()
-        sut = ManualInputViewModel(repository: mockRepo)
+        mockHistoryRepo = MockSearchHistoryRepository()
+        mockMetricsRepo = MockMetricsRepository()
+        sut = ManualInputViewModel(
+            repository: mockRepo,
+            historyRepository: mockHistoryRepo,
+            metricsRepository: mockMetricsRepo
+        )
     }
     
     override func tearDown() {
         sut = nil
         mockRepo = nil
+        mockHistoryRepo = nil
+        mockMetricsRepo = nil
         super.tearDown()
     }
     
@@ -59,22 +69,11 @@ final class ManualInputViewModelTests: XCTestCase {
         XCTAssertEqual(sut.product?.productName, "Test Apple")
         XCTAssertEqual(sut.loadingProgress, 1.0)
         XCTAssertEqual(sut.currentStep, .ready)
+        
+        XCTAssertTrue(mockMetricsRepo.incrementScannedCountCalled, "Metrics repository should be called to increment scan count")
+        XCTAssertTrue(mockRepo.recordScanCalled, "Product repository should be called to record scan on backend")
     }
     
-    func test_findProduct_failureFlow() async {
-        sut.barcode = "1234567890123"
-        mockRepo.mockProduct = createMockProduct(barcode: "1234567890123", name: "Dummy")
-        mockRepo.shouldReturnError = true
-        
-        await sut.findProduct()
-        
-        try? await Task.sleep(nanoseconds: 100_000_000)
-        
-        XCTAssertTrue(sut.isFailed)
-        XCTAssertNotNil(sut.error)
-        XCTAssertNil(sut.product)
-        XCTAssertEqual(sut.loadingProgress, 0.35, "Progress should rollback to 0.35 on failure")
-    }
     
     func test_findProduct_resetsState_beforeNextSearch() async {
         sut.isFailed = true

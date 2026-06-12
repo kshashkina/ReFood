@@ -7,22 +7,25 @@ final class AddProductViewModelTests: XCTestCase {
     var sut: AddProductViewModel!
     var mockRepo: MockProductRepository!
     var mockUploadService: MockImageUploadService!
+    var mockMetricsRepo: MockMetricsRepository!
     
     override func setUp() {
         super.setUp()
         mockRepo = MockProductRepository()
         mockUploadService = MockImageUploadService()
+        mockMetricsRepo = MockMetricsRepository()
     }
 
     override func tearDown() {
         sut = nil
         mockRepo = nil
         mockUploadService = nil
+        mockMetricsRepo = nil
         super.tearDown()
     }
 
     func test_init_withNoExistingProduct_setsEditingModeFalse() {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         
         XCTAssertFalse(sut.isEditingMode)
         XCTAssertNil(sut.existingImageUrl)
@@ -30,7 +33,7 @@ final class AddProductViewModelTests: XCTestCase {
     }
 
     func test_processImageUpload_success_updatesImageValidationState() async {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         
         let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
         UIGraphicsBeginImageContext(rect.size)
@@ -51,7 +54,7 @@ final class AddProductViewModelTests: XCTestCase {
     }
 
     func test_processImageUpload_invalidImage_setsImageError() async {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         mockUploadService.shouldReturnInvalidImage = true
         mockUploadService.customErrorMessage = "Please scan food."
         
@@ -63,28 +66,28 @@ final class AddProductViewModelTests: XCTestCase {
     }
 
     func test_saveProduct_whenFormInvalid_doesNotCallRepository() async {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         
         await sut.saveProduct()
         
         XCTAssertFalse(mockRepo.isAddProductCalled)
-        XCTAssertFalse(mockRepo.finalizeAndAddCalled)
+        XCTAssertFalse(mockMetricsRepo.trackProductAddedCalled)
     }
 
-    func test_saveProduct_newProduct_callsFinalizeAndAdd() async {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+    func test_saveProduct_newProduct_callsAddProduct() async {
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         makeFormValid(for: sut)
         sut.isImageValid = true
         
         await sut.saveProduct()
         
-        XCTAssertTrue(mockRepo.finalizeAndAddCalled, "Should call finalizeAndAdd for new products")
-        XCTAssertFalse(mockRepo.isAddProductCalled)
+        XCTAssertTrue(mockRepo.isAddProductCalled, "Should call addProduct for new products")
         XCTAssertTrue(sut.isSuccess)
+        XCTAssertTrue(mockMetricsRepo.trackProductAddedCalled, "Should track product added metric")
     }
 
     func test_addPackagingField_appendsNewItemToForm() {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         let initialCount = sut.form.packaging.count
         
         sut.addPackagingField()
@@ -93,7 +96,7 @@ final class AddProductViewModelTests: XCTestCase {
     }
     
     func test_saveProduct_whenErrorOccurs_resetsIsSavingToFalse() async {
-        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService)
+        sut = AddProductViewModel(barcode: "123", repository: mockRepo, uploadService: mockUploadService, metricsRepository: mockMetricsRepo)
         makeFormValid(for: sut)
         sut.isImageValid = true
         
@@ -104,6 +107,7 @@ final class AddProductViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.error, "Error should be recorded")
         XCTAssertFalse(sut.isSaving, "isSaving should reset to false to unlock the UI")
         XCTAssertFalse(sut.isSuccess, "isSuccess should remain false")
+        XCTAssertFalse(mockMetricsRepo.trackProductAddedCalled, "Metric should not be tracked on error")
     }
 
     private func makeFormValid(for vm: AddProductViewModel) {

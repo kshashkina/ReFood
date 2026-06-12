@@ -1,38 +1,43 @@
 import XCTest
+import SwiftData
 @testable import ReFood
 
 @MainActor
 final class SearchViewModelTests: XCTestCase {
     
     var sut: SearchViewModel!
-    var mockRepository: MockSearchHistoryRepository!
+    var mockHistoryRepository: MockSearchHistoryRepository!
+    var mockProductRepository: MockProductRepository!
     
     override func setUp() {
         super.setUp()
-        mockRepository = MockSearchHistoryRepository()
-        sut = SearchViewModel(historyRepository: mockRepository)
+        mockHistoryRepository = MockSearchHistoryRepository()
+        mockProductRepository = MockProductRepository()
+        sut = SearchViewModel(historyRepository: mockHistoryRepository, productRepository: mockProductRepository)
     }
     
     override func tearDown() {
         sut = nil
-        mockRepository = nil
+        mockHistoryRepository = nil
+        mockProductRepository = nil
         super.tearDown()
     }
     
-    func test_getUIModels_shouldReturnAllHistoryItems() {
+    func test_updateUIModels_shouldReturnAllHistoryItems() {
         let history = [
             createHistoryModel(id: "1", name: "Apple", brand: "Brand A"),
             createHistoryModel(id: "2", name: "Milk", brand: "Brand B")
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
+        let result = sut.uiModels
         
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result[0].name, "Apple")
         XCTAssertEqual(result[1].name, "Milk")
     }
     
-    func test_getUIModels_whenSearchTextMatchesName_shouldReturnMatchingItems() {
+    func test_updateUIModels_whenSearchTextMatchesName_shouldReturnMatchingItems() {
         sut.searchText = "app"
         
         let history = [
@@ -40,13 +45,14 @@ final class SearchViewModelTests: XCTestCase {
             createHistoryModel(id: "2", name: "Milk", brand: "Brand B")
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
+        let result = sut.uiModels
         
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result.first?.name, "Apple")
     }
     
-    func test_getUIModels_whenSearchTextMatchesBrand_shouldReturnMatchingItems() {
+    func test_updateUIModels_whenSearchTextMatchesBrand_shouldReturnMatchingItems() {
         sut.searchText = "brand b"
         
         let history = [
@@ -54,13 +60,14 @@ final class SearchViewModelTests: XCTestCase {
             createHistoryModel(id: "2", name: "Milk", brand: "Brand B")
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
+        let result = sut.uiModels
         
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result.first?.brand, "Brand B")
     }
     
-    func test_getUIModels_whenSearchTextDoesNotMatch_shouldReturnEmptyArray() {
+    func test_updateUIModels_whenSearchTextDoesNotMatch_shouldReturnEmptyArray() {
         sut.searchText = "banana"
         
         let history = [
@@ -68,12 +75,12 @@ final class SearchViewModelTests: XCTestCase {
             createHistoryModel(id: "2", name: "Milk", brand: "Brand B")
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
         
-        XCTAssertTrue(result.isEmpty)
+        XCTAssertTrue(sut.uiModels.isEmpty)
     }
     
-    func test_getUIModels_whenShowFavoritesOnlyIsTrue_shouldReturnOnlyFavorites() {
+    func test_updateUIModels_whenShowFavoritesOnlyIsTrue_shouldReturnOnlyFavorites() {
         sut.showFavoritesOnly = true
         
         let history = [
@@ -81,13 +88,13 @@ final class SearchViewModelTests: XCTestCase {
             createHistoryModel(id: "2", name: "Milk", brand: "Brand B", isFavorite: false)
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
         
-        XCTAssertEqual(result.count, 1)
-        XCTAssertEqual(result.first?.id, "1")
+        XCTAssertEqual(sut.uiModels.count, 1)
+        XCTAssertEqual(sut.uiModels.first?.id, "1")
     }
     
-    func test_getUIModels_whenSearchAndFavoritesEnabled_shouldReturnOnlyMatchingFavoriteItems() {
+    func test_updateUIModels_whenSearchAndFavoritesEnabled_shouldReturnOnlyMatchingFavoriteItems() {
         sut.searchText = "apple"
         sut.showFavoritesOnly = true
         
@@ -97,13 +104,13 @@ final class SearchViewModelTests: XCTestCase {
             createHistoryModel(id: "3", name: "Milk", brand: "Brand C", isFavorite: true)
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
         
-        XCTAssertEqual(result.count, 1)
-        XCTAssertEqual(result.first?.id, "1")
+        XCTAssertEqual(sut.uiModels.count, 1)
+        XCTAssertEqual(sut.uiModels.first?.id, "1")
     }
     
-    func test_getUIModels_whenScanDateIsLessThanMinuteAgo_shouldReturnJustNow() {
+    func test_updateUIModels_whenScanDateIsLessThanMinuteAgo_shouldReturnJustNow() {
         let history = [
             createHistoryModel(
                 id: "1",
@@ -113,27 +120,21 @@ final class SearchViewModelTests: XCTestCase {
             )
         ]
         
-        let result = sut.getUIModels(from: history)
+        sut.updateUIModels(from: history)
         
-        XCTAssertEqual(result.first?.timeAgo, String(localized: "search_time_just_now"))
+        XCTAssertEqual(sut.uiModels.first?.timeAgo, String(localized: "search_time_just_now"))
     }
     
-    func test_searchItemUIModel_product_whenProductDataIsValid_shouldDecodeProduct() {
+    func test_updateUIModels_whenProductDataIsValid_shouldDecodeProduct() {
         let model = createHistoryModel(id: "123456789", name: "Apple", brand: "Brand A")
         
-        let uiModel = SearchItemUIModel(
-            originalModel: model,
-            name: model.productName,
-            brand: model.brand,
-            imageUrl: model.imageUrl,
-            timeAgo: "now"
-        )
+        sut.updateUIModels(from: [model])
         
-        XCTAssertNotNil(uiModel.product)
-        XCTAssertEqual(uiModel.product?.productName, "Apple")
+        XCTAssertNotNil(sut.uiModels.first?.product)
+        XCTAssertEqual(sut.uiModels.first?.product?.productName, "Apple")
     }
     
-    func test_searchItemUIModel_product_whenProductDataIsInvalid_shouldReturnNil() {
+    func test_updateUIModels_whenProductDataIsInvalid_shouldReturnNilProduct() {
         let model = ScannedHistoryModel(
             id: "1",
             productData: Data("invalid json".utf8),
@@ -144,68 +145,54 @@ final class SearchViewModelTests: XCTestCase {
             imageUrl: nil
         )
         
-        let uiModel = SearchItemUIModel(
-            originalModel: model,
-            name: model.productName,
-            brand: model.brand,
-            imageUrl: model.imageUrl,
-            timeAgo: "now"
-        )
+        sut.updateUIModels(from: [model])
         
-        XCTAssertNil(uiModel.product)
+        XCTAssertNil(sut.uiModels.first?.product)
     }
     
-    func test_toggleFavorite_whenItemIsNotFavorite_shouldUpdateFavoriteToTrue() async {
+    func test_toggleFavorite_whenItemIsNotFavorite_shouldUpdateFavoriteToFalse() async {
         let model = createHistoryModel(id: "1", isFavorite: false)
-        let uiModel = SearchItemUIModel(
-            originalModel: model,
-            name: model.productName,
-            brand: model.brand,
-            imageUrl: model.imageUrl,
-            timeAgo: "now"
-        )
+        sut.updateUIModels(from: [model])
+        guard let uiModel = sut.uiModels.first else { return XCTFail() }
         
         sut.toggleFavorite(for: uiModel)
         
         try? await Task.sleep(nanoseconds: 100_000_000)
         
-        XCTAssertEqual(mockRepository.updatedFavoriteId, "1")
-        XCTAssertEqual(mockRepository.updatedFavoriteStatus, true)
+        XCTAssertEqual(mockHistoryRepository.updatedFavoriteId, "1")
+        XCTAssertEqual(mockHistoryRepository.updatedFavoriteStatus, false)
     }
     
-    func test_toggleFavorite_whenItemIsFavorite_shouldUpdateFavoriteToFalse() async {
+    func test_toggleFavorite_whenItemIsFavorite_shouldUpdateFavoriteToTrue() async {
         let model = createHistoryModel(id: "1", isFavorite: true)
-        let uiModel = SearchItemUIModel(
-            originalModel: model,
-            name: model.productName,
-            brand: model.brand,
-            imageUrl: model.imageUrl,
-            timeAgo: "now"
-        )
+        sut.updateUIModels(from: [model])
+        guard let uiModel = sut.uiModels.first else { return XCTFail() }
         
         sut.toggleFavorite(for: uiModel)
         
         try? await Task.sleep(nanoseconds: 100_000_000)
         
-        XCTAssertEqual(mockRepository.updatedFavoriteId, "1")
-        XCTAssertEqual(mockRepository.updatedFavoriteStatus, false)
+        XCTAssertEqual(mockHistoryRepository.updatedFavoriteId, "1")
+        XCTAssertEqual(mockHistoryRepository.updatedFavoriteStatus, true)
     }
     
-    func test_delete_shouldCallRepositoryDeleteWithCorrectId() async {
-        let model = createHistoryModel(id: "1")
-        let uiModel = SearchItemUIModel(
-            originalModel: model,
-            name: model.productName,
-            brand: model.brand,
-            imageUrl: model.imageUrl,
-            timeAgo: "now"
-        )
+    func test_delete_shouldCallRepositoryDeleteWithCorrectId() async throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: ScannedHistoryModel.self, configurations: config)
+        let context = container.mainContext
         
-        sut.delete(uiModel: uiModel)
+        let model = createHistoryModel(id: "1")
+        context.insert(model)
+        
+        sut.updateUIModels(from: [model])
+        guard let uiModel = sut.uiModels.first else { return XCTFail() }
+        
+        sut.delete(uiModel: uiModel, context: context)
         
         try? await Task.sleep(nanoseconds: 100_000_000)
         
-        XCTAssertEqual(mockRepository.deletedId, "1")
+        XCTAssertEqual(mockHistoryRepository.deletedId, "1")
+        XCTAssertTrue(sut.uiModels.isEmpty)
     }
     
     private func createHistoryModel(
@@ -248,3 +235,5 @@ final class SearchViewModelTests: XCTestCase {
         return try! JSONSerialization.data(withJSONObject: json)
     }
 }
+
+
