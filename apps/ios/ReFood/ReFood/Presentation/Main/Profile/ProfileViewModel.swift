@@ -11,12 +11,12 @@ final class ProfileViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var greetingText: String = ""
     
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     private let linkAccountUseCase: LinkAppleAccountUseCase
     private var localStorage: LocalStorageProtocol
     
     init(
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         linkAccountUseCase: LinkAppleAccountUseCase,
         localStorage: LocalStorageProtocol
     ) {

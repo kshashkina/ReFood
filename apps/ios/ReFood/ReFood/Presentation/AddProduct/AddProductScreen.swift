@@ -15,7 +15,7 @@ struct AddProductScreen: View {
         existingProduct: Product? = nil,
         repository: ProductRepository,
         uploadService: ImageUploadServicing,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol
     ) {
         _vm = StateObject(wrappedValue: AddProductViewModel(

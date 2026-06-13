@@ -22,13 +22,13 @@ final class ScannerViewModel: ObservableObject {
     private let scanner: BarcodeScanning
     private let productRepository: ProductRepository
     private let historyRepository: HistoryRepository
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
 
     init(
         scanner: BarcodeScanning,
         productRepository: ProductRepository,
         historyRepository: HistoryRepository,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         firstProductForComparison: Product? = nil
     ) {
         self.scanner = scanner

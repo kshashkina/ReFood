@@ -38,30 +38,28 @@ struct PreviewImageSection: View {
     let imageUrl: URL?
     
     var body: some View {
-        GeometryReader { geo in
-            let side = geo.size.width - 32
-            ZStack {
-                CachedAsyncImage(url: imageUrl, contentMode: .fill) {
-                    ZStack {
-                        Color.white.opacity(0.05)
-                        Image(systemName: "photo")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.3))
-                    }
+        let side = UIScreen.main.bounds.width - 32
+        
+        ZStack {
+            CachedAsyncImage(url: imageUrl, contentMode: .fill) {
+                ZStack {
+                    Color.white.opacity(0.05)
+                    Image(systemName: "photo")
+                        .font(.system(size: 32, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.3))
                 }
-                .frame(width: side, height: side)
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 32))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 32)
-                        .stroke(Color.appAccent, lineWidth: 2)
-                )
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
+            .frame(width: side, height: side)
+            .clipped() 
+            .clipShape(RoundedRectangle(cornerRadius: 32))
+            .overlay(
+                RoundedRectangle(cornerRadius: 32)
+                    .stroke(Color.appAccent, lineWidth: 2)
+            )
         }
-        .frame(height: 360)
+        .frame(maxWidth: .infinity)
         .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 }
 

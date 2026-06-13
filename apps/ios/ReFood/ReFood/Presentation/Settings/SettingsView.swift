@@ -36,6 +36,13 @@ struct SettingsView: View {
                         }
                     }
                     
+                    SettingsSectionView(title: String(localized: "settings_section_preferences")) {
+                        SettingsRowButton(icon: "globe", title: String(localized: "settings_language")) {
+                            analytics.track(SettingsEvent.languageTap)
+                            vm.openSystemSettings()
+                        }
+                    }
+                    
                     SettingsSectionView(title: String(localized: "settings_section_legal")) {
                         SettingsRowButton(icon: "doc.text", title: String(localized: "settings_legal_terms")) {
                             analytics.track(SettingsEvent.termsTap)

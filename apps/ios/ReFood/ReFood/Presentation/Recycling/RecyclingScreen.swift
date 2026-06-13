@@ -9,7 +9,7 @@ struct RecyclingScreen: View {
     init(
         product: Product,
         languageProvider: LanguageProvider,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onFindPointTapped: @escaping (String) -> Void
@@ -42,22 +42,12 @@ struct RecyclingScreen: View {
                     } else {
                         RecyclingEmptyStateView()
                     }
-                    
-                    RecyclingWasteTypesSection(
-                        wasteTypes: vm.standardWasteTypes,
-                        selectedType: vm.selectedWasteType,
-                        onSelect: {
-                            analytics.track(RecyclingEvent.selectTap(type: $0.titleKey))
-                            vm.selectedWasteType = $0
-                        }
-                    )
-                    
-                    let isButtonDisabled = vm.selectedWasteType == nil
+                    let isButtonDisabled = !vm.hasPackagingData
                     
                     RecyclingFindPointButton(isDisabled: isButtonDisabled) {
-                        guard let selected = vm.selectedWasteType else { return }
-                        analytics.track(RecyclingEvent.findTap(type: selected.titleKey))
-                        onFindPointTapped(selected.filterKey)
+                        let filterQuery = vm.combinedMaterialsFilter                        
+                        analytics.track(RecyclingEvent.findTap(type: filterQuery))
+                        onFindPointTapped(filterQuery)
                     }
                 }
                 .padding(.horizontal, 24)

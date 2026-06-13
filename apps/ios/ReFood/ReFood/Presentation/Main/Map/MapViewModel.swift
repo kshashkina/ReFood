@@ -55,13 +55,13 @@ final class MapViewModel: ObservableObject {
     private let repository: LocationRepository
     private let networkMonitor: NetworkMonitoring
     private let locationService: LocationServiceProtocol
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
 
     init(
         repository: LocationRepository,
         networkMonitor: NetworkMonitoring,
         locationService: LocationServiceProtocol,
-        metricsRepository: MetricsRepositoryProtocol
+        metricsRepository: MetricsRepository
     ) {
         self.repository = repository
         self.networkMonitor = networkMonitor
@@ -173,7 +173,6 @@ final class MapViewModel: ObservableObject {
                     self.selectedPoint = nil
                     self.isBuildingRoute = false
                     self.loadingRouteMode = nil
-                    self.incrementSortedCount()
                     focusOnRoute(fetchedRoute)
                 }
             } catch {
@@ -284,5 +283,13 @@ final class MapViewModel: ObservableObject {
     
     func incrementSortedCount() {
         metricsRepository.incrementSortedCount()
+    }
+    
+    func markAsSorted() {
+        incrementSortedCount()
+        
+        Task {
+            try? await repository.recordSortMetric()
+        }
     }
 }

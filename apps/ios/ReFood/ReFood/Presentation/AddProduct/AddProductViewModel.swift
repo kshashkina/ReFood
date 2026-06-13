@@ -26,14 +26,14 @@ final class AddProductViewModel: ObservableObject {
     
     private let repository: ProductRepository
     private let uploadService: ImageUploadServicing
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     
     init(
         barcode: String,
         existingProduct: Product? = nil,
         repository: ProductRepository,
         uploadService: ImageUploadServicing,
-        metricsRepository: MetricsRepositoryProtocol
+        metricsRepository: MetricsRepository
     ) {
         self.barcode = barcode
         self.repository = repository

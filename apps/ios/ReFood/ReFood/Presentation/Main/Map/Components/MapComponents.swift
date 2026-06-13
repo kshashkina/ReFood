@@ -291,10 +291,75 @@ struct RouteModeButton: View {
     }
 }
 
+
+import SwiftUI
+
+struct SortedAnimatedButton: View {
+    @State private var isSorted = false
+    @State private var animateStars = false
+    let action: () -> Void
+    
+    var body: some View {
+        ZStack {
+            if isSorted {
+                ForEach(0..<12, id: \.self) { _ in
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.appAccent)
+                        .font(.system(size: 18))
+                        .offset(
+                            x: animateStars ? CGFloat.random(in: -40 ... 40) : 0,
+                            y: animateStars ? CGFloat.random(in: -80 ... -30) : 0
+                        )
+                        .opacity(animateStars ? 0 : 1)
+                        .scaleEffect(animateStars ? 1.5 : 0.1)
+                        .onAppear {
+                            withAnimation(.easeOut(duration: 2)) {
+                                animateStars = true
+                            }
+                        }
+                }
+            }
+            Button(action: {
+                guard !isSorted else { return }
+                
+                let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                impactMed.impactOccurred()
+                
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                    isSorted = true
+                }
+                
+                action()
+            }) {
+                HStack {
+                    if isSorted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .bold))
+                    } else {
+                        Text(LocalizedStringKey("map_btn_sorted"))
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, isSorted ? 0 : 16)
+                .frame(width: isSorted ? 44 : nil, height: 44)
+                .background(Color.appAccent)
+                .cornerRadius(22)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22)
+                        .stroke(Color.appAccent, lineWidth: 2)
+                )
+            }
+            .disabled(isSorted)
+        }
+    }
+}
+
 struct RouteInfoBanner: View {
     let route: MapRoute
     let formattedTime: String
     let formattedDistance: String
+    let onSorted: () -> Void
     let onCancel: () -> Void
     
     var body: some View {
@@ -313,7 +378,7 @@ struct RouteInfoBanner: View {
             }
             
             Spacer()
-            
+            SortedAnimatedButton(action: onSorted)
             Button(action: onCancel) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title)

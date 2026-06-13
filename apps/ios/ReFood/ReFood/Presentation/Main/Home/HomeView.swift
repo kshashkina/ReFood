@@ -12,7 +12,7 @@ struct HomeView: View {
     init(
         dashboardData: DailyDashboardResponse?,
         languageProvider: LanguageProvider,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol,
         onProductTap: @escaping (Product) -> Void = { _ in },
         onSeeAllTap: @escaping () -> Void = {}

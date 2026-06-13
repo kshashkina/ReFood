@@ -27,7 +27,12 @@ struct PhotoSectionView: View {
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(vm.imageError != nil ? Color.red.opacity(0.5) : (vm.isImageValid ? Color.appAccent.opacity(0.5) : Color.white.opacity(0.1)), lineWidth: 2))
                     
                     if let image = vm.selectedUIImage {
-                        Image(uiImage: image).resizable().scaledToFill().frame(height: 160).cornerRadius(20).clipped()
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(minWidth: 0, maxWidth: .infinity)
+                            .frame(height: 160)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
                             .blur(radius: vm.isUploadingImage ? 8 : 0)
                             .overlay(Color.black.opacity(vm.isUploadingImage ? 0.6 : 0).cornerRadius(20))
                     } else if vm.isEditingMode, let url = vm.existingImageUrl {
@@ -36,7 +41,11 @@ struct PhotoSectionView: View {
                                 Image(systemName: "photo").font(.system(size: 30))
                                 Text("addProduct_photo_no_image").font(.system(size: 14, weight: .medium))
                             }.foregroundColor(.white.opacity(0.3))
-                        }.frame(height: 160).cornerRadius(20).clipped()
+                        }
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .frame(height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "camera.fill").font(.system(size: 30))

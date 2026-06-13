@@ -6,6 +6,7 @@ protocol AuthRepositoryProtocol {
     func signInWithApple() async throws -> String
     func fetchCurrentIdToken() async throws -> String
     func signOut() async throws
+    func repairExpiredSessionIfNeeded() async
 }
 
 protocol UserRepositoryProtocol {
@@ -30,6 +31,13 @@ protocol DatabaseCleanerProtocol {
     func clearAllLocalData() async
 }
 
+enum RegistrationResult {
+    case firstLaunch
+    case reinstall
+    case alreadyRegistered
+    case failed
+}
+
 final class RegisterAnonymousUserUseCase {
     private let authRepository: AuthRepositoryProtocol
     private let userRepository: UserRepositoryProtocol
@@ -51,12 +59,14 @@ final class RegisterAnonymousUserUseCase {
         self.analytics = analytics
     }
     
-    func execute() async {
+    func execute() async -> RegistrationResult {
         let isReinstall = deviceIDProvider.hasExistingDeviceID()
         let deviceId = deviceIDProvider.getDeviceID()
         analytics.setUserId(deviceId)
         
-        guard !localStorage.isRegisteredWithBackend else { return }
+        guard !localStorage.isRegisteredWithBackend else {
+            return .alreadyRegistered
+        }
         
         do {
             let identityId = try await authRepository.getIdentityId()
@@ -64,10 +74,13 @@ final class RegisterAnonymousUserUseCase {
             localStorage.isRegisteredWithBackend = true
             if isReinstall {
                 analytics.track(AppLifecycleEvent.reinstall)
+                return .reinstall
             } else {
                 analytics.track(AppLifecycleEvent.firstLaunch)
+                return .firstLaunch
             }
         } catch {
+            return .failed
         }
     }
 }

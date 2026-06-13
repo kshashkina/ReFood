@@ -6,7 +6,7 @@ struct ProductDetailsScreen: View {
     private let repository: ProductRepository
     private let uploadService: ImageUploadServicing
     private let languageProvider: LanguageProvider
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     let analytics: AnalyticsServiceProtocol
     
     let onBack: () -> Void
@@ -27,7 +27,7 @@ struct ProductDetailsScreen: View {
         repository: ProductRepository,
         uploadService: ImageUploadServicing,
         languageProvider: LanguageProvider,
-        metricsRepository: MetricsRepositoryProtocol,
+        metricsRepository: MetricsRepository,
         analytics: AnalyticsServiceProtocol,
         onBack: @escaping () -> Void,
         onCompare: @escaping (Product) -> Void = { _ in },

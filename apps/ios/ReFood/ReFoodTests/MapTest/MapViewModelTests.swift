@@ -10,12 +10,14 @@ final class MapViewModelTests: XCTestCase {
     var mockRepository: MockLocationRepository!
     var mockNetworkMonitor: MockNetworkMonitor!
     var mockLocationService: MockLocationService!
+    var mockMetricsRepository: MockMetricsRepository!
     
     override func setUp() {
         super.setUp()
         mockRepository = MockLocationRepository()
         mockNetworkMonitor = MockNetworkMonitor()
         mockLocationService = MockLocationService()
+        mockMetricsRepository = MockMetricsRepository()
         sut = makeSUT()
     }
     
@@ -24,6 +26,7 @@ final class MapViewModelTests: XCTestCase {
         mockRepository = nil
         mockNetworkMonitor = nil
         mockLocationService = nil
+        mockMetricsRepository = nil
         super.tearDown()
     }
     
@@ -265,11 +268,19 @@ final class MapViewModelTests: XCTestCase {
         XCTAssertEqual(sut.getFormattedTime(3600), RouteFormatter.time(3600))
     }
     
+    func test_markAsSorted_shouldIncrementMetricsAndRecordMetricOnBackend() async {
+        sut.markAsSorted()
+        XCTAssertTrue(mockMetricsRepository.incrementSortedCountCalled)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(mockRepository.recordSortMetricCalled)
+    }
+    
     private func makeSUT() -> MapViewModel {
         MapViewModel(
             repository: mockRepository,
             networkMonitor: mockNetworkMonitor,
-            locationService: mockLocationService
+            locationService: mockLocationService,
+            metricsRepository: mockMetricsRepository
         )
     }
     
@@ -343,6 +354,7 @@ final class MockLocationRepository: LocationRepository {
     var shouldThrowLocationsError = false
     var shouldThrowRouteError = false
     var receivedMaterials: String?
+    var recordSortMetricCalled = false
     
     func getLocations(lat: Double, lon: Double, materials: String?) async throws -> [MapPoint] {
         receivedMaterials = materials
@@ -364,5 +376,9 @@ final class MockLocationRepository: LocationRepository {
         }
         
         return mockRoute
+    }
+    
+    func recordSortMetric() async throws {
+        recordSortMetricCalled = true
     }
 }

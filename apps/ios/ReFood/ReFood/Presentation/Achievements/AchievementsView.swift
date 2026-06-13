@@ -5,7 +5,7 @@ struct AchievementsView: View {
     let analytics: AnalyticsServiceProtocol
     let onBack: () -> Void
     
-    init(metricsRepository: MetricsRepositoryProtocol, analytics: AnalyticsServiceProtocol, onBack: @escaping () -> Void) {
+    init(metricsRepository: MetricsRepository, analytics: AnalyticsServiceProtocol, onBack: @escaping () -> Void) {
         self._vm = StateObject(wrappedValue: AchievementsViewModel(metricsRepository: metricsRepository))
         self.analytics = analytics
         self.onBack = onBack

@@ -1,11 +1,6 @@
 import Foundation
 import CoreLocation
 
-public protocol LocationRepository {
-    func getLocations(lat: Double, lon: Double, materials: String?) async throws -> [MapPoint]
-    func getRoute(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: String) async throws -> MapRoute
-}
-
 final class LocationRepositoryImpl: LocationRepository {
     
     func getLocations(lat: Double, lon: Double, materials: String?) async throws -> [MapPoint] {
@@ -39,4 +34,13 @@ final class LocationRepositoryImpl: LocationRepository {
                 throw NetworkError.invalidResponse
             }
         }
+    
+    func recordSortMetric() async throws {
+        do {
+            try await MapAPI.recordSortMetric()
+        } catch {
+            throw NetworkError.invalidResponse
+        }
+    }
+    
 }

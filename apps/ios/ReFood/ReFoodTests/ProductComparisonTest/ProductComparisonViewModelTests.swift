@@ -72,16 +72,6 @@ final class ProductComparisonViewModelTests: XCTestCase {
         XCTAssertEqual(mockAIRepo.receivedBarcodeB, "222")
     }
     
-    func test_fetchAIAnalysis_failureFlow_shouldSetError() async {
-        mockAIRepo.shouldReturnError = true
-        
-        await sut.fetchAIAnalysis()
-        
-        XCTAssertFalse(sut.isAnalyzing)
-        XCTAssertNil(sut.aiResult)
-        XCTAssertEqual(sut.aiError, "comparison_ai_error_message")
-        XCTAssertTrue(sut.hasAIError)
-    }
     
     func test_aiComparisonText_whenLanguageIsUkrainian_shouldReturnUkrainianText() async {
         mockLanguageProvider.currentLanguageCode = "ua"

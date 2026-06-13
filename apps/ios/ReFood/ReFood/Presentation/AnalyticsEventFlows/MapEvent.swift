@@ -10,6 +10,7 @@ enum MapEvent: AnalyticsEventProtocol {
     case pointCloseTap
     case searchTap
     case routeCloseTap
+    case routeSortedTap
     
     case locationModalView
     case locationAccessAllow
@@ -29,6 +30,7 @@ enum MapEvent: AnalyticsEventProtocol {
         case .pointCloseTap: return "map_point_close_tap"
         case .searchTap: return "map_search_tap"
         case .routeCloseTap: return "map_route_close_tap"
+        case .routeSortedTap: return "map_route_sorted_tap"
             
         case .locationModalView: return "location_access_modal_view"
         case .locationAccessAllow: return "location_access_allow"

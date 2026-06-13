@@ -15,10 +15,10 @@ final class ManualInputViewModel: ObservableObject {
     
     private let repository: ProductRepository
     private let historyRepository: HistoryRepository
-    private let metricsRepository: MetricsRepositoryProtocol
+    private let metricsRepository: MetricsRepository
     private var loadingTimer: Timer?
     
-    init(repository: ProductRepository, historyRepository: HistoryRepository, metricsRepository: MetricsRepositoryProtocol) {
+    init(repository: ProductRepository, historyRepository: HistoryRepository, metricsRepository: MetricsRepository) {
         self.repository = repository
         self.historyRepository = historyRepository
         self.metricsRepository = metricsRepository
