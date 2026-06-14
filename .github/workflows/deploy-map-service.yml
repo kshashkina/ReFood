@@ -20,13 +20,21 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Install dependencies
+      - name: Install dependencies (with devDependencies)
+        working-directory: apps/backend/lambda/map-service
+        run: npm install
+
+      - name: Run tests
+        working-directory: apps/backend/lambda/map-service
+        run: npm test
+
+      - name: Install production dependencies
         working-directory: apps/backend/lambda/map-service
         run: npm install --omit=dev
 
       - name: Create Zip archive
         working-directory: apps/backend/lambda/map-service
-        run: zip -r deploy.zip . -x "*.git*"
+        run: zip -r deploy.zip . -x "*.git*" -x "node_modules/.cache/*"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
