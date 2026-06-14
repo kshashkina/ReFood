@@ -1,0 +1,16 @@
+{
+  "name": "lambda-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm test --prefix ./ai-service && npm test --prefix ./job-status-checker && npm test --prefix ./map-service && npm test --prefix ./metrics-service && npm test --prefix ./news-service && npm test --prefix ./product-handler && npm test --prefix ./s3-service && npm test --prefix ./user-handler",
+    "test:ai-service": "npm test --prefix ./ai-service",
+    "test:job-status-checker": "npm test --prefix ./job-status-checker",
+    "test:map-service": "npm test --prefix ./map-service",
+    "test:metrics-service": "npm test --prefix ./metrics-service",
+    "test:news-service": "npm test --prefix ./news-service",
+    "test:product-handler": "npm test --prefix ./product-handler",
+    "test:s3-service": "npm test --prefix ./s3-service",
+    "test:user-handler": "npm test --prefix ./user-handler"
+  }
+}
