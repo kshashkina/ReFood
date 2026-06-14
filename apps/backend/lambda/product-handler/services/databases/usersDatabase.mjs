@@ -26,16 +26,3 @@ export const findUserIdByAnyMethod = async (identity) => {
     const result = await docClient.send(new QueryCommand(params));
     return result.Items?.[0]?.userId || null;
 };
-
-export const incrementUserScanCount = async (userId) => {
-    const params = {
-        TableName: USERS_TABLE,
-        Key: { userId },
-        UpdateExpression: "SET scansCount = if_not_exists(scansCount, :zero) + :inc",
-        ExpressionAttributeValues: {
-            ":inc": 1,
-            ":zero": 0
-        }
-    };
-    return await docClient.send(new UpdateCommand(params));
-};
