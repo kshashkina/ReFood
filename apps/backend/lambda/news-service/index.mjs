@@ -11,7 +11,6 @@ export const handler = async (event) => {
     const method = event.httpMethod || event.requestContext?.http?.method;
     const path = event.path || event.rawPath || '';
     const pathParts = path.split('/').filter(part => part !== '');
-
     console.log(`Request: ${method} ${path}`);
 
     try {

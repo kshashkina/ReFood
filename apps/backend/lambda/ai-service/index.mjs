@@ -32,10 +32,7 @@ export const handler = async (event) => {
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ 
-                error: "AI Processing failed", 
-                message: error.message 
-            })
+            body: JSON.stringify({ error: "AI Processing failed", message: error.message })
         };
     }
 };

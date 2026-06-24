@@ -6,7 +6,6 @@ export const handler = async (event) => {
     const path = event.path || event.rawPath || '';
 
     const pathParts = path.split('/').filter(part => part !== '');
-
     console.log(`Request: ${method} ${path}`);
 
     try {

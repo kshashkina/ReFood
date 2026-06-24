@@ -29,7 +29,6 @@ export const handler = async (event) => {
         return response(404, {
             error: "Route not found in MapService"
         });
-
     } catch (error) {
         console.error("Error:", error);
         return response(500, {

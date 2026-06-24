@@ -63,7 +63,6 @@ export const handler = async (event) => {
         return response(404, {
             error: "Route not found"
         });
-
     } catch (error) {
         console.error("Error:", error);
         return response(500, {
